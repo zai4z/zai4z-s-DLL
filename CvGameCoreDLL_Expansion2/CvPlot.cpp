@@ -3169,7 +3169,7 @@ bool CvPlot::canBuild(BuildTypes eBuild, PlayerTypes ePlayer, bool bTestVisible,
 
 		if(getRouteType() != NO_ROUTE)
 		{
-			if (isWater() && !thisBuildInfo.IsWater())
+			if ((isWater() && !thisBuildInfo.IsWater()) && !IsAllowsWalkWater())
 			{
 				return false;
 			}
