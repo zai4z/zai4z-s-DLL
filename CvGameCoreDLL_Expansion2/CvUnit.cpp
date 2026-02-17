@@ -14243,7 +14243,14 @@ bool CvUnit::isNativeDomain(const CvPlot* pPlot) const
 			ImprovementTypes eImprovement = pPlot->getImprovementType();
 			CvImprovementEntry* pkImprovementInfo = eImprovement != NO_IMPROVEMENT ? GC.getImprovementInfo(eImprovement) : NULL;
 			if (pkImprovementInfo != NULL && pkImprovementInfo->IsAllowsWalkWater())
+			{
+				// if embarked, treat like water (not native land)
+				if (isEmbarked())
+					return false;
+
+				// if not embarked, treat like land
 				return true;
+			}
 			else
 			{
 				//let's treat ice like (usually impassable) land

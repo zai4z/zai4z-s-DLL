@@ -3825,26 +3825,40 @@ bool CvPlot::IsAllowsWalkWater() const
 
 bool CvPlot::needsEmbarkation(const CvUnit* pUnit) const
 {
-	//embarkation only on water plots
-	if (!isWater() || isIce() || IsAllowsWalkWater())
-		return false;
+    // embarkation only on water plots
+    if (!isWater() || isIce())
+        return false;
 
-	if (!pUnit)
-		return true;
+    // special rule: walk-water improvements
+    if (IsAllowsWalkWater())
+    {
+        if (!pUnit)
+            return false;
 
-	//only land units need to embark
-	if (pUnit->getDomainType() != DOMAIN_LAND || pUnit->canMoveAllTerrain())
-		return false;
+        // embarked units treat this like water (stay embarked)
+        if (pUnit->isEmbarked())
+            return true;
 
-	if (pUnit->IsEmbarkDeepWater())
-		return isDeepWater();
+        // normal land units treat this like land
+        return false;
+    }
 
-	//some units can flip between different types
-	if (pUnit->isConvertUnit())
-		return false;
+    if (!pUnit)
+        return true;
 
-	//we know it's a land unit and a water plot by now
-	return true;
+    // only land units need to embark
+    if (pUnit->getDomainType() != DOMAIN_LAND || pUnit->canMoveAllTerrain())
+        return false;
+
+    if (pUnit->IsEmbarkDeepWater())
+        return isDeepWater();
+
+    // some units can flip between different types
+    if (pUnit->isConvertUnit())
+        return false;
+
+    // we know it's a land unit and a water plot by now
+    return true;
 }
 
 //	--------------------------------------------------------------------------------
