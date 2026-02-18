@@ -9717,7 +9717,7 @@ void CvTacticalPosition::updateMoveAndAttackPlotsForUnit(SUnitStats unit)
 				if (haveEnemies())
 				{
 					//ignore all plots where we cannot fight. allow ships to capture/garrison cities though!
-					if (!pUnit->isNativeDomain(pPlot) && !pPlot->isCoastalCityOrPassableImprovement(pUnit->getOwner(),false,false))
+					if (!pUnit->isNativeDomain(pPlot) && !pPlot->isCoastalCityOrPassableImprovement(pUnit->getOwner(),false,false,false,false))
 						continue;
 				}
 				else

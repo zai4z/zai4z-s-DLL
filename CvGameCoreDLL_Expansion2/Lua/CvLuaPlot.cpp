@@ -1023,7 +1023,7 @@ int CvLuaPlot::lisFriendlyCityOrPassableImprovement(lua_State* L)
 	//unused, only for backward compatibility
 	//const bool bCheckImprovement = lua_toboolean(L, 3);
 
-	const bool bResult = pkPlot->isCoastalCityOrPassableImprovement(pkUnit->getOwner(), true, true);
+	const bool bResult = pkPlot->isCoastalCityOrPassableImprovement(pkUnit->getOwner(), true, false, true, false);
 	lua_pushboolean(L, bResult);
 	return 1;
 }

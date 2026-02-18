@@ -108,7 +108,7 @@ int CvUnitMovement::GetCostsForMove(const CvUnit* pUnit, const CvPlot* pFromPlot
 				bCheapEmbarkStateChange = true;
 
 			//If city, and player has disembark to city at reduced cost...
-			if (pToPlot->isCoastalCityOrPassableImprovement(pUnit->getOwner(),true,true))
+			if (pToPlot->isCoastalCityOrPassableImprovement(pUnit->getOwner(),true,true,true,true))
 			{
 				if (kUnitTeam.isCityNoEmbarkCost())
 					bFreeEmbarkStateChange = true;
@@ -127,7 +127,7 @@ int CvUnitMovement::GetCostsForMove(const CvUnit* pUnit, const CvPlot* pFromPlot
 				bCheapEmbarkStateChange = true;
 
 			//If city, and player has embark from city at reduced cost...
-			if (pFromPlot->isCoastalCityOrPassableImprovement(kPlayerId,true,true))
+			if (pFromPlot->isCoastalCityOrPassableImprovement(kPlayerId,true,true,true,true))
 			{
 				if (kUnitTeam.isCityNoEmbarkCost())
 					bFreeEmbarkStateChange = true;

@@ -2233,7 +2233,8 @@ int CityConnectionWaterValid(const CvAStarNode* parent, const CvAStarNode* node,
 	if(!pNewPlot->isRevealed(eTeam))
 		return FALSE;
 
-	if (!pNewPlot->isWater() && !pNewPlot->isCoastalCityOrPassableImprovement(ePlayer,true,true))
+	// Water city connections can only pass though non-enemy cities and canals
+	if (!pNewPlot->isWater() && !pNewPlot->isCoastalCityOrPassableImprovement(ePlayer,false,false,true,true))
 		return FALSE;
 
 	//finally check plot ownership
@@ -2322,7 +2323,8 @@ static int SeaWorkerUnitSafeValid(const CvAStarNode* parent, const CvAStarNode* 
 	if (pNewPlot->isIce() && !GET_PLAYER(ePlayer).CanCrossIce())
 		return FALSE;
 
-	if (!pNewPlot->isWater() && !pNewPlot->isCoastalCityOrPassableImprovement(ePlayer, true, true))
+	// Work boat can safely enter all non-enemy canals and cities
+	if (!pNewPlot->isWater() && !pNewPlot->isCoastalCityOrPassableImprovement(ePlayer, false, false, true, true))
 		return FALSE;
 
 	if (pNewPlot->getTeam() != eTeam && !pNewPlot->isAdjacentTeam(eTeam))
@@ -2384,7 +2386,7 @@ int NavalUnitSimpleValid(const CvAStarNode* parent, const CvAStarNode* node, con
 		return FALSE;
 
 	//check terrain
-	if (!pToPlot->isWater() && !pToPlot->isCoastalCityOrPassableImprovement(data.ePlayer, false, true))
+	if (!pToPlot->isWater() && !pToPlot->isCoastalCityOrPassableImprovement(data.ePlayer, false, false, false, false))
 		return FALSE;
 	if (pToPlot->isDeepWater() && finder->HaveFlag(CvUnit::MOVEFLAG_NO_OCEAN))
 		return FALSE;
@@ -3675,14 +3677,14 @@ int TradePathWaterValid(const CvAStarNode* parent, const CvAStarNode* node, cons
 		CvPlot* pPrevPlot = kMap.plotUnchecked(parent->m_iX, parent->m_iY);
 		if (pPrevPlot->isOwned())
 		{
-			if (GET_TEAM(pCacheData->GetTeam()).isAtWar(pPrevPlot->getTeam()) && pPrevPlot->isCoastalCityOrPassableImprovement(pCacheData->GetPlayer(), false, false))
+			if (GET_TEAM(pCacheData->GetTeam()).isAtWar(pPrevPlot->getTeam()) && pPrevPlot->isCoastalCityOrPassableImprovement(pCacheData->GetPlayer(), false, false, false, false))
 				return FALSE;
 		}
 
 		return TRUE;
 	}
-	//land plots only allowed if there is a passable improvements
-	else if (pNewPlot->isCoastalCityOrPassableImprovement(pCacheData->GetPlayer(), false, false))
+	//land plots only allowed if there is a non-enemy city or canal
+	else if (pNewPlot->isCoastalCityOrPassableImprovement(pCacheData->GetPlayer(),false,false,true,true))
 	{
 		//most of the time we check for reachable plots so we can't decide if a city is the target city or not
 		//so we have to allow all cities and forts
@@ -3821,7 +3823,7 @@ int ArmyStepValidWater(const CvAStarNode* parent, const CvAStarNode* node, const
 		return FALSE;
 
 	//check terrain (we'll check city ownership in ArmyCheckTerritory)
-	if (!pToPlot->isWater() && !pToPlot->isCoastalCityOrPassableImprovement(data.ePlayer,false,true))
+	if (!pToPlot->isWater() && !pToPlot->isCoastalCityOrPassableImprovement(data.ePlayer,false,false,false,false))
 		return FALSE;
 	//we could check the trait directly but theoretically we could have an old army of non-oceangoing ships ...
 	if (pToPlot->isDeepWater() && finder->HaveFlag(CvUnit::MOVEFLAG_NO_OCEAN))

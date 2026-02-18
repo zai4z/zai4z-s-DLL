@@ -4788,16 +4788,21 @@ bool CvPlot::isFortification(TeamTypes eOccupyingTeam) const
 	return false;
 }
 
-bool CvPlot::isCoastalCityOrPassableImprovement(PlayerTypes ePlayer, bool bCityMustBeFriendly, bool bImprovementMustBeFriendly) const
+bool CvPlot::isCoastalCityOrPassableImprovement(PlayerTypes ePlayer, bool bCityMustBeFriendly, bool bImprovementMustBeFriendly, bool bCityMustNotBeEnemy, bool bImprovementMustNotBeEnemy) const
 {
+	bool bFriendly = IsFriendlyTerritory(ePlayer);
+    bool bEnemy    = IsEnemyTerritory(ePlayer);
 	// Good enough
 	if (isCity())
 	{
 		if (!isCoastalLand())
 			return false;
 
-		if (bCityMustBeFriendly)
-			return IsFriendlyTerritory(ePlayer);
+        if (bCityMustBeFriendly)
+            return bFriendly;   // friendly overrides everything
+
+        if (bCityMustNotBeEnemy && bEnemy)
+            return false;
 
 		return true;
 	}
@@ -4805,13 +4810,16 @@ bool CvPlot::isCoastalCityOrPassableImprovement(PlayerTypes ePlayer, bool bCityM
 	bool bIsPassableImprovement = MOD_GLOBAL_PASSABLE_FORTS && IsImprovementPassable() && !IsImprovementPillaged();
 
 	// Good enough
-	if (bIsPassableImprovement)
-	{
-		if (bImprovementMustBeFriendly)
-			return IsFriendlyTerritory(ePlayer);
-		else
-			return true;
-	}
+    if (bIsPassableImprovement)
+    {
+        if (bImprovementMustBeFriendly)
+            return bFriendly;   // friendly overrides everything
+
+        if (bImprovementMustNotBeEnemy && bEnemy)
+            return false;
+
+        return true;
+    }
 
 	return false;
 }
@@ -4853,6 +4861,30 @@ bool CvPlot::IsFriendlyTerritory(PlayerTypes ePlayer) const
 	}
 
 	return false;
+}
+
+//	--------------------------------------------------------------------------------
+
+bool CvPlot::IsEnemyTerritory(PlayerTypes ePlayer) const
+{
+    TeamTypes ePlotOwner = getTeam();
+
+    // Nobody owns this plot
+    if (ePlotOwner == NO_TEAM)
+        return false;
+
+    // Invalid player cases
+    if (ePlayer == NO_PLAYER || ePlayer == BARBARIAN_PLAYER)
+        return false;
+
+    TeamTypes ePlayerTeam = GET_PLAYER(ePlayer).getTeam();
+
+    // Can't be enemy if same team
+    if (ePlotOwner == ePlayerTeam)
+        return false;
+
+    // Enemy territory = at war
+    return GET_TEAM(ePlayerTeam).isAtWar(ePlotOwner);
 }
 
 //	--------------------------------------------------------------------------------

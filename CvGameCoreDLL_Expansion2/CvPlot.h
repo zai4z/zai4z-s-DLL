@@ -279,8 +279,9 @@ public:
 	bool isCity() const;
 	bool isEnemyCity(const CvUnit& kUnit) const;
 	bool isFriendlyCity(const CvUnit& kUnit) const;
-	bool isCoastalCityOrPassableImprovement(PlayerTypes ePlayer, bool bCityMustBeFriendly, bool bImprovementMustBeFriendly) const;
+	bool isCoastalCityOrPassableImprovement(PlayerTypes ePlayer, bool bCityMustBeFriendly, bool bImprovementMustBeFriendly, bool bCityMustNotBeEnemy, bool bImprovementMustNotBeEnemy) const;
 	bool IsFriendlyTerritory(PlayerTypes ePlayer) const;
+	bool IsEnemyTerritory(PlayerTypes ePlayer) const;
 
 	bool isBeingWorked() const;
 

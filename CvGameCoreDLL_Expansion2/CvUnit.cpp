@@ -4689,11 +4689,11 @@ bool CvUnit::canEnterTerrain(const CvPlot& enterPlot, int iMoveFlags) const
 			return false;
 
 	// Sea units - we can exclude non-water plots right away
-	// also allow forts and cities if adjacent to real water
+	// also allow canals and cities
 	if (eDomain==DOMAIN_SEA)
 	{
-		//only trade units can pass through non-friendly improvements
-		if (!enterPlot.isWater() && !enterPlot.isCoastalCityOrPassableImprovement(getOwner(), false, false))
+		//
+		if (!enterPlot.isWater() && !enterPlot.isCoastalCityOrPassableImprovement(getOwner(),false,false,false,false))
 			return false;
 	}
 
@@ -28710,7 +28710,7 @@ int CvUnit::CountStackingUnitsAtPlot(const CvPlot* pPlot) const
 			if (pLoopUnit->IsCombatUnit())
 			{
 				//inside of cities mixing domains is ok
-				if (pPlot->isCoastalCityOrPassableImprovement(getOwner(),true,true))
+				if (pPlot->isCoastalCityOrPassableImprovement(getOwner(),true,true,true,true))
 				{
 					if (getDomainType()==pLoopUnit->getDomainType())
 						iNumUnitsOfSameType++;

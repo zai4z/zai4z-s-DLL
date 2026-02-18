@@ -30163,7 +30163,7 @@ bool IsValidPlotForUnitType(CvPlot* pPlot, PlayerTypes ePlayer, CvUnitEntry* pkU
 		bAccept = !pPlot->isWater();
 		break;
 	case DOMAIN_SEA:
-		bAccept = pPlot->isWater() || pPlot->isCoastalCityOrPassableImprovement(ePlayer, true, true);
+		bAccept = pPlot->isWater() || pPlot->isCoastalCityOrPassableImprovement(ePlayer, true, false, true, true);
 		break;
 	case DOMAIN_HOVER:
 		bAccept = true;
