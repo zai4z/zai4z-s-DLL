@@ -4802,7 +4802,7 @@ bool CvPlot::isCoastalCityOrPassableImprovement(PlayerTypes ePlayer, bool bCityM
 		return true;
 	}
 
-	bool bIsPassableImprovement = MOD_GLOBAL_PASSABLE_FORTS && isOwned() && IsImprovementPassable() && !IsImprovementPillaged() && isCoastalLand();
+	bool bIsPassableImprovement = MOD_GLOBAL_PASSABLE_FORTS && IsImprovementPassable() && !IsImprovementPillaged();
 
 	// Good enough
 	if (bIsPassableImprovement)

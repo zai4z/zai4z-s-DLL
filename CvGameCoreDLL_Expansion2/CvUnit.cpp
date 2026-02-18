@@ -4693,7 +4693,7 @@ bool CvUnit::canEnterTerrain(const CvPlot& enterPlot, int iMoveFlags) const
 	if (eDomain==DOMAIN_SEA)
 	{
 		//only trade units can pass through non-friendly improvements
-		if (!enterPlot.isWater() && !enterPlot.isCoastalCityOrPassableImprovement(getOwner(), false, !isTrade()))
+		if (!enterPlot.isWater() && !enterPlot.isCoastalCityOrPassableImprovement(getOwner(), false, false))
 			return false;
 	}
 
