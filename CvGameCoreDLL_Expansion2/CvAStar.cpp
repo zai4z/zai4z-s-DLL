@@ -3597,7 +3597,15 @@ int TradePathLandValid(const CvAStarNode* parent, const CvAStarNode* node, const
 
 	if (pToPlot->isWater())
 	{
-		return FALSE;
+		ImprovementTypes eImp = pToPlot->getImprovementType();
+		CvImprovementEntry* pkImp = (eImp != NO_IMPROVEMENT) ? GC.getImprovementInfo(eImp) : NULL;
+
+		bool bAllowsWalkWater = (pkImp && pkImp->IsAllowsWalkWater());
+		bool bEnemy = pToPlot->IsEnemyTerritory(pCacheData->GetPlayer());
+
+		// allow land trade routes over bridges in non-enemy territory
+		if (!(bAllowsWalkWater && !bEnemy))
+			return FALSE;
 	}
 
 	if (pToPlot->getRevealedImprovementType(pCacheData->GetTeam())==(ImprovementTypes)GD_INT_GET(BARBARIAN_CAMP_IMPROVEMENT))
