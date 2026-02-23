@@ -3814,7 +3814,7 @@ int CvPlot::MovementCostNoZOC(const CvUnit* pUnit, const CvPlot* pFromPlot, int 
 bool CvPlot::IsAllowsWalkWater() const
 {
 	ImprovementTypes eImprovement = getImprovementType();
-	if (eImprovement != NO_IMPROVEMENT)
+	if (eImprovement != NO_IMPROVEMENT && !IsImprovementPillaged())
 	{
 		CvImprovementEntry *pkEntry = GC.getImprovementInfo(eImprovement);
 		if (pkEntry)
