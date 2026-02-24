@@ -13829,8 +13829,11 @@ bool CvUnit::CanUpgradeInTerritory(bool bOnlyTestVisible) const
 		if (ePlotOwner == NO_PLAYER)
 			return false;
 
-		// Must be in territory owned by the player
-		if (ePlotOwner != getOwner()) 
+		// Must be in territory owned by the player's team
+		TeamTypes eUnitTeam = getTeam();
+		TeamTypes ePlotTeam = GET_PLAYER(ePlotOwner).getTeam();
+
+		if (ePlotTeam != eUnitTeam)
 		{
 			CvPlayer& kPlotOwner = GET_PLAYER(ePlotOwner);
 			// Or by a vassal or friendly City-State, if we have that ability
@@ -13847,8 +13850,8 @@ bool CvUnit::CanUpgradeInTerritory(bool bOnlyTestVisible) const
 						return false;
 				}
 			}
-			// Or by an allied militaristic City-State, if the CustomModOption is active
-			else if (MOD_GLOBAL_CS_UPGRADES && kPlotOwner.isMinorCiv() && kPlotOwner.GetMinorCivAI()->GetAlly() == getOwner() && kPlotOwner.GetMinorCivAI()->GetTrait() == MINOR_CIV_TRAIT_MILITARISTIC)
+			// Or by an allied City-State, if the CustomModOption is active
+			else if (MOD_GLOBAL_CS_UPGRADES && kPlotOwner.isMinorCiv() && kPlotOwner.GetMinorCivAI()->GetAlly() == getOwner())
 				return true;
 			else
 				return false;
@@ -14036,13 +14039,14 @@ CvUnit* CvUnit::DoUpgradeTo(UnitTypes eUnitType, bool bFree)
 			DLLUI->selectUnit(pDllNewUnit.get(), true, false, false);
 		}
 
+		/*
 		if (MOD_GLOBAL_CS_UPGRADES && thisPlayer.isMajorCiv() && !thisPlayer.CanUpgradeCSVassalTerritory() && pPlot->getOwner() != NO_PLAYER && GET_PLAYER(pPlot->getOwner()).isMinorCiv())
 		{
 			CvMinorCivAI* kMinor = GET_PLAYER(pPlot->getOwner()).GetMinorCivAI();
 			if (kMinor->GetTrait() == MINOR_CIV_TRAIT_MILITARISTIC && kMinor->GetAlly() == thisPlayer.GetID())
 			{
 				// Push the unit spawn counter back as a penalty for upgrading one of our own units
-				int iNumTurns = /*3*/ GD_INT_GET(UPGRADE_EXTRA_TURNS_UNIT_SPAWN);
+				int iNumTurns = GD_INT_GET(UPGRADE_EXTRA_TURNS_UNIT_SPAWN);
 
 				// Modify for Game Speed
 				iNumTurns *= GC.getGame().getGameSpeedInfo().getGreatPeoplePercent();
@@ -14051,6 +14055,7 @@ CvUnit* CvUnit::DoUpgradeTo(UnitTypes eUnitType, bool bFree)
 				kMinor->ChangeUnitSpawnCounter(thisPlayer.GetID(), iNumTurns);
 			}
 		}
+		*/
 
 		// MUST call the event before convert() as that kills the old unit
 		if (MOD_EVENTS_UNIT_UPGRADES)
