@@ -51,6 +51,7 @@ struct TradeConnection
 		m_bTradeUnitRecalled = false;
 		m_aPlotList.clear();
 		m_unitID = -1;
+		m_eTradeUnitType = NO_UNIT;
 
 		for (uint ui = 0; ui < NUM_YIELD_TYPES; ui++)
 		{
@@ -96,6 +97,7 @@ struct TradeConnection
 	bool m_bTradeUnitMovingForward;
 	TradeConnectionPlotList m_aPlotList;
 	int m_unitID;
+	UnitTypes m_eTradeUnitType;
 	int m_iSpeedFactor; //move faster on this route?
 	int m_iCircuitsCompleted;
 	int m_iCircuitsToComplete;
@@ -130,7 +132,7 @@ public:
 
 	bool CanCreateTradeRoute (CvCity* pOriginCity, CvCity* pDestCity, DomainTypes eDomain, TradeConnectionType eConnectionType, bool bIgnoreExisting, bool bCheckPath);
 	bool CanCreateTradeRoute(PlayerTypes eOriginPlayer, PlayerTypes eDestPlayer, DomainTypes eDomainRestriction);
-	bool CreateTradeRoute (CvCity* pOriginCity, CvCity* pDestCity, DomainTypes eDomain, TradeConnectionType eConnectionType, int& iRouteID);
+	bool CreateTradeRoute (CvCity* pOriginCity, CvCity* pDestCity, DomainTypes eDomain, TradeConnectionType eConnectionType, UnitTypes eUnitType, int& iRouteID);
 
 	bool IsValidTradeRoutePath (CvCity* pOriginCity, CvCity* pDestCity, DomainTypes eDomain, SPath* pPathOut=NULL, bool bWarCheck = true);
 	int GetValidTradeRoutePathLength(CvCity* pOriginCity, CvCity* pDestCity, DomainTypes eDomain, SPath* pPathOut = NULL, bool bWarCheck = true);
@@ -154,7 +156,7 @@ public:
 	bool IsTradeRouteIndexEmpty (int iIndex);
 	bool ClearTradeRoute (int iIndex);
 	void UpdateTradePlots();
-	int GetTradeRouteTurns(CvCity* pOriginCity, CvCity* pDestCity, DomainTypes eDomain, int* piCircuitsToComplete = NULL);
+	int GetTradeRouteTurns(CvCity* pOriginCity, CvCity* pDestCity, DomainTypes eDomain, UnitTypes eUnitType, int* piCircuitsToComplete = NULL);
 	void ClearAllCityTradeRoutes (CvPlot* pPlot, bool bIncludeTransits = false); // called when a city is captured or traded
 	void ClearAllCivTradeRoutes (PlayerTypes ePlayer, bool bFromEmbargo = false); // called from world congress code
 	void ClearAllCityStateTradeRoutes (void); // called from world congress code
@@ -316,7 +318,7 @@ public:
 	bool CanCreateTradeRoute(PlayerTypes eOtherPlayer, DomainTypes eDomain);
 	bool CanCreateTradeRoute(DomainTypes eDomain) const;
 
-	bool CreateTradeRoute(CvCity* pOriginCity, CvCity* pDestCity, DomainTypes eDomain, TradeConnectionType eConnectionType) const;
+	bool CreateTradeRoute(CvCity* pOriginCity, CvCity* pDestCity, DomainTypes eDomain, TradeConnectionType eConnectionType, UnitTypes eUnitType) const;
 
 	const TradeConnection* GetTradeConnection(CvCity* pOriginCity, CvCity* pDestCity) const;
 	int GetNumberOfCityStateTradeRoutes();
@@ -349,7 +351,7 @@ public:
 	bool PlunderTradeRoute(int iTradeConnectionID, CvUnit* pUnit);
 	void UpdateFurthestPossibleTradeRoute(DomainTypes eDomain, CvCity* pOriginCity, int iMaxRange);
 	int GetTradeRouteRange (DomainTypes eDomain, CvCity* pOriginCity) const;
-	int GetTradeRouteSpeed (DomainTypes eDomain) const;
+	int GetTradeRouteSpeed (UnitTypes eUnitType) const;
 	int GetTradeRouteTurnMod(CvCity* pOriginCity) const;
 
 	uint GetNumTradeRoutesPossible (void) const;
@@ -362,8 +364,6 @@ public:
 	void UpdateTradeConnectionWasPlundered();
 	void AddTradeConnectionWasPlundered(const TradeConnection& kTradeConnection);
 	bool CheckTradeConnectionWasPlundered(const TradeConnection& kTradeConnection);
-
-	static UnitTypes GetTradeUnit (DomainTypes eDomain, CvPlayer* pPlayer);
 
 	void LogTradeMsg(CvString& strMsg) const;
 

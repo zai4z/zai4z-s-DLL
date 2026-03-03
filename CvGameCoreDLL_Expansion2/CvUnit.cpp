@@ -8836,7 +8836,7 @@ bool CvUnit::makeTradeRoute(int iX, int iY, TradeConnectionType eConnectionType)
 		pToCity = pToPlot->getPlotCity();
 	}
 
-	bool bResult = GET_PLAYER(getOwner()).GetTrade()->CreateTradeRoute(pFromCity, pToCity, getDomainType(), eConnectionType);
+	bool bResult = GET_PLAYER(getOwner()).GetTrade()->CreateTradeRoute(pFromCity, pToCity, getDomainType(), eConnectionType, getUnitType());
 
 	if (bResult)
 		kill(true);
@@ -14020,7 +14020,7 @@ CvUnit* CvUnit::DoUpgradeTo(UnitTypes eUnitType, bool bFree)
 	// Gold Cost
 	int iUpgradeCost = upgradePrice(eUnitType);
 	CvPlayerAI& thisPlayer = GET_PLAYER(getOwner());
-	CvPlot* pPlot = plot();
+	// CvPlot* pPlot = plot();
 
 	if (!bFree)
 	{

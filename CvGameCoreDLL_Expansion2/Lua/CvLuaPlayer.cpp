@@ -5588,13 +5588,38 @@ int CvLuaPlayer::lGetTradeConnectionDistanceValueModifierTimes100(lua_State* L)
 //------------------------------------------------------------------------------
 int CvLuaPlayer::lGetTradeRouteTurns(lua_State* L)
 {
-	CvCity* pOriginCity = CvLuaCity::GetInstance(L, 2, true);
-	CvCity* pDestCity = CvLuaCity::GetInstance(L, 3, true);
-	const DomainTypes eDomain = LuaToTradeDomain(L, 4);
+    CvPlayerAI* pkPlayer = GetInstance(L);
+    int iRouteID = luaL_checkinteger(L, 2);
 
-	int iTurns = GC.getGame().GetGameTrade()->GetTradeRouteTurns(pOriginCity, pDestCity, eDomain, NULL)-1;
-	lua_pushinteger(L, iTurns);
-	return 1;
+    CvGameTrade* pTrade = GC.getGame().GetGameTrade();
+    int iIndex = pTrade->GetIndexFromID(iRouteID);
+
+    if (iIndex < 0)
+    {
+        lua_pushinteger(L, -1);
+        return 1;
+    }
+
+    const TradeConnection& kConnection = pTrade->GetTradeConnection(iIndex);
+
+    if (kConnection.m_eOriginOwner != pkPlayer->GetID())
+    {
+        lua_pushinteger(L, -1);
+        return 1;
+    }
+
+    CvCity* pOriginCity = GC.getMap().plot(kConnection.m_iOriginX, kConnection.m_iOriginY)->getPlotCity();
+	CvCity* pDestCity = GC.getMap().plot(kConnection.m_iDestX, kConnection.m_iDestY)->getPlotCity();
+
+    if (!pOriginCity || !pDestCity)
+    {
+        lua_pushinteger(L, -1);
+        return 1;
+    }
+
+    int iTurns = pTrade->GetTradeRouteTurns(pOriginCity, pDestCity, kConnection.m_eDomain, kConnection.m_eTradeUnitType, NULL) - 1;
+    lua_pushinteger(L, iTurns);
+    return 1;
 }
 //------------------------------------------------------------------------------
 int CvLuaPlayer::lGetTradeConnectionDistance(lua_State* L)
@@ -6074,10 +6099,25 @@ int CvLuaPlayer::lGetNumAvailableTradeUnits(lua_State* L)
 //------------------------------------------------------------------------------
 int CvLuaPlayer::lGetTradeUnitType(lua_State* L)
 {
-	CvPlayerAI* pkPlayer = GetInstance(L);
-	const DomainTypes eDomain = LuaToTradeDomain(L, 2);
-	lua_pushinteger(L, pkPlayer->GetTrade()->GetTradeUnit(eDomain, pkPlayer));
-	return 1;
+    CvPlayerAI* pkPlayer = GetInstance(L);
+    int iRouteID = lua_tointeger(L, 2);
+
+    CvGameTrade* pTrade = GC.getGame().GetGameTrade();
+    int iIndex = pTrade->GetIndexFromID(iRouteID);
+
+    if (iIndex >= 0)
+    {
+        const TradeConnection& kConnection = pTrade->GetTradeConnection(iIndex);
+
+        if (kConnection.m_eOriginOwner == pkPlayer->GetID())
+        {
+            lua_pushinteger(L, kConnection.m_eTradeUnitType);
+            return 1;
+        }
+    }
+
+    lua_pushinteger(L, NO_UNIT);
+    return 1;
 }
 
 //------------------------------------------------------------------------------
