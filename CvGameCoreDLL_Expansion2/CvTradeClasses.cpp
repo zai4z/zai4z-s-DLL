@@ -1172,6 +1172,17 @@ int CvGameTrade::GetTradeRouteTurns(CvCity* pOriginCity, CvCity* pDestCity, Doma
 	CvPlayer& kOriginPlayer = GET_PLAYER(pOriginCity->getOwner());
 
 	// calculate turns per circuit
+	if (eUnitType == NO_UNIT)
+	{
+		if (eDomain == DOMAIN_LAND)
+		{
+			eUnitType = kOriginPlayer.GetSpecificUnitType("UNITCLASS_CARAVAN");
+		}
+		else if (eDomain == DOMAIN_SEA)
+		{
+			eUnitType = kOriginPlayer.GetSpecificUnitType("UNITCLASS_CARGO_SHIP");
+		}
+	}
 	int iRawSpeed = kOriginPlayer.GetTrade()->GetTradeRouteSpeed(eUnitType);
 	int iSpeedFactor = (100 * SPath::getNormalizedDistanceBase() * path.length()) / max(1,path.iNormalizedDistanceRaw);
 	int iRouteSpeed = int(0.5f + iSpeedFactor*iRawSpeed / 100.f);
@@ -4806,6 +4817,7 @@ bool CvPlayerTrade::PlunderTradeRoute(int iTradeConnectionID, CvUnit* pUnit)
 
 	TradeConnectionType eConnectionType = pTradeConnection->m_eConnectionType;
 	DomainTypes eDomain = pTradeConnection->m_eDomain;
+	UnitTypes ePlunderedUnitType = pTradeConnection->m_eTradeUnitType;
 	PlayerTypes eOwningPlayer = pTradeConnection->m_eOriginOwner;
 	PlayerTypes eDestPlayer = pTradeConnection->m_eDestOwner;
 	TeamTypes eOwningTeam = GET_PLAYER(eOwningPlayer).getTeam();
@@ -4855,7 +4867,7 @@ bool CvPlayerTrade::PlunderTradeRoute(int iTradeConnectionID, CvUnit* pUnit)
 		SHOW_PLOT_POPUP(pPlunderPlot, m_pPlayer->GetID(), text);
 
 		CvString strBuffer;
-		strBuffer = GetLocalizedText("TXT_KEY_MISC_PLUNDERED_GOLD_FROM_IMP", iPlunderGoldValue, GC.getUnitInfo(pTradeConnection->m_eTradeUnitType)->GetDescriptionKey());
+		strBuffer = GetLocalizedText("TXT_KEY_MISC_PLUNDERED_GOLD_FROM_IMP", iPlunderGoldValue, GC.getUnitInfo(ePlunderedUnitType)->GetDescriptionKey());
 		
 		DLLUI->AddMessage(0, m_pPlayer->GetID(), true, /*10*/ GD_INT_GET(EVENT_MESSAGE_TIME), strBuffer);
 	}
@@ -5194,32 +5206,32 @@ int CvPlayerTrade::GetTradeRouteRange (DomainTypes eDomain, CvCity* pOriginCity)
 //	--------------------------------------------------------------------------------
 int CvPlayerTrade::GetTradeRouteSpeed(UnitTypes eUnitType) const
 {
+    if (eUnitType == NO_UNIT)
+        return 1;
+
 	CvUnitEntry* pkUnitInfo = GC.getUnitInfo(eUnitType);
 
-	if (pkUnitInfo)
+    if (!pkUnitInfo)
+        return 1;
+	
+	int iMoves = pkUnitInfo->GetMoves();
+	if (m_pPlayer->GetTRSpeedBoost() > 0)
 	{
-		int iMoves = pkUnitInfo->GetMoves();
-		if (m_pPlayer->GetTRSpeedBoost() > 0)
-		{
-			iMoves *= m_pPlayer->GetTRSpeedBoost();
-		}
-
-		// Corporation trade route modifier
-		CorporationTypes ePlayerCorporation = m_pPlayer->GetCorporations()->GetFoundedCorporation();
-		if (ePlayerCorporation != NO_CORPORATION)
-		{
-			CvCorporationEntry* pkCorporationInfo = GC.getCorporationInfo(ePlayerCorporation);
-			if (pkCorporationInfo && pkCorporationInfo->GetTradeRouteSpeedModifier() > 0)
-			{
-				iMoves *= pkCorporationInfo->GetTradeRouteSpeedModifier();
-				iMoves /= 100;
-			}
-		}
-		return iMoves;
+		iMoves *= m_pPlayer->GetTRSpeedBoost();
 	}
 
-	ASSERT(false, "Undefined domain for trade route speed");
-	return -1;
+	// Corporation trade route modifier
+	CorporationTypes ePlayerCorporation = m_pPlayer->GetCorporations()->GetFoundedCorporation();
+	if (ePlayerCorporation != NO_CORPORATION)
+	{
+		CvCorporationEntry* pkCorporationInfo = GC.getCorporationInfo(ePlayerCorporation);
+		if (pkCorporationInfo && pkCorporationInfo->GetTradeRouteSpeedModifier() > 0)
+		{
+			iMoves *= pkCorporationInfo->GetTradeRouteSpeedModifier();
+			iMoves /= 100;
+		}
+	}
+	return iMoves;
 }
 
 //	--------------------------------------------------------------------------------
