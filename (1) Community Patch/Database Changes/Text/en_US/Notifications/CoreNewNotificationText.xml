@@ -1,6 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <GameData>
 	<Language_en_US>
+		<Row Tag="TXT_KEY_FAILED_PLUNDER">
+			<Text>Your plunder attempt was unsuccessful!</Text>
+		</Row>
+		<Row Tag="TXT_KEY_AVOIDED_PLUNDER">
+			<Text>{@1_PlayerName} tried to plunder your {@2_UnitName} but it escaped!</Text>
+		</Row>
+
 		<Row Tag="TXT_KEY_NOTIFICATION_PANTHEON_ENHANCED_S">
 			<Text>Pantheon Enhanced</Text>
 		</Row>

@@ -137,6 +137,7 @@ CvUnitEntry::CvUnitEntry(void) :
 	m_bCaptureWhileEmbarked(false),
 	m_bRangeAttackOnlyInDomain(false),
 	m_bTrade(false),
+	m_bProtectedTrade(false),
 	m_iNumExoticGoods(0),
 	m_pbUpgradeUnitClass(NULL),
 	m_pbUnitAIType(NULL),
@@ -317,6 +318,7 @@ bool CvUnitEntry::CacheResults(Database::Results& kResults, CvDatabaseUtility& k
 	m_bCaptureWhileEmbarked = kResults.GetBool("CaptureWhileEmbarked");
 	m_bRangeAttackOnlyInDomain = kResults.GetBool("RangeAttackOnlyInDomain");
 	m_bTrade = kResults.GetBool("Trade");
+	m_bProtectedTrade = kResults.GetBool("ProtectedTrade");
 	m_iNumExoticGoods = kResults.GetInt("NumExoticGoods");
 
 	m_strUnitArtInfoTag = kResults.GetText("UnitArtInfo");
@@ -1297,6 +1299,12 @@ bool CvUnitEntry::IsRangeAttackOnlyInDomain() const
 bool CvUnitEntry::IsTrade() const
 {
 	return m_bTrade;
+}
+
+/// Is a protected trade unit
+bool CvUnitEntry::IsProtectedTrade() const
+{
+	return m_bProtectedTrade;
 }
 
 /// Number of exotic goods this unit starts with

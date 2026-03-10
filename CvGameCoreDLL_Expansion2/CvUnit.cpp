@@ -9202,6 +9202,53 @@ bool CvUnit::plunderTradeRoute()
 		}
 		if (bValidTarget)
 		{
+			// Check if the trade unit is protected - if so, require a strength-based roll to plunder
+			CvGameTrade* pGameTrade = GC.getGame().GetGameTrade();
+			const TradeConnection* pTradeConnection = pGameTrade->GetConnectionFromIndex(pGameTrade->GetIndexFromID(aiTradeUnitsAtPlot[uiTradeRoute]));
+			if (pTradeConnection)
+			{
+				CvUnit* pTradeUnit = GET_PLAYER(eTradeUnitOwner).getUnit(pTradeConnection->m_unitID);
+				if (pTradeUnit && pTradeUnit->getUnitInfo().IsProtectedTrade())
+				{
+					int iAttackerStrength = GetMaxAttackStrength(pPlot, pPlot, NULL, false, true);
+					int iEraID = (int)GET_PLAYER(eTradeUnitOwner).GetCurrentEra();
+					int iChance = iAttackerStrength / ((((iEraID + 1) * (iEraID + 1)) * 20) + 40);
+
+					// Seed mixes attacker ID + trade connection ID + turn for deterministic MP-safe result
+					int iRoll = GC.getGame().randRangeInclusive(1, 100, CvSeeder::fromRaw(0xa3f7c281).mix(GetID()).mix(pTradeConnection->m_iID).mix(GC.getGame().getGameTurn()));
+
+					if (GC.getLogging() && GC.getAILogging())
+					{
+						CvString strLogString;
+						strLogString.Format("ProtectedTrade roll: UnitID=%d, iChance=%d, iRoll=%d, iAttackerStrength=%d, iEraID=%d, %s", 
+							GetID(), iChance, iRoll, iAttackerStrength, iEraID, iRoll > iChance ? "FAILED" : "SUCCESS");
+						GET_PLAYER(getOwner()).GetHomelandAI()->LogHomelandMessage(strLogString);
+					}
+
+					if (iRoll > iChance)
+					{
+						// Notify the attacking player
+						if (GC.getGame().getActivePlayer() == getOwner())
+						{
+							CvString strBuffer = GetLocalizedText("TXT_KEY_FAILED_PLUNDER");
+							DLLUI->AddMessage(0, getOwner(), true, GD_INT_GET(EVENT_MESSAGE_TIME), strBuffer);
+						}
+
+						// Notify the trade unit owner
+						if (GC.getGame().getActivePlayer() == eTradeUnitOwner)
+						{
+							CvString strBuffer = GetLocalizedText("TXT_KEY_AVOIDED_PLUNDER", 
+								GET_PLAYER(getOwner()).getCivilizationShortDescription(),
+								pTradeUnit->getNameKey());
+							DLLUI->AddMessage(0, eTradeUnitOwner, true, GD_INT_GET(EVENT_MESSAGE_TIME), strBuffer);
+						}
+
+						finishMoves();
+						continue;
+					}
+				}
+			}
+			
 			pTrade->PlunderTradeRoute(aiTradeUnitsAtPlot[uiTradeRoute], this);
 			bSuccess = true;
 
@@ -14310,6 +14357,9 @@ bool CvUnit::canEndTurnAtPlot(const CvPlot * pPlot) const
 		return true;
 
 	if (isCargo())
+		return true;
+
+	if (m_iMapLayer == TRADE_UNIT_MAP_LAYER)
 		return true;
 
 	if (isInCombat())

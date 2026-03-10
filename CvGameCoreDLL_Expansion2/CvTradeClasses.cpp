@@ -2001,7 +2001,7 @@ bool CvGameTrade::StepUnit (int iIndex)
 		CvUnit* pEnemyUnit = pPlot->getVisibleEnemyDefender(kTradeConnection.m_eOriginOwner);
 		if (pEnemyUnit)
 		{
-			if (pEnemyUnit->canPlunderTradeRoute(pPlot, false))
+			if ((!pkUnit || !pkUnit->getUnitInfo().IsProtectedTrade()) && pEnemyUnit->canPlunderTradeRoute(pPlot, false))
 			{
 				GET_PLAYER(pEnemyUnit->getOwner()).GetTrade()->PlunderTradeRoute(kTradeConnection.m_iID, pEnemyUnit);
 				// done died!

@@ -1,5 +1,9 @@
 -- TODO: Documentation
 
+-- Any trade unit with this tag 1) stops getting auto-plundered when moving onto enemy units, 2) has a chance to avoid being plundered, scaling with era and plunderer's attack strength
+-- Attack strength is affected by promotions/terrain etc. Ranged attackers will use their melee strength, unsuccessful plunders will do nothing and finish unit moves
+ALTER TABLE Units ADD ProtectedTrade boolean DEFAULT 0;
+
 ALTER TABLE Units ADD CargoCombat integer DEFAULT 0;
 
 -- Adds ability for units to have max HP values other than 100 (whoward)

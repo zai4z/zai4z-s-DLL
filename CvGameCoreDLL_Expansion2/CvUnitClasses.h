@@ -147,6 +147,7 @@ public:
 	bool IsCaptureWhileEmbarked() const;
 	bool IsRangeAttackOnlyInDomain() const;
 	bool IsTrade() const;
+	bool IsProtectedTrade() const;
 	int GetNumExoticGoods() const;
 
 	float GetUnitMaxSpeed() const;
@@ -370,6 +371,7 @@ private:
 	int m_iSpaceshipProject;
 	int m_iLeaderPromotion;
 	bool m_bTrade;
+	bool m_bProtectedTrade;
 	int m_iNumExoticGoods;
 
 #if defined(MOD_GLOBAL_STACKING_RULES)
