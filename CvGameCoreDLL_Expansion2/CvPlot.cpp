@@ -1103,65 +1103,73 @@ bool CvPlot::isCoastalLand(int iMinWaterSize, bool bUseCachedValue, bool bCheckC
 					return true;
 			}
 		}
-
-
-		//If not checking for canals, abort!
-		// Also, water tiles are not land, so always return false
-		if (!bCheckCanals || !MOD_GLOBAL_PASSABLE_FORTS || isWater())
-			return false;
-
-		//check for areas of water connected by canals
-		//starting with the plot itself, we loop through all adjacent plots and add them to a list if they are water tiles
-		//or if there is an owned fort, citadel or city on them
-		//we do this repeatedly until we reach the required amount of plots or until every item of the list is checked
-		std::vector<const CvPlot*> vAccessibleWaterPlots(1, this);
-		TeamTypes eTeam = getTeam();
-		unsigned int iNumPlotsChecked = 0;
-		do
-		{
-			const CvPlot* pPlotBeingChecked = vAccessibleWaterPlots[iNumPlotsChecked];
-			CvPlot** aPlotsToCheck = GC.getMap().getNeighborsUnchecked(pPlotBeingChecked);
-			for (int iCount = 0; iCount < NUM_DIRECTION_TYPES; iCount++)
-			{
-				const CvPlot* pAdjacentPlot = aPlotsToCheck[iCount];
-				if (!pAdjacentPlot)
-					continue;
-
-				// If water, must not be unowned ice
-				if (pAdjacentPlot->isWater())
-				{
-					if (pAdjacentPlot->getFeatureType() == FEATURE_ICE && !pAdjacentPlot->isOwned())
-						continue;
-				}
-				//If land, must be owned city, fort or citadel
-				else if (pAdjacentPlot->getTeam()==eTeam)
-				{
-					if (!pAdjacentPlot->isCity() && (!pAdjacentPlot->IsImprovementPassable() || pAdjacentPlot->IsImprovementPillaged()))
-						continue;
-
-					// Must be adjacent to water
-					if (!pAdjacentPlot->isAdjacentToWater())
-						continue;
-				}
-				else
-				{
-					// Land tile not owned by us
-					continue;
-				}
-
-				// add the plot to the list if it's not already in it
-				if (std::find(vAccessibleWaterPlots.begin(), vAccessibleWaterPlots.end(), pAdjacentPlot) == vAccessibleWaterPlots.end())
-				{
-					vAccessibleWaterPlots.push_back(pAdjacentPlot);
-					if (static_cast<int>(vAccessibleWaterPlots.size())-1 >= iMinWaterSize) // minus 1 because the first element in the list is the plot from which we started
-						return true;
-				}
-			}
-			iNumPlotsChecked++;
-		} 
-		while (iNumPlotsChecked != vAccessibleWaterPlots.size());
 	}
-	return false;
+
+	// If not checking for canals, abort!
+	// Also, water tiles are not land, so always return false
+    if (!bCheckCanals || !MOD_GLOBAL_PASSABLE_FORTS || isWater())
+        return false;
+
+	//check for areas of water connected by canals
+	//starting with the plot itself, we loop through all adjacent plots and add them to a list if they are water tiles
+	//or if there is an owned fort, citadel or city on them
+	//we do this repeatedly until we reach the required amount of plots or until every item of the list is checked
+    std::vector<const CvPlot*> vVisited(1, this);
+    std::set<const CvLandmass*> vCheckedLandmasses;
+	TeamTypes eTeam = getTeam();
+    unsigned int iNumPlotsChecked = 0;
+    do
+    {
+        const CvPlot* pPlotBeingChecked = vVisited[iNumPlotsChecked];
+        CvPlot** aPlotsToCheck = GC.getMap().getNeighborsUnchecked(pPlotBeingChecked);
+        for (int iCount = 0; iCount < NUM_DIRECTION_TYPES; iCount++)
+        {
+            const CvPlot* pAdjacentPlot = aPlotsToCheck[iCount];
+            if (!pAdjacentPlot)
+                continue;
+
+            if (pAdjacentPlot->isWater())
+            {
+                if (pAdjacentPlot->getFeatureType() == FEATURE_ICE && !pAdjacentPlot->isOwned())
+                    continue;
+
+                // Only water landmass size counts, not the canals
+                CvLandmass* pBodyOfWater = GC.getMap().getLandmassById(pAdjacentPlot->getLandmass());
+                if (pBodyOfWater && vCheckedLandmasses.find(pBodyOfWater) == vCheckedLandmasses.end())
+                {
+                    vCheckedLandmasses.insert(pBodyOfWater);
+                    if (pBodyOfWater->getNumTiles() >= iMinWaterSize)
+                        return true;
+                }
+            }
+            else
+            {	
+				TeamTypes AdjTeam = pAdjacentPlot->getTeam();
+                // Only team cities connect, any canals (not owned by another team) do connect
+				if (pAdjacentPlot->isCity())
+				{
+					if (AdjTeam != eTeam)
+						continue;
+				}
+				else if (!pAdjacentPlot->IsImprovementPassable() || pAdjacentPlot->IsImprovementPillaged())
+				{
+					continue;
+				}
+				else if (AdjTeam != NO_TEAM && AdjTeam != eTeam)
+				{
+					continue;
+				}
+
+            }
+
+            if (std::find(vVisited.begin(), vVisited.end(), pAdjacentPlot) == vVisited.end())
+                vVisited.push_back(pAdjacentPlot);
+        }
+        iNumPlotsChecked++;
+    }
+    while (iNumPlotsChecked != vVisited.size());
+
+    return false;
 }
 
 //	--------------------------------------------------------------------------------
@@ -4795,9 +4803,6 @@ bool CvPlot::isCoastalCityOrPassableImprovement(PlayerTypes ePlayer, bool bCityM
 	// Good enough
 	if (isCity())
 	{
-		if (!isCoastalLand())
-			return false;
-
         if (bCityMustBeFriendly)
             return bFriendly;   // friendly overrides everything
 
@@ -14116,8 +14121,8 @@ bool CvPlot::canTrain(UnitTypes eUnit) const
 		if (thisUnitDomain == DOMAIN_SEA)
 		{
 			//fast check for ocean (-1)
-			//check for canals only in Vox Populi
-			if (!isCoastalLand(-1, true, MOD_BALANCE_VP) || !isCoastalLand(thisUnitEntry.GetMinAreaSize(), true, MOD_BALANCE_VP))
+			//check for canals, so canal cities may produce naval units if connected to the sea
+			if (!isCoastalLand(-1, true, true) || !isCoastalLand(thisUnitEntry.GetMinAreaSize(), true, true))
 			{
 				return false;
 			}
