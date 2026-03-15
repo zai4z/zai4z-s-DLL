@@ -14494,40 +14494,55 @@ bool CvPlayer::canConstruct(BuildingTypes eBuilding, const std::vector<int>& vPr
 			}
 		}
 
-		BuildingTypes ePrereqBuilding;
 		int iNumNeeded = 0;
 		for(iI = 0; iI < numBuildingClassInfos; iI++)
 		{
 			iNumNeeded = getBuildingClassPrereqBuilding(eBuilding, ((BuildingClassTypes)iI), bContinue);
-			//int iNumHave = getBuildingClassCount((BuildingClassTypes)iI);
-			ePrereqBuilding = (BuildingTypes) civilizationInfo.getCivilizationBuildings(iI);
-			if(NO_BUILDING != ePrereqBuilding)
+			if(iNumNeeded <= 0)
+				continue;
+
+			BuildingClassTypes ePrereqBuildingClass = (BuildingClassTypes)iI;
+			CvBuildingClassInfo* pkBuildingClassInfo = GC.getBuildingClassInfo(ePrereqBuildingClass);
+			if(!pkBuildingClassInfo)
+				continue;
+
+			BuildingTypes eDefaultBuilding = (BuildingTypes)pkBuildingClassInfo->getDefaultBuildingIndex();
+			if(eDefaultBuilding == NO_BUILDING)
+				continue;
+
+			CvBuildingEntry* pkPrereqBuilding = GC.getBuildingInfo(eDefaultBuilding);
+			if(!pkPrereqBuilding)
+				continue;
+
+			int iNumHave = MOD_BUILDINGS_THOROUGH_PREREQUISITES ? 
+				getBuildingClassCount(ePrereqBuildingClass) : 
+				vPreExistingBuildings[eDefaultBuilding];
+
+			if(iNumHave < iNumNeeded)
 			{
-				CvBuildingEntry* pkPrereqBuilding = GC.getBuildingInfo(ePrereqBuilding);
-				if(pkPrereqBuilding)
+				GC.getGame().BuildCannotPerformActionHelpText(toolTipSink, "TXT_KEY_NO_ACTION_BUILDING_COUNT_NEEDED", pkPrereqBuilding->GetTextKey(), "", iNumNeeded - iNumHave);
+
+				if(toolTipSink == NULL)
+					return false;
+
+				// If we have less than 5 to go, list what cities need them
+				int iNonPuppetCities = getNumCities() - GetNumPuppetCities();
+				if(iNumNeeded == iNonPuppetCities && iNumNeeded - iNumHave < 5)
 				{
-					int iNumHave = vPreExistingBuildings[ePrereqBuilding];
-					if(iNumHave < iNumNeeded)
+					(*toolTipSink) += "[NEWLINE]";
+					int iLoop = 0;
+					for(const CvCity* pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
 					{
-						GC.getGame().BuildCannotPerformActionHelpText(toolTipSink, "TXT_KEY_NO_ACTION_BUILDING_COUNT_NEEDED", pkPrereqBuilding->GetTextKey(), "", iNumNeeded - iNumHave);
-
-						if(toolTipSink == NULL)
-							return false;
-
-						// If we have less than 5 to go, list what cities need them
-						int iNonPuppetCities = getNumCities() - GetNumPuppetCities();
-						if(iNumNeeded == iNonPuppetCities && iNumNeeded - iNumHave < 5)
+						if(pLoopCity && !pLoopCity->IsPuppet())
 						{
-							(*toolTipSink) += "[NEWLINE]";
+							bool bCityMissing = MOD_BUILDINGS_THOROUGH_PREREQUISITES ?
+								!pLoopCity->HasBuildingClass(ePrereqBuildingClass) :
+								pLoopCity->GetCityBuildings()->GetNumBuilding(eDefaultBuilding) == 0;
 
-							int iLoop=0;
-							for(const CvCity* pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
+							if(bCityMissing)
 							{
-								if(pLoopCity && !pLoopCity->IsPuppet() && pLoopCity->GetCityBuildings()->GetNumBuilding(ePrereqBuilding) == 0)
-								{
-									(*toolTipSink) += pLoopCity->getName();
-									(*toolTipSink) += " ";
-								}
+								(*toolTipSink) += pLoopCity->getName();
+								(*toolTipSink) += " ";
 							}
 						}
 					}
