@@ -4149,7 +4149,9 @@ CvCity* CvPlayer::acquireCity(CvCity* pCity, bool bConquest, bool bGift, bool bO
 		if (viNumFreeBuilding[iI] > 0 || viNumRealBuilding[iI] > 0)
 		{
 			BuildingClassTypes eBuildingClass = pkLoopBuildingInfo->GetBuildingClassType();
-			BuildingTypes eBuilding = static_cast<BuildingTypes>(getCivilizationInfo().getCivilizationBuildings(eBuildingClass));
+			BuildingTypes eBuilding = MOD_BUILDINGS_THOROUGH_PREREQUISITES ? 
+				eLoopBuilding : 
+				static_cast<BuildingTypes>(getCivilizationInfo().getCivilizationBuildings(eBuildingClass));
 			if (eBuilding == NO_BUILDING)
 				continue;
 

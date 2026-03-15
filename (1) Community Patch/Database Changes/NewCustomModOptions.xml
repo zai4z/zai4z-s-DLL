@@ -686,8 +686,8 @@
 		<!-- Enable this if you need hovercraft support, but it costs performance -->
 		<Row Class="2" Name="API_HOVERING_UNITS" Value="0"/>
 
-		<!-- When checking for a building's prerequisites in a city for Building_ClassesNeededInCity, loop through all buildings in the city to find a building belonging in the class, rather than the shortcut method of only checking if there is an entry in Civilization_BuildingClassOverrides. -->
-		<!-- A more thorough check for mods which replace buildings using Lua. Otherwise, the prerequisite for Building_ClassesNeededInCity will not be fulfilled correctly. -->
+		<!-- When checking for a building's prerequisites in a city for Building_ClassesNeededInCity or Building_PrereqBuildingClasses, loop through all buildings in the city to find a building belonging in the class, rather than the shortcut method of only checking if there is an entry in Civilization_BuildingClassOverrides. -->
+		<!-- Also stops buildings from being converted into the default building of the new owner once a city is captured, preserving unique buildings -->
 		<Row Class="2" Name="BUILDINGS_THOROUGH_PREREQUISITES" Value="0"/>
 
 		<!--
