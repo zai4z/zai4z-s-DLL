@@ -16196,7 +16196,8 @@ bool CvPlayer::canBuild(const CvPlot* pPlot, BuildTypes eBuild, bool bTestEra, b
 		if(pkEntry->IsSpecificCivRequired())
 		{
 			CivilizationTypes eCiv = pkEntry->GetRequiredCivilization();
-			if(eCiv != getCivilizationType())
+			PlayerTypes eCheckPlayer = (pUnit != NULL) ? pUnit->GetOriginalOwner() : GetID();
+			if(eCiv != GET_PLAYER(eCheckPlayer).getCivilizationType())
 			{
 				return false;
 			}
