@@ -645,10 +645,15 @@ int CvLuaPlot::lGetNearestLandArea(lua_State* L)
 	return BasicLuaMethod(L, &CvPlot::getNearestLandArea);
 }
 //------------------------------------------------------------------------------
-//int seeFromLevel(TeamTypes eTeam);
+//int seeFromLevel(TeamTypes eTeam, DomainTypes eDomain);
 int CvLuaPlot::lSeeFromLevel(lua_State* L)
 {
-	return BasicLuaMethod(L, &CvPlot::seeFromLevel);
+    CvPlot* pkPlot = GetInstance(L);
+    TeamTypes eTeam = (TeamTypes) lua_tointeger(L, 2);
+    DomainTypes eDomain = (DomainTypes) luaL_optint(L, 3, NO_DOMAIN);
+
+    lua_pushinteger(L, pkPlot->seeFromLevel(eTeam, eDomain));
+    return 1;
 }
 //------------------------------------------------------------------------------
 //CvPlot* getNearestLandPlot();
@@ -2108,25 +2113,25 @@ int CvLuaPlot::lIsImprovementEmbassy(lua_State* L)
 }
 
 //------------------------------------------------------------------------------
-//bool CvPlot::canSeePlot(CvPlot *pPlot, TeamTypes eTeam, int iRange, DirectionTypes eFacingDirection)
+//bool CvPlot::canSeePlot(CvPlot *pPlot, TeamTypes eTeam, int iRange, DirectionTypes eFacingDirection, DomainTypes eDomain)
 int CvLuaPlot::lCanSeePlot(lua_State* L)
 {
-	CvPlot* pkThisPlot = GetInstance(L);
-	CvPlot* pkThatPlot = GetInstance(L, 2);
-	TeamTypes eTeam = (TeamTypes) lua_tointeger(L, 3);
-	int iRange = lua_tointeger(L, 4);
-	DirectionTypes eFacingDirection = (DirectionTypes) lua_tointeger(L, 5);
+    CvPlot* pkThisPlot = GetInstance(L);
+    CvPlot* pkThatPlot = GetInstance(L, 2);
+    TeamTypes eTeam = (TeamTypes) lua_tointeger(L, 3);
+    int iRange = lua_tointeger(L, 4);
+    DirectionTypes eFacingDirection = (DirectionTypes) lua_tointeger(L, 5);
+    DomainTypes eDomain = (DomainTypes) luaL_optint(L, 6, NO_DOMAIN);
 
-	bool bCanSee = false;
-	if(pkThisPlot)
-	{
+    bool bCanSee = false;
+    if(pkThisPlot)
+    {
 		//need to add one to the range to maintain backward compatibility
-		bCanSee = pkThisPlot->canSeePlot(pkThatPlot, eTeam, iRange + 1, eFacingDirection);
-	}
+        bCanSee = pkThisPlot->canSeePlot(pkThatPlot, eTeam, iRange + 1, eFacingDirection, eDomain);
+    }
 
-	lua_pushboolean(L, bCanSee);
-	return 1;
-
+    lua_pushboolean(L, bCanSee);
+    return 1;
 }
 
 //------------------------------------------------------------------------------

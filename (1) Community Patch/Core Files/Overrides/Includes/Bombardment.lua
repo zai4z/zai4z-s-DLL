@@ -54,7 +54,7 @@ function RangedStrikeHighlight()
 
 				if pTargetPlot then
 					if not bIndirectFireAllowed then
-						if not thisPlot:CanSeePlot(pTargetPlot, thisTeam, iRange - 1, NO_DIRECTION) then
+						if not thisPlot:CanSeePlot(pTargetPlot, thisTeam, iRange - 1, NO_DIRECTION, thingThatCanActuallyFire:GetDomainType()) then
 							bCanRangeStrike = false;
 						end
 					end

@@ -28817,7 +28817,7 @@ bool CvUnit::canEverRangeStrikeAt(int iX, int iY, const CvPlot* pSourcePlot, boo
 		// Plot not visible?
 		if (!bIgnoreVisibility)
 		{
-			bool bCanSeeTarget = pTargetPlot->isVisible(getTeam()) || pSourcePlot->canSeePlot(pTargetPlot, getTeam(), visibilityRange(), getFacingDirection(true));
+			bool bCanSeeTarget = pTargetPlot->isVisible(getTeam()) || pSourcePlot->canSeePlot(pTargetPlot, getTeam(), visibilityRange(), getFacingDirection(true), getUnitInfo().GetDomainType());
 			if (!bCanSeeTarget)
 				return false;
 		}
@@ -28845,7 +28845,7 @@ bool CvUnit::canEverRangeStrikeAt(int iX, int iY, const CvPlot* pSourcePlot, boo
 		// Ignores LoS or can see the plot directly?
 		if (!IsRangeAttackIgnoreLOS() && getDomainType() != DOMAIN_AIR)
 			//not a typo, we need attack range here, not sight range
-			if (!pSourcePlot->canSeePlot(pTargetPlot, getTeam(), GetRange(), getFacingDirection(true)))
+			if (!pSourcePlot->canSeePlot(pTargetPlot, getTeam(), GetRange(), getFacingDirection(true), getUnitInfo().GetDomainType()))
 				return false;
 
 		if (!isNativeDomain(pSourcePlot))

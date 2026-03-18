@@ -1510,7 +1510,7 @@ CvPlot* CvPlot::getNearestLandPlot() const
 
 
 //	--------------------------------------------------------------------------------
-int CvPlot::seeFromLevel(TeamTypes eTeam) const
+int CvPlot::seeFromLevel(TeamTypes eTeam, DomainTypes eDomain) const
 {
 	int iLevel = 0;
 
@@ -1528,13 +1528,17 @@ int CvPlot::seeFromLevel(TeamTypes eTeam) const
 		iLevel = (getTerrainType()!=NO_TERRAIN) ? GC.getTerrainInfo(getTerrainType())->getSeeFromLevel() : 0;
 	}
 
+	bool bNavalAtSeaLevel = eDomain == DOMAIN_SEA && (isCity() || IsImprovementPassable());
+
 	if (isMountain())
 	{
-		iLevel += /*2*/ GD_INT_GET(MOUNTAIN_SEE_FROM_CHANGE);
+		if (!bNavalAtSeaLevel)
+			iLevel += /*2*/ GD_INT_GET(MOUNTAIN_SEE_FROM_CHANGE);
 	}
 	else if (isHills())
 	{
-		iLevel += /*1*/ GD_INT_GET(HILLS_SEE_FROM_CHANGE);
+		if (!bNavalAtSeaLevel)
+			iLevel += /*1*/  GD_INT_GET(HILLS_SEE_FROM_CHANGE);
 	}
 	else if (isWater())
 	{
@@ -1545,7 +1549,7 @@ int CvPlot::seeFromLevel(TeamTypes eTeam) const
 	}
 
 	// Land plots are "higher" than water plots, limiting visibility and range attacks from water onto land
-	if (MOD_BALANCE_VP && !isWater())
+	if (!isWater() && !bNavalAtSeaLevel)
 		iLevel++;
 
 	return iLevel;
@@ -1576,7 +1580,7 @@ int CvPlot::seeThroughLevel(bool bIncludeShubbery) const
 	}
 
 	// Land plots are "higher" than water plots, limiting visibility and range attacks from water onto land
-	if (MOD_BALANCE_VP && !isWater())
+	if (!isWater())
 		iLevel++;
 
 	return iLevel;
@@ -1594,8 +1598,10 @@ void CvPlot::changeSeeFromSight(TeamTypes eTeam, DirectionTypes eDirection, int 
 		pPlot = plotDirection(getX(), getY(), eDirection);
 
 		if(pPlot != NULL)
-		{
-			if((iFromLevel > iThroughLevel) || (pPlot->seeFromLevel(eTeam) > iFromLevel))
+		{	
+			DomainTypes eDomain = pUnit ? pUnit->getUnitInfo().GetDomainType() : NO_DOMAIN;
+			
+			if((iFromLevel > iThroughLevel) || (pPlot->seeFromLevel(eTeam, eDomain) > iFromLevel))
 			{
 				pPlot->changeVisibilityCount(eTeam, ((bIncrement) ? 1 : -1), eSeeInvisible, true, false, pUnit);
 			}
@@ -1632,7 +1638,8 @@ void CvPlot::changeAdjacentSight(TeamTypes eTeam, int iRange, bool bIncrement, I
 	CvPlot* pPlotToCheck = this;
 	int iDX = 0;
 	int iDY = 0;
-	int iCenterLevel = seeFromLevel(eTeam);
+	DomainTypes eDomain = pUnit ? pUnit->getUnitInfo().GetDomainType() : NO_DOMAIN;
+	int iCenterLevel = seeFromLevel(eTeam, eDomain);
 	int iPlotCounter = 0;
 	int iMaxPlotNumberOnThisRing = 0;
 
@@ -1887,7 +1894,7 @@ void CvPlot::changeAdjacentSight(TeamTypes eTeam, int iRange, bool bIncrement, I
 
 //	--------------------------------------------------------------------------------
 // Implementation based on changeAdjacentSight
-void CvPlot::ChangeKnownAdjacentSight(TeamTypes eTeam, TeamTypes eMinorCivAlly, int iRange, DirectionTypes eFacingDirection)
+void CvPlot::ChangeKnownAdjacentSight(TeamTypes eTeam, TeamTypes eMinorCivAlly, int iRange, DirectionTypes eFacingDirection, DomainTypes eDomain)
 {
 	//do nothing if range is negative, this is invalid
 	if (iRange < 0)
@@ -1912,7 +1919,7 @@ void CvPlot::ChangeKnownAdjacentSight(TeamTypes eTeam, TeamTypes eMinorCivAlly, 
 	CvPlot* pPlotToCheck = this;
 	int iDX = 0;
 	int iDY = 0;
-	int iCenterLevel = seeFromLevel(eTeam);
+	int iCenterLevel = seeFromLevel(eTeam, eDomain);
 	int iPlotCounter = 0;
 	int iMaxPlotNumberOnThisRing = 0;
 
@@ -2183,7 +2190,7 @@ void CvPlot::changeEspionageSight(TeamTypes eTeam, CvCity* pCity, int iRange, bo
 }
 
 //	--------------------------------------------------------------------------------
-bool CvPlot::canSeePlot(const CvPlot* pPlot, TeamTypes eTeam, int iRange, DirectionTypes eFacingDirection) const
+bool CvPlot::canSeePlot(const CvPlot* pPlot, TeamTypes eTeam, int iRange, DirectionTypes eFacingDirection, DomainTypes eDomain) const
 {
 	if(pPlot == NULL)
 	{
@@ -2223,7 +2230,7 @@ bool CvPlot::canSeePlot(const CvPlot* pPlot, TeamTypes eTeam, int iRange, Direct
 			}
 
 			//check if anything blocking the plot
-			if (CvTargeting::CanSeeDisplacementPlot(startX, startY, dx, dy, seeFromLevel(eTeam)))
+			if (CvTargeting::CanSeeDisplacementPlot(startX, startY, dx, dy, seeFromLevel(eTeam, eDomain)))
 			{
 				return true;
 			}

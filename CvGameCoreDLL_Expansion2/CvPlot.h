@@ -157,12 +157,12 @@ public:
 	int getNearestLandArea() const;
 	CvPlot* getNearestLandPlot() const;
 
-	int seeFromLevel(TeamTypes eTeam) const;
+	int seeFromLevel(TeamTypes eTeam, DomainTypes eDomain = NO_DOMAIN) const;
 	int seeThroughLevel(bool bIncludeShubbery=true) const;
 	void changeSeeFromSight(TeamTypes eTeam, DirectionTypes eDirection, int iFromLevel, bool bIncrement, InvisibleTypes eSeeInvisible, CvUnit* pUnit=NULL);
 	void changeAdjacentSight(TeamTypes eTeam, int iRange, bool bIncrement, InvisibleTypes eSeeInvisible, DirectionTypes eFacingDirection, CvUnit* pUnit=NULL);
 	void changeEspionageSight(TeamTypes eTeam, CvCity* pCity, int iRange, bool bIncrement);
-	bool canSeePlot(const CvPlot* plot, TeamTypes eTeam, int iRange, DirectionTypes eFacingDirection) const;
+	bool canSeePlot(const CvPlot* plot, TeamTypes eTeam, int iRange, DirectionTypes eFacingDirection, DomainTypes eDomain = NO_DOMAIN) const;
 	bool shouldProcessDisplacementPlot(int dx, int dy, int range, DirectionTypes eFacingDirection) const;
 	void updateSight(bool bIncrement);
 	void updateSeeFromSight(bool bIncrement, bool bRecalculate);
@@ -658,7 +658,7 @@ public:
 	void SetResourceForceReveal(TeamTypes eTeam, bool bValue);
 	RoutePlanTypes GetPlannedRouteState(PlayerTypes ePlayer) const;
 	void SetPlannedRouteState(PlayerTypes ePlayer, RoutePlanTypes eRoutePlanType);
-	void ChangeKnownAdjacentSight(TeamTypes eTeam, TeamTypes eMinorCivAlly, int iRange, DirectionTypes eFacingDirection);
+	void ChangeKnownAdjacentSight(TeamTypes eTeam, TeamTypes eMinorCivAlly, int iRange, DirectionTypes eFacingDirection, DomainTypes eDomain = NO_DOMAIN);
 	int GetKnownVisibilityCount(TeamTypes eTeam) const;
 	bool IsKnownVisibleToEnemy(PlayerTypes ePlayer) const;
 	bool IsKnownVisibleToTeam(TeamTypes eTeam) const;

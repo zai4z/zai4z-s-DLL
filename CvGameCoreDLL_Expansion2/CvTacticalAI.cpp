@@ -387,7 +387,7 @@ void CvTacticalAI::UpdateVisibilityFromUnits(CvPlot* pPlot)
 
 			if (eLoopUnitTeam != ePlayerTeam && !pLoopUnit->isInvisible(ePlayerTeam, false))
 			{
-				pPlot->ChangeKnownAdjacentSight(eLoopUnitTeam, NO_TEAM, pLoopUnit->visibilityRange(), pLoopUnit->getFacingDirection(true));
+				pPlot->ChangeKnownAdjacentSight(eLoopUnitTeam, NO_TEAM, pLoopUnit->visibilityRange(), pLoopUnit->getFacingDirection(true), pLoopUnit->getUnitInfo().GetDomainType());
 			}
 		}
 	}
@@ -3266,7 +3266,7 @@ bool CvTacticalAI::ExecuteSpotterMove(const vector<CvUnit*>& vUnits, CvPlot* pTa
 					break;
 
 				CvPlot* pPathPlot = GC.getMap().plotUnchecked(path[i].m_iX, path[i].m_iY);
-				if (pPathPlot->canSeePlot(pTargetPlot, pUnit->getTeam(), pUnit->visibilityRange(), NO_DIRECTION))
+				if (pPathPlot->canSeePlot(pTargetPlot, pUnit->getTeam(), pUnit->visibilityRange(), NO_DIRECTION, pUnit->getUnitInfo().GetDomainType()))
 				{
 					//or should we use danger as the sorting criterion?
 					vOptions.push_back(OptionWithScore<pair<CvUnit*, CvPlot*>>(make_pair(pUnit,pPathPlot),path[i].m_iMoves));
@@ -9666,7 +9666,7 @@ void CvTacticalPosition::getPlotsWithChangedVisibility(const STacticalAssignment
 
 		if (pTestPlot->getVisibilityCount(pUnit->getTeam())==0)
 		{
-			if (pNewPlot->canSeePlot(pTestPlot, pUnit->getTeam(), pUnit->visibilityRange(), pUnit->getFacingDirection(true)))
+			if (pNewPlot->canSeePlot(pTestPlot, pUnit->getTeam(), pUnit->visibilityRange(), pUnit->getFacingDirection(true), pUnit->getUnitInfo().GetDomainType()))
 				madeVisible.push_back(pTestPlot->GetPlotIndex());
 		}
 	}
