@@ -329,9 +329,6 @@ public:
 
 	bool isCargo() const;
 	void setTransportUnit(CvUnit* pTransportUnit);
-#if defined(MOD_CARGO_SHIPS)
-	SpecialUnitTypes specialUnitCargoLoad() const;
-#endif
 	SpecialUnitTypes specialCargo() const;
 	DomainTypes domainCargo() const;
 	int cargoSpace() const;
@@ -2455,10 +2452,6 @@ protected:
 	bool canAdvance(const CvPlot& pPlot, int iThreshold) const;
 
 	void DoPlagueTransfer(CvUnit& defender, bool bAttacking);
-#if defined(MOD_CARGO_SHIPS)
-	void DoCargoPromotions(CvUnit& cargounit);
-	void RemoveCargoPromotions(CvUnit& cargounit);
-#endif
 
 	int  GetNumFallBackPlotsAvailable(const CvUnit& pAttacker) const;
 	int  GetWithdrawChance(const CvUnit& pAttacker) const;

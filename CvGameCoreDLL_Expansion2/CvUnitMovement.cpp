@@ -207,14 +207,6 @@ int CvUnitMovement::GetCostsForMove(const CvUnit* pUnit, const CvPlot* pFromPlot
 	{
 		return iMoveDenominator;
 	}
-#if defined(MOD_CARGO_SHIPS)
-	else if (pUnit->isCargo() && domain == DOMAIN_LAND &&
-		pTraits->IsEmbarkedToLandFlatCost() &&
-		pToPlot->isCoastalLand(1) && bFromIsWater)
-	{
-		iRegularCost = 0;
-	}
-#endif
 	else //normal case, check terrain and features
 	{
 		//global ignore terrain cost also ignores feature cost, but units may get bonuses from terrain!

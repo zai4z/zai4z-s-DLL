@@ -90,9 +90,6 @@ ALTER TABLE Units ADD FreeUpgrade boolean DEFAULT 0;
 -- Unit gets a new Combat Strength in specific Era, must be set to 'true' or 1, if using Unit_EraCombatStrength, and Unit_EraCombatStrength must be filled in.
 ALTER TABLE Units ADD UnitEraUpgrade boolean DEFAULT 0;
 
--- Special Units that have a different Special rating can be modified here to load on to ships (e.g. Great People).
-ALTER TABLE Units ADD SpecialUnitCargoLoad text REFERENCES SpecialUnits (Type);
-
 -- Can this unit only be trained during War?
 ALTER TABLE Units ADD WarOnly boolean DEFAULT 0;
 

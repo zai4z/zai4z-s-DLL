@@ -1,6 +1,9 @@
 UPDATE Units SET Moves = 2 WHERE Type = 'UNIT_CARAVAN';
 UPDATE Units SET Moves = 4, MinAreaSize = 3 WHERE Type = 'UNIT_CARGO_SHIP';
 
+-- Remove restriction of only DOMAIN_AIR
+UPDATE Units SET DomainCargo = 'NULL' WHERE Type = 'UNIT_CARRIER';
+
 -- Make Work Boats buildable regardless of whether the water body has resources
 UPDATE Units SET PrereqResources = 0 WHERE Type = 'UNIT_WORKBOAT';
 

@@ -77,10 +77,6 @@ CvUnitEntry::CvUnitEntry(void) :
 #if defined(MOD_GLOBAL_STACKING_RULES)
 	m_iStackCombat(0),
 #endif
-#if defined(MOD_CARGO_SHIPS)
-	m_iCargoCombat(0),
-	m_iSpecialUnitCargoLoad(NO_SPECIALUNIT),
-#endif
 	m_iRangedCombat(0),
 	m_bNoSupply(false),
 	m_iMaxHitPoints(100),
@@ -329,9 +325,6 @@ bool CvUnitEntry::CacheResults(Database::Results& kResults, CvDatabaseUtility& k
 	m_iNumberStackingUnits = kResults.GetInt("NumberStackingUnits");
 	m_iStackCombat = kResults.GetInt("StackCombat");
 #endif
-#if defined(MOD_CARGO_SHIPS)
-	m_iCargoCombat = kResults.GetInt("CargoCombat");
-#endif
 
 	//References
 	const char* szTextVal = NULL;
@@ -352,10 +345,6 @@ bool CvUnitEntry::CacheResults(Database::Results& kResults, CvDatabaseUtility& k
 	if (m_iUnitPromotionType == NO_UNITCOMBAT) 
 		m_iUnitPromotionType = m_iUnitCombatType;
 
-#if defined(MOD_CARGO_SHIPS)
-	szTextVal = kResults.GetText("SpecialUnitCargoLoad");
-	m_iSpecialUnitCargoLoad = GC.getInfoTypeForString(szTextVal, true);
-#endif
 	m_iCostScalerNumBuilt = kResults.GetInt("CostScalerNumRepeats");
 
 	szTextVal = kResults.GetText("ResourceType");
@@ -984,14 +973,6 @@ int CvUnitEntry::GetSpecialCargo() const
 	return m_iSpecialCargo;
 }
 
-/// Allows this Special unit type to be loaded onto a cargo ship (e.g. Great People)
-#if defined(MOD_CARGO_SHIPS)
-int CvUnitEntry::GetSpecialUnitCargoLoad() const
-{
-	return m_iSpecialUnitCargoLoad;
-}
-#endif
-
 /// Is there a class of units (domain) that this unit carries
 int CvUnitEntry::GetDomainCargo() const
 {
@@ -1375,12 +1356,6 @@ bool CvUnitEntry::IsExtraAttackHealthOnKill() const
 bool CvUnitEntry::IsHighSeaRaider() const
 {
 	return m_bHighSeaRaider;
-}
-#endif
-#if defined(MOD_CARGO_SHIPS)
-int CvUnitEntry::CargoCombat() const
-{
-	return m_iCargoCombat;
 }
 #endif
 

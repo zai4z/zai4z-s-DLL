@@ -473,10 +473,6 @@
 // XP is granted only on a unit's first attack
 #define MOD_BALANCE_XP_ON_FIRST_ATTACK								gCustomMods.isBALANCE_XP_ON_FIRST_ATTACK()
 
-// Changes melee ship units to be cargo carrying units with added promotions for ship and cargo
-// FIXME: Disabled for now; this needs to be examined to see if it still works properly
-#define MOD_CARGO_SHIPS												(false)
-
 // Halve starting XP for combat units purchased with Faith
 #define MOD_BALANCE_HALF_XP_FAITH_PURCHASES							gCustomMods.isBALANCE_HALF_XP_FAITH_PURCHASES()
 

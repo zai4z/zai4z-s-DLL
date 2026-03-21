@@ -81,10 +81,6 @@ public:
 #if defined(MOD_GLOBAL_STACKING_RULES)
 	int StackCombat() const;
 #endif
-#if defined(MOD_CARGO_SHIPS)
-	int CargoCombat() const;
-	int GetSpecialUnitCargoLoad() const;
-#endif
 	void SetCombat(int iNum);
 	int GetRangedCombat() const;
 	bool IsNoSupply() const;
@@ -282,10 +278,6 @@ private:
 	int m_iCombat;
 #if defined(MOD_GLOBAL_STACKING_RULES)
 	int m_iStackCombat;
-#endif
-#if defined(MOD_CARGO_SHIPS)
-	int m_iCargoCombat;
-	int m_iSpecialUnitCargoLoad;
 #endif
 	int m_iRangedCombat;
 	bool m_bNoSupply;

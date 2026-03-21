@@ -19716,15 +19716,6 @@ void CvUnit::SetFortificationYieldChange(YieldTypes eYield, int iValue)
 }
 
 //	--------------------------------------------------------------------------------
-#if defined(MOD_CARGO_SHIPS)
-SpecialUnitTypes CvUnit::specialUnitCargoLoad() const
-{
-	VALIDATE_OBJECT();
-	return((SpecialUnitTypes)(m_pUnitInfo->GetSpecialUnitCargoLoad()));
-}
-#endif
-
-//	--------------------------------------------------------------------------------
 SpecialUnitTypes CvUnit::specialCargo() const
 {
 	VALIDATE_OBJECT();
@@ -19782,10 +19773,7 @@ bool CvUnit::CanHaveCargo(SpecialUnitTypes eSpecialCargo, DomainTypes eDomainCar
 	VALIDATE_OBJECT();
 	if (specialCargo() != NO_SPECIALUNIT && specialCargo() != eSpecialCargo)
 	{
-		if (!MOD_CARGO_SHIPS || specialUnitCargoLoad() == NO_SPECIALUNIT || specialUnitCargoLoad() != eSpecialCargo)
-		{
-			return false;
-		}
+		return false;
 	}
 
 	if (domainCargo() != NO_DOMAIN && domainCargo() != eDomainCargo)
@@ -20404,27 +20392,6 @@ void CvUnit::setXY(int iX, int iY, bool bGroup, bool bUpdate, bool bShow, bool b
 		{
 			load();
 		}
-#if defined(MOD_CARGO_SHIPS)
-		if(IsCombatUnit())
-		{
-			if(MOD_CARGO_SHIPS)
-			{
-				pUnitNode = pNewPlot->headUnitNode();
-				while(pUnitNode != NULL)
-				{
-					pLoopUnit = ::GetPlayerUnit(*pUnitNode);
-					pUnitNode = pNewPlot->nextUnitNode(pUnitNode);
-					if (pLoopUnit != NULL)
-					{				
-						if(pLoopUnit->IsCargoCombatUnit() && pLoopUnit->hasCargo())
-						{
-							DoCargoPromotions(*pLoopUnit);
-						}
-					}
-				}
-			}
-		}
-#endif
 
 		if (IsGainsXPFromScouting() && GetNumTilesRevealedThisTurn() > 0)
 		{
@@ -20725,15 +20692,6 @@ void CvUnit::setXY(int iX, int iY, bool bGroup, bool bUpdate, bool bShow, bool b
 							{
 								pLoopUnit->SetBaseCombatStrength(pLoopUnit->getUnitInfo().GetCombat());
 							}
-						}
-					}
-#endif
-#if defined(MOD_CARGO_SHIPS)
-					if(MOD_CARGO_SHIPS)
-					{
-						if(pLoopUnit->IsCargoCombatUnit())
-						{
-							RemoveCargoPromotions(*pLoopUnit);
 						}
 					}
 #endif
@@ -25611,12 +25569,12 @@ void CvUnit::setTransportUnit(CvUnit* pTransportUnit)
 
 			m_transportUnit = pTransportUnit->GetIDInfo();
 
-			if (!MOD_CARGO_SHIPS && getDomainType() != DOMAIN_AIR)
+			if (getDomainType() != DOMAIN_AIR)
 			{
 				SetActivityType(ACTIVITY_SLEEP);
 			}
 
-			if(GC.getGame().isFinalInitialized() && (!MOD_CARGO_SHIPS || getDomainType() == DOMAIN_AIR))
+			if(GC.getGame().isFinalInitialized() && (getDomainType() == DOMAIN_AIR))
 			{
 				finishMoves();
 			}
