@@ -1802,7 +1802,6 @@ public:
 #if defined(MOD_GLOBAL_STACKING_RULES)
 	int getNumberStackingUnits() const;
 	bool IsStackingUnit() const;
-	bool IsCargoCombatUnit() const;
 #endif
 
 	bool IsAirSweepCapable() const;

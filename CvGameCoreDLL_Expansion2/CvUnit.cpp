@@ -25574,7 +25574,7 @@ void CvUnit::setTransportUnit(CvUnit* pTransportUnit)
 				SetActivityType(ACTIVITY_SLEEP);
 			}
 
-			if(GC.getGame().isFinalInitialized() && (getDomainType() == DOMAIN_AIR))
+			if (GC.getGame().isFinalInitialized())
 			{
 				finishMoves();
 			}
@@ -33681,122 +33681,8 @@ bool CvUnit::IsStackingUnit() const
 	VALIDATE_OBJECT();
 	return getUnitInfo().GetNumberStackingUnits()>0;
 }
-bool CvUnit::IsCargoCombatUnit() const
-{
-	VALIDATE_OBJECT();
-	return getUnitInfo().CargoCombat()>0;
-}
 //	--------------------------------------------------------------------------------
 #endif
-
-void CvUnit::DoCargoPromotions(CvUnit& cargounit)
-{
-	if(cargounit.IsCargoCombatUnit() && cargounit.hasCargo())
-	{
-		cargounit.SetBaseCombatStrength(cargounit.getUnitInfo().GetCombat() + ((cargounit.getUnitInfo().GetCombat() * cargounit.getUnitInfo().CargoCombat() * cargounit.getCargo()) / 100));
-		PromotionTypes ePromotionPrizeShips = (PromotionTypes) GC.getInfoTypeForString("PROMOTION_PRIZE_SHIPS", true);
-		PromotionTypes ePromotionArmySupport = (PromotionTypes) GC.getInfoTypeForString("PROMOTION_ARMY_SUPPORT", true);
-		if(cargounit.isHasPromotion(ePromotionPrizeShips))
-		{
-			cargounit.setHasPromotion(ePromotionArmySupport, true);
-		}
-		if(isCargo())
-		{
-			UnitCombatTypes eUnitCombatReconType = (UnitCombatTypes)GC.getInfoTypeForString("UNITCOMBAT_RECON", true);
-			PromotionTypes ePromotionEmbarkAllWater = (PromotionTypes) GC.getInfoTypeForString("PROMOTION_ALLWATER_EMBARKATION", true);
-			PromotionTypes ePromotionPolynesiaCargo = (PromotionTypes) GC.getInfoTypeForString("PROMOTION_POLYNESIA_CARGO", true);
-			PromotionTypes ePromotionScoutShip = (PromotionTypes) GC.getInfoTypeForString("PROMOTION_ARMY_SCOUT_SHIP", true);
-			PromotionTypes ePromotionArmyOnShip = (PromotionTypes) GC.getInfoTypeForString("PROMOTION_ARMY_ON_SHIP", true);
-			PromotionTypes ePromotionRangePenalty = (PromotionTypes) GC.getInfoTypeForString("PROMOTION_ARMY_RANGE_PENALTY", true);
-			setHasPromotion(ePromotionArmyOnShip, true);
-			if(IsCanAttackRanged())
-			{
-				setHasPromotion(ePromotionRangePenalty, true);
-			}
-			if(getUnitCombatType() == eUnitCombatReconType)
-			{
-				cargounit.setHasPromotion(ePromotionScoutShip, true);
-			}
-			else
-			{
-				cargounit.setHasPromotion(ePromotionScoutShip, false);
-			}
-			if(isHasPromotion(ePromotionEmbarkAllWater))
-			{
-				cargounit.setHasPromotion(ePromotionPolynesiaCargo, true);
-			}
-			else
-			{
-				cargounit.setHasPromotion(ePromotionPolynesiaCargo, false);
-			}
-		}
-	}
-}
-
-void CvUnit::RemoveCargoPromotions(CvUnit& cargounit)
-{
-	bool scoutcheck = false;
-	bool scoutPromcheck = false;
-	bool allembark = false;
-	bool allembarkProm = false;
-	if(isCargo())
-	{
-		UnitCombatTypes eUnitCombatReconType = (UnitCombatTypes)GC.getInfoTypeForString("UNITCOMBAT_RECON", true);
-		PromotionTypes ePromotionEmbarkAllWater = (PromotionTypes) GC.getInfoTypeForString("PROMOTION_ALLWATER_EMBARKATION", true);
-		if(getUnitCombatType() == eUnitCombatReconType)
-		{
-			scoutcheck = true;
-		}
-		if(isHasPromotion(ePromotionEmbarkAllWater))
-		{
-			allembark = true;
-		}
-	}
-	else if(!isCargo())
-	{
-		PromotionTypes ePromotionArmyOnShip = (PromotionTypes) GC.getInfoTypeForString("PROMOTION_ARMY_ON_SHIP", true);
-		PromotionTypes ePromotionRangePenalty = (PromotionTypes) GC.getInfoTypeForString("PROMOTION_ARMY_RANGE_PENALTY", true);
-		if(isHasPromotion(ePromotionArmyOnShip))
-		{
-			setHasPromotion(ePromotionArmyOnShip, false);
-		}
-		if(isHasPromotion(ePromotionRangePenalty))
-		{
-			setHasPromotion(ePromotionRangePenalty, false);
-		}
-	}
-	PromotionTypes ePromotionArmySupport = (PromotionTypes) GC.getInfoTypeForString("PROMOTION_ARMY_SUPPORT", true);
-	if(cargounit.getCargo() >= 0)
-	{
-		PromotionTypes ePromotionScoutShip = (PromotionTypes) GC.getInfoTypeForString("PROMOTION_ARMY_SCOUT_SHIP", true);
-		if(cargounit.isHasPromotion(ePromotionScoutShip))
-		{
-			scoutPromcheck = true;
-		}
-		if(!scoutcheck && scoutPromcheck)
-		{
-			cargounit.setHasPromotion(ePromotionScoutShip, false);
-		}
-		PromotionTypes ePromotionPolynesiaCargo = (PromotionTypes) GC.getInfoTypeForString("PROMOTION_POLYNESIA_CARGO", true);
-		if(cargounit.isHasPromotion(ePromotionPolynesiaCargo))
-		{
-			allembarkProm = true;
-		}
-		if(!allembark && allembarkProm)
-		{
-			cargounit.setHasPromotion(ePromotionPolynesiaCargo, false);
-		}
-		cargounit.SetBaseCombatStrength(cargounit.getUnitInfo().GetCombat() + ((cargounit.getUnitInfo().GetCombat() * cargounit.getUnitInfo().CargoCombat() * cargounit.getCargo()) / 100));
-	}
-	if(!cargounit.hasCargo())
-	{
-		if(cargounit.isHasPromotion(ePromotionArmySupport))
-		{
-			cargounit.setHasPromotion(ePromotionArmySupport, false);
-		}
-		cargounit.SetBaseCombatStrength(cargounit.getUnitInfo().GetCombat());
-	}
-}
 
 void CvUnit::DoGreatPersonSpawnBonus(CvCity* pSpawnCity)
 {
