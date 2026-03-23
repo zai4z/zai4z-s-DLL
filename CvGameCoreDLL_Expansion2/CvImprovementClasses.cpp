@@ -100,6 +100,7 @@ CvImprovementEntry::CvImprovementEntry(void):
 	m_bAllowsAirliftTo(false),
 	m_bBlockTileSteal(false),
 	m_bHillsMakesValid(false),
+	m_bUnderground(false),
 	m_bMountainsMakesValid(false),
 	m_bMakesPassable(false),
 	m_bWaterAdjacencyMakesValid(false),
@@ -274,6 +275,7 @@ bool CvImprovementEntry::CacheResults(Database::Results& kResults, CvDatabaseUti
 	m_bAllowsAirliftTo = kResults.GetBool("AllowsAirliftTo");
 	m_bBlockTileSteal = kResults.GetBool("BlockTileSteal");
 	m_bHillsMakesValid = kResults.GetBool("HillsMakesValid");
+	m_bUnderground = kResults.GetBool("Underground");
 	m_bMountainsMakesValid = kResults.GetBool("MountainsMakesValid");
 	m_bMakesPassable = kResults.GetBool("MakesPassable");
 	m_bWaterAdjacencyMakesValid = kResults.GetBool("WaterAdjacencyMakesValid");
@@ -1120,6 +1122,12 @@ bool CvImprovementEntry::IsBlockTileSteal() const
 bool CvImprovementEntry::IsHillsMakesValid() const
 {
 	return m_bHillsMakesValid;
+}
+
+/// Stops units from shooting from this tile, and taking ranged hits from other tiles
+bool CvImprovementEntry::IsUnderground() const
+{
+	return m_bUnderground;
 }
 
 /// Requires mountains to be constructed

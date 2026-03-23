@@ -98,3 +98,6 @@ ALTER TABLE Improvements ADD AllowsAirliftTo integer DEFAULT 0;
 
 -- Improvement requires a resource in the tile to be buildable
 ALTER TABLE Improvements ADD RequiresResource boolean DEFAULT 0;
+
+-- Stops units from shooting from this tile, and being shoot from other tiles, also "hides" units visually
+ALTER TABLE Improvements ADD Underground boolean DEFAULT 0;

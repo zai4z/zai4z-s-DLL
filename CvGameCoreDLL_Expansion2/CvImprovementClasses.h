@@ -101,6 +101,7 @@ public:
 	bool IsBlockTileSteal() const;
 
 	bool IsHillsMakesValid() const;
+	bool IsUnderground() const;
 	bool IsMountainsMakesValid() const;
 	bool IsMakesPassable() const;
 	bool IsWaterAdjacencyMakesValid() const;
@@ -272,6 +273,7 @@ protected:
 	bool m_bBlockTileSteal;
 
 	bool m_bHillsMakesValid;
+	bool m_bUnderground;
 	bool m_bMountainsMakesValid;
 	bool m_bMakesPassable;
 	bool m_bWaterAdjacencyMakesValid;

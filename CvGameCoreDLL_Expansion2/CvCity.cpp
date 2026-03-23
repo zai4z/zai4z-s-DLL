@@ -32638,6 +32638,15 @@ bool CvCity::canRangeStrikeAt(int iX, int iY) const
 	if (pTargetPlot->isCity())
 		return false;
 
+	// Can't attack tunnels
+	ImprovementTypes eImprovement = pTargetPlot->getImprovementType();
+	if (eImprovement != NO_IMPROVEMENT)
+	{
+		CvImprovementEntry* pkImprovement = GC.getImprovementInfo(eImprovement);
+		if (pkImprovement && pkImprovement->IsUnderground())
+			return false;
+	}
+
 	if (!canRangedStrikeTarget(*pTargetPlot))
 		return false;
 

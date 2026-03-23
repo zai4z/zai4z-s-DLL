@@ -20146,8 +20146,11 @@ void CvUnit::setXY(int iX, int iY, bool bGroup, bool bUpdate, bool bShow, bool b
 	if(pOldPlot != NULL)
 	{
 		pOldPlot->removeUnit(this, bUpdate);
-		// if leaving a city, reveal the unit
-		if (pOldPlot->isCity())
+		// if leaving a city or tunnel, reveal the unit
+		ImprovementTypes eOldImprovement = pOldPlot->getImprovementType();
+		CvImprovementEntry* pkOldImprovement = (eOldImprovement != NO_IMPROVEMENT) ? GC.getImprovementInfo(eOldImprovement) : NULL;
+		
+		if (pOldPlot->isCity() || (pkOldImprovement && pkOldImprovement->IsUnderground()))
 		{
 			// if pNewPlot is a valid pointer, we are leaving the city and need to visible
 			// if pNewPlot is NULL than we are "dead" (e.g. a settler) and need to blend out
@@ -20203,12 +20206,15 @@ void CvUnit::setXY(int iX, int iY, bool bGroup, bool bUpdate, bool bShow, bool b
 			}
 		}
 
-		// if entering a city, hide the unit
-		if(pNewPlot->isCity())
-		{
-			CvInterfacePtr<ICvUnit1> pDllUnit(new CvDllUnit(this));
-			gDLL->GameplayUnitVisibility(pDllUnit.get(), false /*bVisible*/);
-		}
+        // if entering a city or tunnel, hide the unit
+        ImprovementTypes eImprovement = pNewPlot->getImprovementType();
+        CvImprovementEntry* pkImprovement = (eImprovement != NO_IMPROVEMENT) ? GC.getImprovementInfo(eImprovement) : NULL;
+        
+        if (pNewPlot->isCity() || (pkImprovement && pkImprovement->IsUnderground()))
+        {
+            CvInterfacePtr<ICvUnit1> pDllUnit(new CvDllUnit(this));
+            gDLL->GameplayUnitVisibility(pDllUnit.get(), false /*bVisible*/);
+        }
 
 		// safety if ever we call setXY directly without a mission
 		SetFortified(false);
@@ -28791,6 +28797,15 @@ bool CvUnit::canRangeStrike() const
 	if (!canEndTurnAtPlot(plot()))
 		return false;
 
+	// Inside tunnel
+	ImprovementTypes eImprovement = plot()->getImprovementType();
+	if (eImprovement != NO_IMPROVEMENT)
+	{
+		CvImprovementEntry* pkImprovement = GC.getImprovementInfo(eImprovement);
+		if (pkImprovement && pkImprovement->IsUnderground())
+			return false;
+	}
+
 	return true;
 }
 
@@ -28924,6 +28939,15 @@ bool CvUnit::canEverRangeStrikeAt(int iX, int iY, const CvPlot* pSourcePlot, boo
 
 		if (!isNativeDomain(pSourcePlot))
 			return false;
+
+		// TargetPlot has a tunnel?
+		ImprovementTypes eImprovement = pTargetPlot->getImprovementType();
+		if (eImprovement != NO_IMPROVEMENT)
+		{
+			CvImprovementEntry* pkImprovement = GC.getImprovementInfo(eImprovement);
+			if (pkImprovement && pkImprovement->IsUnderground())
+				return false;
+		}
 	}
 	else //no source plot given, do only the most basic checks
 	{

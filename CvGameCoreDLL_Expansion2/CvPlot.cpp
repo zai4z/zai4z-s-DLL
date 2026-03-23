@@ -623,7 +623,11 @@ void CvPlot::updateCenterUnit()
 		if(pUnitNode != NULL)
 		{
 			CvUnit* pLoopUnit = GetPlayerUnit(*pUnitNode);
-			if(pLoopUnit && !pLoopUnit->IsGarrisoned() && pLoopUnit->getDomainType() != DOMAIN_AIR && !pLoopUnit->isInvisible(eActiveTeam,false))
+			ImprovementTypes eImprovement = getImprovementType();
+			CvImprovementEntry* pkImprovement = (eImprovement != NO_IMPROVEMENT) ? GC.getImprovementInfo(eImprovement) : NULL;
+
+			// Don't show units in cities or tunnels unless selected
+			if(pLoopUnit && !pLoopUnit->IsGarrisoned() && !(pkImprovement && pkImprovement->IsUnderground()) && pLoopUnit->getDomainType() != DOMAIN_AIR && !pLoopUnit->isInvisible(eActiveTeam,false))
 			{
 				setCenterUnit(pLoopUnit);
 			}
