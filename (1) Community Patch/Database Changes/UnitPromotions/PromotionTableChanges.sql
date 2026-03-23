@@ -349,3 +349,7 @@ ALTER TABLE UnitPromotions_Features ADD IgnoreTerrainCostIn boolean DEFAULT 0;
 -- Likewise, the cost of crossing a river isn't ignored by this
 ALTER TABLE UnitPromotions_Terrains ADD IgnoreTerrainCostFrom boolean DEFAULT 0;
 ALTER TABLE UnitPromotions_Features ADD IgnoreTerrainCostFrom boolean DEFAULT 0;
+
+-- Units can't stop and end their turn on this tile
+ALTER TABLE UnitPromotions_Terrains ADD NoStop boolean DEFAULT 0;
+ALTER TABLE UnitPromotions_Features ADD NoStop boolean DEFAULT 0;

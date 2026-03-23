@@ -330,7 +330,7 @@ CvPromotionEntry::CvPromotionEntry():
 	m_piFortificationYield(NULL),
 	m_piUnitCombatModifierPercent(NULL),
 	m_piUnitCombatModifierPercentAttack(NULL),
-		m_piUnitCombatModifierPercentDefense(NULL),
+	m_piUnitCombatModifierPercentDefense(NULL),
 	m_piUnitClassModifierPercent(NULL),
 	m_piUnitClassAttackModifier(NULL),
 	m_piUnitClassDefenseModifier(NULL),
@@ -354,6 +354,8 @@ CvPromotionEntry::CvPromotionEntry():
 	m_pbTerrainDoubleHeal(NULL),
 	m_pbFeatureDoubleHeal(NULL),
 	m_pbTerrainImpassable(NULL),
+	m_pbTerrainNoStop(NULL),
+	m_pbFeatureNoStop(NULL),
 	m_piTerrainPassableTech(NULL),
 	m_pbFeatureImpassable(NULL),
 	m_pbUnitCombat(NULL),
@@ -408,6 +410,8 @@ CvPromotionEntry::~CvPromotionEntry(void)
 	SAFE_DELETE_ARRAY(m_pbTerrainDoubleHeal);
 	SAFE_DELETE_ARRAY(m_pbFeatureDoubleHeal);
 	SAFE_DELETE_ARRAY(m_pbTerrainImpassable);
+	SAFE_DELETE_ARRAY(m_pbTerrainNoStop);
+	SAFE_DELETE_ARRAY(m_pbFeatureNoStop);
 	SAFE_DELETE_ARRAY(m_piTerrainPassableTech);
 	SAFE_DELETE_ARRAY(m_pbFeatureImpassable);
 	SAFE_DELETE_ARRAY(m_pbUnitCombat);
@@ -740,6 +744,7 @@ bool CvPromotionEntry::CacheResults(Database::Results& kResults, CvDatabaseUtili
 		kUtility.InitializeArray(m_pbTerrainExtraMove, iNumTerrains, false);
 		kUtility.InitializeArray(m_pbTerrainDoubleHeal, iNumTerrains, false);
 		kUtility.InitializeArray(m_pbTerrainImpassable, iNumTerrains, false);
+		kUtility.InitializeArray(m_pbTerrainNoStop, iNumTerrains, false);
 
 		std::string sqlKey = "UnitPromotions_Terrains";
 		Database::Results* pResults = kUtility.GetResults(sqlKey);
@@ -785,6 +790,9 @@ bool CvPromotionEntry::CacheResults(Database::Results& kResults, CvDatabaseUtili
 
 			const bool bImpassable = pResults->GetBool("Impassable");
 			m_pbTerrainImpassable[iTerrainID] = bImpassable;
+
+			const bool bNoStop = pResults->GetBool("NoStop");
+			m_pbTerrainNoStop[iTerrainID] = bNoStop;
 
 			const int iPassableTechID = pResults->GetInt("PassableTechID");
 			m_piTerrainPassableTech[iTerrainID] = iPassableTechID;
@@ -838,6 +846,7 @@ bool CvPromotionEntry::CacheResults(Database::Results& kResults, CvDatabaseUtili
 		kUtility.InitializeArray(m_pbFeatureExtraMove, iNumFeatures, false);
 		kUtility.InitializeArray(m_pbFeatureDoubleHeal, iNumFeatures, false);
 		kUtility.InitializeArray(m_pbFeatureImpassable, iNumFeatures, false);
+		kUtility.InitializeArray(m_pbFeatureNoStop, iNumFeatures, false);
 
 		std::string sqlKey = "UnitPromotions_Features";
 		Database::Results* pResults = kUtility.GetResults(sqlKey);
@@ -883,6 +892,9 @@ bool CvPromotionEntry::CacheResults(Database::Results& kResults, CvDatabaseUtili
 
 			const bool bImpassable = pResults->GetBool("Impassable");
 			m_pbFeatureImpassable[iFeatureID] = bImpassable;
+
+			const bool bNoStop = pResults->GetBool("NoStop");
+			m_pbFeatureNoStop[iFeatureID] = bNoStop;
 
 			const int iPassableTech = pResults->GetInt("PassableTechID");
 			m_piFeaturePassableTech[iFeatureID] = iPassableTech;
@@ -3462,6 +3474,19 @@ bool CvPromotionEntry::GetTerrainImpassable(int i) const
 
 	return false;
 }
+/// Indicates if a terrain type can't be stopped on
+bool CvPromotionEntry::GetTerrainNoStop(int i) const
+{
+	PRECONDITION(i < GC.getNumTerrainInfos(), "Index out of bounds");
+	PRECONDITION(i > -1, "Index out of bounds");
+
+	if(i > -1 && i < GC.getNumTerrainInfos() && m_pbTerrainNoStop)
+	{
+		return m_pbTerrainNoStop[i];
+	}
+
+	return false;
+}
 
 /// Indicates what tech is needed to pass through a terrain type
 int CvPromotionEntry::GetTerrainPassableTech(int i) const
@@ -3486,6 +3511,20 @@ bool CvPromotionEntry::GetFeatureImpassable(int i) const
 	if(i > -1 && i < GC.getNumFeatureInfos() && m_pbFeatureImpassable)
 	{
 		return m_pbFeatureImpassable[i];
+	}
+
+	return false;
+}
+
+/// Indicates if a feature type can't be stopped on
+bool CvPromotionEntry::GetFeatureNoStop(int i) const
+{
+	PRECONDITION(i < GC.getNumFeatureInfos(), "Index out of bounds");
+	PRECONDITION(i > -1, "Index out of bounds");
+
+	if(i > -1 && i < GC.getNumFeatureInfos() && m_pbFeatureNoStop)
+	{
+		return m_pbFeatureNoStop[i];
 	}
 
 	return false;

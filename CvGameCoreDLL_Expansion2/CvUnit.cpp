@@ -491,6 +491,8 @@ CvUnit::CvUnit() :
 	, m_abPromotionEverObtained()
 	, m_terrainDoubleHeal()
 	, m_featureDoubleHeal()
+	, m_terrainNoStop()
+	, m_featureNoStop()
 	, m_yieldFromKills()
 	, m_yieldFromBarbarianKills()
 	, m_aiNumTimesAttackedThisTurn()
@@ -1643,6 +1645,7 @@ void CvUnit::reset(int iID, UnitTypes eUnit, PlayerTypes eOwner, bool bConstruct
 		m_terrainHalfMoveCount.clear();
 		m_terrainExtraMoveCount.clear();
 		m_terrainDoubleHeal.clear();
+		m_terrainNoStop.clear();
 		m_PromotionDuration.clear();
 		m_TurnPromotionGained.clear();
 		m_terrainImpassableCount.clear();
@@ -1657,6 +1660,7 @@ void CvUnit::reset(int iID, UnitTypes eUnit, PlayerTypes eOwner, bool bConstruct
 		m_featureHalfMoveCount.clear();
 		m_featureExtraMoveCount.clear();
 		m_featureDoubleHeal.clear();
+		m_featureNoStop.clear();
 		m_featureImpassableCount.clear();
 		m_extraFeatureDefensePercent.clear();
 		m_extraFeatureAttackPercent.clear();
@@ -1808,6 +1812,8 @@ void CvUnit::uninitInfos()
 	m_TurnPromotionGained.clear();
 	m_terrainDoubleHeal.clear();
 	m_featureDoubleHeal.clear();
+	m_terrainNoStop.clear();
+	m_featureNoStop.clear();
 	m_terrainImpassableCount.clear();
 	m_featureImpassableCount.clear();
 	m_extraTerrainAttackPercent.clear();
@@ -4767,12 +4773,28 @@ bool CvUnit::canEnterTerrain(const CvPlot& enterPlot, int iMoveFlags) const
 				return CanStayInOcean();
 			}
 		}
-		else if(enterPlot.getFeatureType() != NO_FEATURE && isFeatureImpassable(enterPlot.getFeatureType()))
+		
+		if (iMoveFlags & CvUnit::MOVEFLAG_DESTINATION)
 		{
+			if (enterPlot.getTerrainType() != NO_TERRAIN && isTerrainNoStop(enterPlot.getTerrainType()))
+				return false;
+
+			if (enterPlot.getFeatureType() != NO_FEATURE && isFeatureNoStop(enterPlot.getFeatureType()))
+				return false;
+		}
+		
+		if(enterPlot.getFeatureType() != NO_FEATURE && isFeatureImpassable(enterPlot.getFeatureType()))
+		{
+			if (m_Promotions.HasAllowFeaturePassable())
+				return m_Promotions.GetAllowFeaturePassable(enterPlot.getFeatureType(), getTeam());
+
 			return false;
 		}
 		else if(enterPlot.getTerrainType() != NO_TERRAIN && isTerrainImpassable(enterPlot.getTerrainType()))
 		{
+			if (m_Promotions.HasAllowTerrainPassable())
+				return m_Promotions.GetAllowTerrainPassable(enterPlot.getTerrainType(), getTeam());
+
 			return false;
 		}
 		else if (kPlayer.isMinorCiv() && enterPlot.getRevealedImprovementType(getTeam()) == GD_INT_GET(BARBARIAN_CAMP_IMPROVEMENT))
@@ -4789,9 +4811,7 @@ bool CvUnit::canEnterTerrain(const CvPlot& enterPlot, int iMoveFlags) const
 bool CvUnit::CanStayInOcean() const
 {
 	//this promotion overrides the exception ...
-	PromotionTypes ePromotionOceanImpassable = (PromotionTypes)GD_INT_GET(PROMOTION_OCEAN_IMPASSABLE);
-	bool bOceanImpassable = isHasPromotion(ePromotionOceanImpassable);
-	if (bOceanImpassable)
+	if (isTerrainNoStop(TERRAIN_OCEAN))
 		return false;
 
 	if (canCrossOceans())
@@ -26314,6 +26334,96 @@ void CvUnit::changeFeatureDoubleHeal(FeatureTypes eIndex, int iChange)
 	m_featureDoubleHeal.push_back(make_pair(eIndex, iChange));
 }
 
+
+//	--------------------------------------------------------------------------------
+int CvUnit::getTerrainNoStop(TerrainTypes eIndex) const
+{
+	for (TerrainTypeCounter::const_iterator it = m_terrainNoStop.begin(); it != m_terrainNoStop.end(); ++it)
+	{
+		if (it->first == eIndex)
+			return it->second;
+	}
+
+	return 0;
+}
+
+
+//	--------------------------------------------------------------------------------
+bool CvUnit::isTerrainNoStop(TerrainTypes eIndex) const
+{
+	return getTerrainNoStop(eIndex) > 0;
+}
+
+
+//	--------------------------------------------------------------------------------
+void CvUnit::changeTerrainNoStop(TerrainTypes eIndex, int iChange)
+{
+	if (iChange == 0)
+		return;
+
+	TerrainTypeCounter& mVec = m_terrainNoStop;
+	for (TerrainTypeCounter::iterator it = mVec.begin(); it != mVec.end(); ++it)
+	{
+		if (it->first == eIndex)
+		{
+			it->second += iChange;
+
+			if (it->second == 0)
+				mVec.erase(it);
+
+			return;
+		}
+	}
+
+	m_terrainNoStop.push_back(make_pair(eIndex, iChange));
+}
+
+
+//	--------------------------------------------------------------------------------
+int CvUnit::getFeatureNoStop(FeatureTypes eIndex) const
+{
+	for (FeatureTypeCounter::const_iterator it = m_featureNoStop.begin(); it != m_featureNoStop.end(); ++it)
+	{
+		if (it->first == eIndex)
+			return it->second;
+	}
+
+	return 0;
+}
+
+
+//	--------------------------------------------------------------------------------
+bool CvUnit::isFeatureNoStop(FeatureTypes eIndex) const
+{
+	return getFeatureNoStop(eIndex) > 0;
+}
+
+
+//	--------------------------------------------------------------------------------
+void CvUnit::changeFeatureNoStop(FeatureTypes eIndex, int iChange)
+{
+	if (iChange == 0)
+		return;
+
+	FeatureTypeCounter& mVec = m_featureNoStop;
+	for (FeatureTypeCounter::iterator it = mVec.begin(); it != mVec.end(); ++it)
+	{
+		if (it->first == eIndex)
+		{
+			it->second += iChange;
+
+			if (it->second == 0)
+				mVec.erase(it);
+
+			return;
+		}
+	}
+
+	m_featureNoStop.push_back(make_pair(eIndex, iChange));
+}
+
+//	--------------------------------------------------------------------------------
+
 void CvUnit::ChangeNumTimesAttackedThisTurn(PlayerTypes ePlayer, int iValue)
 {
 	VALIDATE_OBJECT();
@@ -27452,9 +27562,11 @@ void CvUnit::setHasPromotion(PromotionTypes eIndex, bool bNewValue)
 		if (bNewValue && GET_PLAYER(getOwner()).GetPlayerTraits()->IsEmbarkedAllWater())
 		{
 			if (thisPromotion.GetTerrainImpassable(TERRAIN_OCEAN) ||
+				thisPromotion.GetTerrainNoStop	  (TERRAIN_OCEAN) ||
 				thisPromotion.GetTerrainHalfMove  (TERRAIN_OCEAN) ||
 				thisPromotion.GetTerrainExtraMove (TERRAIN_OCEAN) ||
 				thisPromotion.GetTerrainImpassable(TERRAIN_COAST) ||
+				thisPromotion.GetTerrainNoStop	  (TERRAIN_COAST) ||
 				thisPromotion.GetTerrainHalfMove  (TERRAIN_COAST) ||
 				thisPromotion.GetTerrainExtraMove (TERRAIN_COAST))
 			{
@@ -27847,6 +27959,7 @@ void CvUnit::setPromotionActive(PromotionTypes eIndex, bool bNewValue)
 		changeTerrainExtraMoveCount(((TerrainTypes)iI), ((thisPromotion.GetTerrainExtraMove(iI)) ? iChange : 0));
 		changeTerrainDoubleHeal(((TerrainTypes)iI), ((thisPromotion.GetTerrainDoubleHeal(iI)) ? iChange : 0));
 		changeTerrainImpassableCount(((TerrainTypes)iI), ((thisPromotion.GetTerrainImpassable(iI)) ? iChange : 0));
+		changeTerrainNoStop(((TerrainTypes)iI), ((thisPromotion.GetTerrainNoStop(iI)) ? iChange : 0));
 	}
 
 	for (iI = 0; iI < GC.getNumFeatureInfos(); iI++)
@@ -27860,6 +27973,7 @@ void CvUnit::setPromotionActive(PromotionTypes eIndex, bool bNewValue)
 		changeFeatureExtraMoveCount(((FeatureTypes)iI), ((thisPromotion.GetFeatureExtraMove(iI)) ? iChange : 0));
 		changeFeatureDoubleHeal(((FeatureTypes)iI), ((thisPromotion.GetFeatureDoubleHeal(iI)) ? iChange : 0));
 		changeFeatureImpassableCount(((FeatureTypes)iI), ((thisPromotion.GetFeatureImpassable(iI)) ? iChange : 0));
+		changeFeatureNoStop(((FeatureTypes)iI), ((thisPromotion.GetFeatureNoStop(iI)) ? iChange : 0));
 	}
 
 	for (iI = 0; iI < NUM_YIELD_TYPES; iI++)
@@ -28482,6 +28596,8 @@ void CvUnit::Serialize(Unit& unit, Visitor& visitor)
 	visitor(unit.m_featureExtraMoveCount);
 	visitor(unit.m_terrainDoubleHeal);
 	visitor(unit.m_featureDoubleHeal);
+	visitor(unit.m_terrainNoStop);
+	visitor(unit.m_featureNoStop);
 	visitor(unit.m_terrainImpassableCount);
 	visitor(unit.m_featureImpassableCount);
 	visitor(unit.m_extraTerrainAttackPercent);

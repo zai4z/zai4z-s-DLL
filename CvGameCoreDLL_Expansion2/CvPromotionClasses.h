@@ -363,6 +363,8 @@ public:
 	bool GetTerrainDoubleHeal(int i) const;
 	bool GetFeatureDoubleHeal(int i) const;
 	bool GetTerrainImpassable(int i) const;
+	bool GetTerrainNoStop(int i) const;
+	bool GetFeatureNoStop(int i) const;
 	int  GetTerrainPassableTech(int i) const;
 	bool GetFeatureImpassable(int i) const;
 	bool GetUnitCombatClass(int i) const;
@@ -681,6 +683,8 @@ protected:
 	bool* m_pbFeatureDoubleHeal;
 	bool* m_pbTerrainImpassable;
 	bool* m_pbFeatureImpassable;
+	bool* m_pbTerrainNoStop;
+	bool* m_pbFeatureNoStop;
 	bool* m_pbUnitCombat;
 	bool* m_pbCivilianUnitType;
 	bool* m_pbUnitName;

@@ -17,3 +17,4 @@ VALUES
 UPDATE UnitPromotions SET MovesChange = 2, ExtraNavalMovement = 0 WHERE Type = 'PROMOTION_OCEAN_MOVEMENT';
 
 UPDATE UnitPromotions SET Help = 'TXT_KEY_PROMOTION_OCEAN_IMPASSABLE_HELP' WHERE Type = 'PROMOTION_OCEAN_IMPASSABLE';
+UPDATE UnitPromotions_Terrains SET NoStop = 1, Impassable = 0 WHERE PromotionType = 'PROMOTION_OCEAN_IMPASSABLE';

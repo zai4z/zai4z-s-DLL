@@ -1698,6 +1698,14 @@ public:
 	bool isFeatureDoubleHeal(FeatureTypes eIndex) const;
 	void changeFeatureDoubleHeal(FeatureTypes eIndex, int iChange);
 
+	int getTerrainNoStop(TerrainTypes eIndex) const;
+	bool isTerrainNoStop(TerrainTypes eIndex) const;
+	void changeTerrainNoStop(TerrainTypes eIndex, int iChange);
+
+	int getFeatureNoStop(FeatureTypes eIndex) const;
+	bool isFeatureNoStop(FeatureTypes eIndex) const;
+	void changeFeatureNoStop(FeatureTypes eIndex, int iChange);
+
 	void ChangeNumTimesAttackedThisTurn(PlayerTypes ePlayer, int iValue);
 	int GetNumTimesAttackedThisTurn(PlayerTypes ePlayer) const;
 
@@ -2373,6 +2381,10 @@ protected:
 
 	TerrainTypeCounter m_terrainDoubleHeal;
 	FeatureTypeCounter m_featureDoubleHeal;
+
+	TerrainTypeCounter m_terrainNoStop;
+	FeatureTypeCounter m_featureNoStop;
+	
 	TerrainTypeCounter m_terrainImpassableCount;
 	FeatureTypeCounter m_featureImpassableCount;
 	TerrainTypeCounter m_extraTerrainAttackPercent;
@@ -2772,6 +2784,8 @@ SYNC_ARCHIVE_VAR(TerrainTypeCounter, m_terrainExtraMoveCount)
 SYNC_ARCHIVE_VAR(FeatureTypeCounter, m_featureExtraMoveCount)
 SYNC_ARCHIVE_VAR(TerrainTypeCounter, m_terrainDoubleHeal)
 SYNC_ARCHIVE_VAR(FeatureTypeCounter, m_featureDoubleHeal)
+SYNC_ARCHIVE_VAR(TerrainTypeCounter, m_terrainNoStop)
+SYNC_ARCHIVE_VAR(FeatureTypeCounter, m_featureNoStop)
 SYNC_ARCHIVE_VAR(TerrainTypeCounter, m_terrainImpassableCount)
 SYNC_ARCHIVE_VAR(FeatureTypeCounter, m_featureImpassableCount)
 SYNC_ARCHIVE_VAR(TerrainTypeCounter, m_extraTerrainAttackPercent)
