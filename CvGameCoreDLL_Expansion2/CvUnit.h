@@ -349,9 +349,9 @@ public:
 	int GetRangeAttackIgnoreLOSCount() const;
 	void ChangeRangeAttackIgnoreLOSCount(int iChange);
 
-	bool canSetUpForRangedAttack(const CvPlot* pPlot) const; //no longer used
-	bool isSetUpForRangedAttack() const; //no longer used
-	void setSetUpForRangedAttack(bool bValue); //no longer used
+	bool canSetUpForRangedAttack(const CvPlot* pPlot) const;
+	bool isSetUpForRangedAttack() const;
+	void setSetUpForRangedAttack(bool bValue);
 
 	bool IsCityAttackSupport() const;
 	void ChangeCityAttackOnlyCount(int iChange);
@@ -656,9 +656,9 @@ public:
 	bool isBlastTourism() const;
 	bool canCoexistWithEnemyUnit(TeamTypes eTeam) const;
 
-	bool isSlowInEnemyLand() const; //used to be setup for ranged attack
-	int getIsSlowInEnemyLandCount() const;
-	void changeIsSlowInEnemyLandCount(int iChange);
+	bool isMustSetUpToRangedAttack() const;
+	int getMustSetUpToRangedAttackCount() const;
+	void changeMustSetUpToRangedAttackCount(int iChange);
 
 	bool isRangedSupportFire() const;
 	int getRangedSupportFireCount() const;
@@ -2102,7 +2102,8 @@ protected:
 	int m_iRiverCrossingNoPenaltyCount;
 	int m_iEnemyRouteCount;
 	int m_iRivalTerritoryCount;
-	int m_iIsSlowInEnemyLandCount;
+	bool m_bSetUpForRangedAttack;
+	int m_iMustSetUpToRangedAttackCount;
 	int m_iRangeAttackIgnoreLOSCount;
 	int m_iCityAttackOnlyCount;
 	int m_iCaptureDefeatedEnemyCount;
@@ -2534,7 +2535,8 @@ SYNC_ARCHIVE_VAR(int, m_iAmphibCount)
 SYNC_ARCHIVE_VAR(int, m_iRiverCrossingNoPenaltyCount)
 SYNC_ARCHIVE_VAR(int, m_iEnemyRouteCount)
 SYNC_ARCHIVE_VAR(int, m_iRivalTerritoryCount)
-SYNC_ARCHIVE_VAR(int, m_iIsSlowInEnemyLandCount)
+SYNC_ARCHIVE_VAR(bool, m_bSetUpForRangedAttack)
+SYNC_ARCHIVE_VAR(int, m_iMustSetUpToRangedAttackCount)
 SYNC_ARCHIVE_VAR(int, m_iRangeAttackIgnoreLOSCount)
 SYNC_ARCHIVE_VAR(int, m_iCityAttackOnlyCount)
 SYNC_ARCHIVE_VAR(int, m_iCaptureDefeatedEnemyCount)

@@ -320,22 +320,6 @@ int CvUnitMovement::GetCostsForMove(const CvUnit* pUnit, const CvPlot* pFromPlot
 
 		//additive change
 		iRegularCost += iTerrainFeatureCostAdderFromPromotions;
-
-		//extra movement cost in some instances
-		bool bSlowDown = false;
-		if (eToTeam != NO_TEAM && eUnitTeam != eToTeam)
-		{
-			if (!pToPlot->IsFriendlyTerritory(kPlayer.GetID()))
-			{
-				//unit itself may have a negative trait ...
-				bSlowDown = pUnit->isSlowInEnemyLand();
-			}
-		}
-
-		if (bSlowDown)
-		{
-			iRegularCost += iMoveDenominator;
-		}
 	}
 
 	//sometimes the route cost can be higher than what we get with promotions

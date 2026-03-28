@@ -5853,6 +5853,25 @@ bool TacticalAIHelpers::PerformRangedOpportunityAttack(CvUnit* pUnit, bool bAllo
 			GET_PLAYER(pUnit->getOwner()).GetTacticalAI()->LogTacticalMessage(strMsg);
 		}
 
+		if (!bIsAirUnit)
+		{
+			if (pUnit->canSetUpForRangedAttack(NULL))
+			{
+				pUnit->setSetUpForRangedAttack(true);
+				if (GC.getLogging() && GC.getAILogging())
+				{
+					CvString strMsg;
+					strMsg.Format("Set up %s for ranged attack", pUnit->getName().GetCString());
+					GET_PLAYER(pUnit->getOwner()).GetTacticalAI()->LogTacticalMessage(strMsg);
+				}
+				if (!pUnit->canMove())
+				{
+					pUnit->SetTacticalAIPlot(NULL);
+					GET_PLAYER(pUnit->getOwner()).GetTacticalAI()->UnitProcessed(pUnit->GetID());
+				}
+			}
+		}
+
 		pUnit->PushMission(bIsAirUnit ? CvTypes::getMISSION_MOVE_TO() : CvTypes::getMISSION_RANGE_ATTACK(), pBestTarget->getX(), pBestTarget->getY());
 		return true;
 	}
@@ -6433,6 +6452,21 @@ bool TacticalAIHelpers::KillLoneEnemyIfPossible(CvUnit* pOurUnit, CvUnit* pEnemy
 			//can we attack directly
 			if (pOurUnit->canRangeStrikeAt(pEnemyUnit->getX(),pEnemyUnit->getY()))
 			{
+				if (pOurUnit->canSetUpForRangedAttack(NULL))
+				{
+					pOurUnit->setSetUpForRangedAttack(true);
+					if (GC.getLogging() && GC.getAILogging())
+					{
+						CvString strMsg;
+						strMsg.Format("Set up %s for ranged attack", pOurUnit->getName().GetCString());
+						GET_PLAYER(pOurUnit->getOwner()).GetTacticalAI()->LogTacticalMessage(strMsg);
+					}
+					if (!pOurUnit->canMove())
+					{
+						pOurUnit->SetTacticalAIPlot(NULL);
+						GET_PLAYER(pOurUnit->getOwner()).GetTacticalAI()->UnitProcessed(pOurUnit->GetID());
+					}
+				}
 				pOurUnit->PushMission(CvTypes::getMISSION_RANGE_ATTACK(),pEnemyUnit->getX(),pEnemyUnit->getY());
 				return true;
 			}
@@ -6448,7 +6482,24 @@ bool TacticalAIHelpers::KillLoneEnemyIfPossible(CvUnit* pOurUnit, CvUnit* pEnemy
 						pOurUnit->PushMission(CvTypes::getMISSION_MOVE_TO(), (*it)->getX(), (*it)->getY(), CvUnit::MOVEFLAG_IGNORE_DANGER);
 						//sometimes the unit takes an unexpected path
 						if (pOurUnit->atPlot(**it))
+						{
+							if (pOurUnit->canSetUpForRangedAttack(NULL))
+							{
+								pOurUnit->setSetUpForRangedAttack(true);
+								if (GC.getLogging() && GC.getAILogging())
+								{
+									CvString strMsg;
+									strMsg.Format("Set up %s for ranged attack", pOurUnit->getName().GetCString());
+									GET_PLAYER(pOurUnit->getOwner()).GetTacticalAI()->LogTacticalMessage(strMsg);
+								}
+								if (!pOurUnit->canMove())
+								{
+									pOurUnit->SetTacticalAIPlot(NULL);
+									GET_PLAYER(pOurUnit->getOwner()).GetTacticalAI()->UnitProcessed(pOurUnit->GetID());
+								}
+							}
 							pOurUnit->PushMission(CvTypes::getMISSION_RANGE_ATTACK(), pEnemyUnit->getX(), pEnemyUnit->getY());
+						}
 						else
 							OutputDebugString("pathfinding issue ...\n");
 						return true;
@@ -11114,13 +11165,37 @@ bool TacticalAIHelpers::ExecuteUnitAssignments(PlayerTypes ePlayer, const std::v
 		case A_RANGEATTACK:
 			bPrecondition = (pUnit->plot() == pFromPlot) && (pToPlot->isEnemyUnit(ePlayer,true,true) || pToPlot->isEnemyCity(*pUnit)); //enemy present
 			if (bPrecondition)
+			{
+				if (pUnit->canSetUpForRangedAttack(NULL))
+				{
+					pUnit->setSetUpForRangedAttack(true);
+					if (GC.getLogging() && GC.getAILogging())
+					{
+						CvString strMsg;
+						strMsg.Format("Set up %s for ranged attack", pUnit->getName().GetCString());
+						GET_PLAYER(ePlayer).GetTacticalAI()->LogTacticalMessage(strMsg);
+					}
+				}
 				pUnit->PushMission(CvTypes::getMISSION_RANGE_ATTACK(), pToPlot->getX(), pToPlot->getY());
+			}
 			bPostcondition = pToPlot->isEnemyUnit(ePlayer,true,true) || pToPlot->isEnemyCity(*pUnit); //enemy should survive
 			break;
 		case A_RANGEKILL:
 			bPrecondition = (pUnit->plot() == pFromPlot) && pToPlot->isEnemyUnit(ePlayer,true,true); //defending unit present. does not apply to cities
 			if (bPrecondition)
+			{
+				if (pUnit->canSetUpForRangedAttack(NULL))
+				{
+					pUnit->setSetUpForRangedAttack(true);
+					if (GC.getLogging() && GC.getAILogging())
+					{
+						CvString strMsg;
+						strMsg.Format("Set up %s for ranged attack", pUnit->getName().GetCString());
+						GET_PLAYER(ePlayer).GetTacticalAI()->LogTacticalMessage(strMsg);
+					}
+				}
 				pUnit->PushMission(CvTypes::getMISSION_RANGE_ATTACK(), pToPlot->getX(), pToPlot->getY());
+			}
 			bPostcondition = !pToPlot->isEnemyUnit(ePlayer,true,true); //defending unit is gone
 			break;
 		case A_MELEEATTACK:

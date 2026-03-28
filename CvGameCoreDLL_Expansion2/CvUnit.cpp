@@ -169,7 +169,8 @@ CvUnit::CvUnit() :
 	, m_iRiverCrossingNoPenaltyCount()
 	, m_iEnemyRouteCount()
 	, m_iRivalTerritoryCount()
-	, m_iIsSlowInEnemyLandCount()
+	, m_bSetUpForRangedAttack()
+	, m_iMustSetUpToRangedAttackCount()
 	, m_iRangeAttackIgnoreLOSCount()
 	, m_iCityAttackOnlyCount()
 	, m_iCaptureDefeatedEnemyCount()
@@ -1316,7 +1317,8 @@ void CvUnit::reset(int iID, UnitTypes eUnit, PlayerTypes eOwner, bool bConstruct
 	m_iRiverCrossingNoPenaltyCount = 0;
 	m_iEnemyRouteCount = 0;
 	m_iRivalTerritoryCount = 0;
-	m_iIsSlowInEnemyLandCount = 0;
+	m_bSetUpForRangedAttack = false;
+	m_iMustSetUpToRangedAttackCount = 0;
 	m_iRangeAttackIgnoreLOSCount = 0;
 	m_iCityAttackOnlyCount = 0;
 	m_iCaptureDefeatedEnemyCount = 0;
@@ -6980,23 +6982,73 @@ int CvUnit::getNegatorPromotion()
 	return m_iNegatorPromotion;
 }
 
+//	--------------------------------------------------------------------------------
+int CvUnit::getMustSetUpToRangedAttackCount() const
+{
+	VALIDATE_OBJECT();
+	return m_iMustSetUpToRangedAttackCount;
+}
+
+//	--------------------------------------------------------------------------------
+bool CvUnit::isMustSetUpToRangedAttack() const
+{
+	VALIDATE_OBJECT();
+	return getMustSetUpToRangedAttackCount() > 0;
+}
+
+//	--------------------------------------------------------------------------------
+void CvUnit::changeMustSetUpToRangedAttackCount(int iChange)
+{
+    VALIDATE_OBJECT();
+    m_iMustSetUpToRangedAttackCount = (m_iMustSetUpToRangedAttackCount + iChange);
+    ASSERT(getMustSetUpToRangedAttackCount() >= 0);
+}
 
 //	--------------------------------------------------------------------------------
 bool CvUnit::canSetUpForRangedAttack(const CvPlot* /*pPlot*/) const
 {
-	return false; //no longer used
+	VALIDATE_OBJECT();
+	if(!isMustSetUpToRangedAttack())
+	{
+		return false;
+	}
+
+	if(isSetUpForRangedAttack())
+	{
+		return false;
+	}
+
+	if(isEmbarked())
+		return false;
+
+	if(movesLeft() <= 0)
+	{
+		return false;
+	}
+
+	return true;
 }
 
 //	--------------------------------------------------------------------------------
 bool CvUnit::isSetUpForRangedAttack() const
 {
-	return true; //no longer used
+	VALIDATE_OBJECT();
+	return m_bSetUpForRangedAttack;
 }
 
 //	--------------------------------------------------------------------------------
-void CvUnit::setSetUpForRangedAttack(bool /*bValue*/)
+void CvUnit::setSetUpForRangedAttack(bool bValue)
 {
-	//no longer used
+	VALIDATE_OBJECT();
+	if(isSetUpForRangedAttack() != bValue)
+	{
+		m_bSetUpForRangedAttack = bValue;
+
+		if(bValue)
+		{
+			changeMoves(-GC.getMOVE_DENOMINATOR());
+		}
+	}
 }
 
 //	--------------------------------------------------------------------------------
@@ -14177,6 +14229,7 @@ CvUnit* CvUnit::DoUpgradeTo(UnitTypes eUnitType, bool bFree)
 			pNewUnit->m_bMovedThisTurn = m_bMovedThisTurn;
 			pNewUnit->m_bHasWithdrawnThisTurn = m_bHasWithdrawnThisTurn;
 			pNewUnit->m_bFortified = m_bFortified;
+			pNewUnit->setSetUpForRangedAttack(isSetUpForRangedAttack());
 		}
 		else
 		{
@@ -15760,28 +15813,6 @@ bool CvUnit::canCoexistWithEnemyUnit(TeamTypes eTeam) const
 		return true;
 
 	return false;
-}
-
-//	--------------------------------------------------------------------------------
-int CvUnit::getIsSlowInEnemyLandCount() const
-{
-	VALIDATE_OBJECT();
-	return m_iIsSlowInEnemyLandCount;
-}
-
-//	--------------------------------------------------------------------------------
-bool CvUnit::isSlowInEnemyLand() const
-{
-	VALIDATE_OBJECT();
-	return getIsSlowInEnemyLandCount() > 0;
-}
-
-//	--------------------------------------------------------------------------------
-void CvUnit::changeIsSlowInEnemyLandCount(int iChange)
-{
-	VALIDATE_OBJECT();
-	m_iIsSlowInEnemyLandCount = (m_iIsSlowInEnemyLandCount + iChange);
-	ASSERT(getIsSlowInEnemyLandCount() >= 0);
 }
 
 //	--------------------------------------------------------------------------------
@@ -19957,14 +19988,10 @@ void CvUnit::setXY(int iX, int iY, bool bGroup, bool bUpdate, bool bShow, bool b
 
 	eOldActivityType = GetActivityType();
 
-	/* ---------
-	// no longer used!
-	// ---------
 	if(isSetUpForRangedAttack())
 	{
 		setSetUpForRangedAttack(false);
 	}
-	*/
 
 	if(!bGroup || isCargo())
 	{
@@ -27683,7 +27710,7 @@ void CvUnit::setPromotionActive(PromotionTypes eIndex, bool bNewValue)
 	changeRiverCrossingNoPenaltyCount((thisPromotion.IsRiver()) ? iChange : 0);
 	changeEnemyRouteCount((thisPromotion.IsEnemyRoute()) ? iChange : 0);
 	changeRivalTerritoryCount((thisPromotion.IsRivalTerritory()) ? iChange : 0);
-	changeIsSlowInEnemyLandCount((thisPromotion.IsMustSetUpToRangedAttack()) ? iChange : 0); //intended. promotion purpose was redefined
+	changeMustSetUpToRangedAttackCount((thisPromotion.IsMustSetUpToRangedAttack()) ? iChange : 0);
 	changeRangedSupportFireCount((thisPromotion.IsRangedSupportFire()) ? iChange : 0);
 	changeAlwaysHealCount((thisPromotion.IsAlwaysHeal()) ? iChange : 0);
 	changeHealOutsideFriendlyCount((thisPromotion.IsHealOutsideFriendly()) ? iChange : 0);
@@ -28351,7 +28378,8 @@ void CvUnit::Serialize(Unit& unit, Visitor& visitor)
 	visitor(unit.m_iRiverCrossingNoPenaltyCount);
 	visitor(unit.m_iEnemyRouteCount);
 	visitor(unit.m_iRivalTerritoryCount);
-	visitor(unit.m_iIsSlowInEnemyLandCount);
+	visitor(unit.m_bSetUpForRangedAttack);
+	visitor(unit.m_iMustSetUpToRangedAttackCount);
 	visitor(unit.m_iRangeAttackIgnoreLOSCount);
 	visitor(unit.m_iCityAttackOnlyCount);
 	visitor(unit.m_iCaptureDefeatedEnemyCount);
@@ -28775,9 +28803,6 @@ bool CvUnit::canRangeStrike() const
 		return false;
 	}
 
-	/* ---------
-	// no longer used!
-	// ---------
 	if(isMustSetUpToRangedAttack())
 	{
 		if(!isSetUpForRangedAttack())
@@ -28785,7 +28810,6 @@ bool CvUnit::canRangeStrike() const
 			return false;
 		}
 	}
-	*/
 
 	if(isOutOfAttacks())
 		return false;
