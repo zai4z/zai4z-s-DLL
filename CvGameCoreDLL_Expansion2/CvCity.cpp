@@ -18539,7 +18539,7 @@ int CvCity::GetLocalResourceWonderProductionMod(BuildingTypes eBuilding, CvStrin
 					if (pDestCity->getX() == getX() && pDestCity->getY() == getY())
 					{
 						ResourceTypes eWonderResource = ::getWonderResource();
-						bWonderResourceIn = (eWonderResource != NO_RESOURCE && pOriginCity->GetNumResourceLocal(eWonderResource) > 0);
+						bWonderResourceIn = (eWonderResource != NO_RESOURCE && pOriginCity->GetNumResourceLocal(eWonderResource, true) > 0);
 					}
 					else
 					{
