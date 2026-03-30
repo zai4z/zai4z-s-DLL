@@ -266,7 +266,7 @@ void CvUnitCombat::GenerateMeleeCombatInfo(CvUnit& kAttacker, CvUnit* pkDefender
 				bAdvance = true;
 		}
 
-		if (kAttacker.plot()->isFortification(kAttacker.getTeam()))
+		if (kAttacker.plot()->isFortification(kAttacker.getTeam(), true))
 			bAdvance = false;
 
 		pkCombatInfo->setAttackerAdvances(bAdvance);

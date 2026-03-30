@@ -243,7 +243,7 @@ public:
 	bool isRevealedBarbarian() const;
 
 	bool HasBarbarianCamp();
-	bool isFortification(TeamTypes eOccupyingTeam) const;
+	bool isFortification(TeamTypes eOccupyingTeam, bool bExcludeCities = false) const;
 
 	bool HasDig();
 

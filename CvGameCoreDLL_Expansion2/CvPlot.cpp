@@ -4790,9 +4790,9 @@ bool CvPlot::isFriendlyCity(const CvUnit& kUnit) const
 	return false;
 }
 
-bool CvPlot::isFortification(TeamTypes eOccupyingTeam) const
+bool CvPlot::isFortification(TeamTypes eOccupyingTeam, bool bExcludeCities) const
 {
-	if (isCity())
+	if (!bExcludeCities && isCity())
 		return true;
 
 	// If the attacker is in a fort or citadel or other improvement with NoFollowUp, don't advance
