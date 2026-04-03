@@ -452,6 +452,90 @@ int CvBuildingProductionAI::CheckBuildingBuildSanity(BuildingTypes eBuilding, in
 			iBonus += iLocalBonus;
 	}
 
+	if (pkBuildingInfo->AllowsRiverRoutes())
+	{
+		int iLocalBonus = 0;
+
+        // Collect river IDs for this city
+        std::vector<int> startRiverIDs;
+        for (int iI = 0; iI < NUM_DIRECTION_TYPES; iI++)
+        {
+            int iRiverID = m_pCity->plot()->GetRiverID((DirectionTypes)iI);
+            if (iRiverID != -1)
+                startRiverIDs.push_back(iRiverID);
+        }
+
+        if (!startRiverIDs.empty())
+        {
+            // Count teammate cities on the same river
+            int iCitiesOnSameRiver = 0;
+            std::vector<PlayerTypes> vTeamPlayers = GET_TEAM(kPlayer.getTeam()).getPlayers();
+
+            for (size_t p = 0; p < vTeamPlayers.size(); p++)
+            {
+                int iLoop = 0;
+                for (CvCity* pOtherCity = GET_PLAYER(vTeamPlayers[p]).firstCity(&iLoop); pOtherCity != NULL; pOtherCity = GET_PLAYER(vTeamPlayers[p]).nextCity(&iLoop))
+                {
+                    if (pOtherCity->plot() == m_pCity->plot())
+                        continue;
+
+                    bool bSharedRiver = false;
+                    for (size_t r = 0; r < startRiverIDs.size() && !bSharedRiver; r++)
+                    {
+                        CvRiver* pRiver = GC.getMap().GetRiverById(startRiverIDs[r]);
+                        if (!pRiver)
+                            continue;
+
+                        const std::vector<CvPlot*>& riverPlots = pRiver->GetPlots();
+                        for (size_t k = 0; k < riverPlots.size() && !bSharedRiver; k++)
+                        {
+                            if (riverPlots[k] == pOtherCity->plot())
+                                bSharedRiver = true;
+                        }
+                    }
+
+                    if (bSharedRiver)
+                        iCitiesOnSameRiver++;
+                }
+            }
+
+            if (!m_pCity->IsRouteToCapitalConnected())
+            {
+                // Base bonus for being disconnected
+                iLocalBonus += 5 * max(1, m_pCity->getPopulation());
+
+                // Higher bonus for each teammate city already on the same river
+                // (more cities = more value from the connection)
+                iLocalBonus += iCitiesOnSameRiver * 10 * max(1, m_pCity->getPopulation());
+            }
+            else if (iCitiesOnSameRiver > 0)
+            {
+                // Already connected but river cities exist - modest bonus
+                iLocalBonus += iCitiesOnSameRiver * 5;
+            }
+            else
+            {
+                // No river cities and already connected - not very useful
+                iLocalBonus -= 25;
+            }
+
+            int iUnhappyConnection = m_pCity->GetUnhappinessFromIsolation();
+            if (iUnhappyConnection > 0)
+            {
+                iLocalBonus += (iUnhappyConnection * 10);
+                bGoodforGPT = true;
+            }
+        }
+        else
+        {
+            // City is on a river but no river IDs found - shouldn't happen
+            iLocalBonus -= 25;
+        }
+
+		if (iLocalBonus > 0)
+			iBonus += iLocalBonus;
+	}
+
 	//bonus to sea trade
 	if (pkBuildingInfo->GetTradeRouteSeaDistanceModifier() > 0)
 	{

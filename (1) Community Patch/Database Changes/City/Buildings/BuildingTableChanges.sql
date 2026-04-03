@@ -37,6 +37,9 @@ ALTER TABLE Buildings ADD AllowsIndustrialWaterRoutes boolean DEFAULT 0;
 -- Allows city connections via the air
 ALTER TABLE Buildings ADD AllowsAirRoutes boolean DEFAULT 0;
 
+-- Allows city connections via the same river
+ALTER TABLE Buildings ADD AllowsRiverRoutes boolean DEFAULT 0;
+
 -- Increase to border growth expansion rate
 ALTER TABLE Buildings ADD BorderGrowthRateIncrease integer DEFAULT 0; -- For the city
 ALTER TABLE Buildings ADD BorderGrowthRateIncreaseGlobal integer DEFAULT 0; -- For the empire

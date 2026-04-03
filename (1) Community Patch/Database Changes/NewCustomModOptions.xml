@@ -370,9 +370,6 @@
 		<!-- Defines: CITY_STRENGTH_POPULATION_CHANGE -->
 		<Row Class="6" Name="BALANCE_CITY_STRENGTH_SWITCH" Value="0"/>
 
-		<!-- Allows all civs to form City Connections along Rivers -->
-		<Row Class="6" Name="BALANCE_RIVER_CITY_CONNECTIONS" Value="0"/>
-
 		<!-- Enables the Spy Point system and the number of spies scaling with map size -->
 		<!-- Defines: ESPIONAGE_SPY_POINT_UNIT, BALANCE_SPY_TO_PLAYER_RATIO, BALANCE_SPY_POINT_MAJOR_PLAYER_MULTIPLIER, BALANCE_SPY_POINT_THRESHOLD_MIN, BALANCE_SPY_POINT_THRESHOLD_MAX -->
 		<Row Class="6" Name="BALANCE_SPY_POINTS" Value="0"/>

@@ -270,6 +270,7 @@ CvBuildingEntry::CvBuildingEntry(void):
 	m_bAllowsWaterRoutes(false),
 	m_bAllowsIndustrialWaterRoutes(false),
 	m_bAllowsAirRoutes(false),
+	m_bAllowsRiverRoutes(false),
 	m_bCityWall(false),
 	m_bUnlockedByBelief(false),
 	m_bUnlockedByLeague(false),
@@ -648,6 +649,7 @@ bool CvBuildingEntry::CacheResults(Database::Results& kResults, CvDatabaseUtilit
 	m_bAllowsWaterRoutes = kResults.GetBool("AllowsWaterRoutes");
 	m_bAllowsIndustrialWaterRoutes = kResults.GetBool("AllowsIndustrialWaterRoutes");
 	m_bAllowsAirRoutes = kResults.GetBool("AllowsAirRoutes");
+	m_bAllowsRiverRoutes = kResults.GetBool("AllowsRiverRoutes");
 	m_iProductionCost = kResults.GetInt("Cost");
 	m_iFaithCost = kResults.GetInt("FaithCost");
 	m_iLeagueCost = kResults.GetInt("LeagueCost");
@@ -3213,6 +3215,12 @@ bool CvBuildingEntry::AllowsIndustrialWaterRoutes() const
 bool CvBuildingEntry::AllowsAirRoutes() const
 {
 	return m_bAllowsAirRoutes;
+}
+
+/// Does the building allow routes through the same river
+bool CvBuildingEntry::AllowsRiverRoutes() const
+{
+	return m_bAllowsRiverRoutes;
 }
 
 /// Derive property: is this considered a science building?

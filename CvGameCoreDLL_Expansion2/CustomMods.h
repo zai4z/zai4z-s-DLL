@@ -307,9 +307,6 @@
 // Increases city HP for each Citizen, removes garrisoned unit strength from city ranged strikes, removes Technologies' and (for major civs only) Citizens' effect on city strength
 #define MOD_BALANCE_CITY_STRENGTH_SWITCH							gCustomMods.isBALANCE_CITY_STRENGTH_SWITCH()
 
-// Allows all civs to form City Connections along Rivers
-#define MOD_BALANCE_RIVER_CITY_CONNECTIONS							gCustomMods.isBALANCE_RIVER_CITY_CONNECTIONS()
-
 // Enables the Spy Point system and the number of spies scaling with map size
 #define MOD_BALANCE_SPY_POINTS										gCustomMods.isBALANCE_SPY_POINTS()
 
@@ -1568,7 +1565,6 @@ public:
 	MOD_OPT_DECL(BALANCE_HEAVY_TRIBUTE);
 	MOD_OPT_DECL(BALANCE_MINOR_PROTECTION_REQUIREMENTS);
 	MOD_OPT_DECL(BALANCE_CITY_STRENGTH_SWITCH);
-	MOD_OPT_DECL(BALANCE_RIVER_CITY_CONNECTIONS);
 	MOD_OPT_DECL(BALANCE_SPY_POINTS);
 	MOD_OPT_DECL(BALANCE_AIR_UNIT_CHANGES);
 	MOD_OPT_DECL(BALANCE_RANGED_DEFENSE_UNIT_HEALTH);

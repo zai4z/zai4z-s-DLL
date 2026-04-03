@@ -49,8 +49,9 @@ public:
 		CONNECTION_INDUSTRIAL_HARBOR = 8,
 		CONNECTION_ANY_WATER = 12,
 		CONNECTION_AIRPORT = 16,
-		CONNECTION_ANY_INDIRECT = 28,
-		CONNECTION_ANY = 31
+		CONNECTION_RIVER = 32,
+		CONNECTION_ANY_INDIRECT = 60,
+		CONNECTION_ANY = 63
 	};
 
 	//cities may be connected to other players as well, so we store a pair of owner and id
@@ -77,6 +78,7 @@ protected:
 	std::vector<BuildingTypes> m_aBuildingsAllowWaterRoutes; //this is not about trade routes but city connections
 	std::vector<BuildingTypes> m_aBuildingsAllowIndustrialWaterRoutes; //this is not about trade routes but city connections
 	std::vector<BuildingTypes> m_aBuildingsAllowAirRoutes;
+	std::vector<BuildingTypes> m_aBuildingsAllowRiverRoutes;
 	CvPlayer* m_pPlayer;
 	bool m_bDirty;
 	SingleCityConnectionStore dummy;

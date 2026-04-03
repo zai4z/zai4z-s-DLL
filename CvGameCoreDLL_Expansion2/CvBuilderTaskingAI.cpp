@@ -856,7 +856,7 @@ void CvBuilderTaskingAI::ConnectCitiesForShortcuts(CvCity* pCity1, CvCity* pCity
 		return;
 
 	ShortcutConnectionHelper(pCity1, pCity2, eBuild, eRoute, iPlotDistance, false);
-	if (MOD_BALANCE_RIVER_CITY_CONNECTIONS && eRoute == ROUTE_ROAD)
+	if (eRoute == ROUTE_ROAD && GET_PLAYER(pCity1->getOwner()).GetCityConnections()->AreCitiesDirectlyConnected(pCity1, pCity2, CvCityConnections::CONNECTION_RIVER))
 		ShortcutConnectionHelper(pCity1, pCity2, eBuild, eRoute, iPlotDistance, true);
 }
 
