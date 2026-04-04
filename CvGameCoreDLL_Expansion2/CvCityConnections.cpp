@@ -513,6 +513,23 @@ void CvCityConnections::UpdateRouteInfo(void)
 			}
 		}
 
+		// Trade route connections - own and teammate cities, active trade route in either direction
+		for (size_t p = 0; p < vTeamPlayers.size(); p++)
+		{
+			int iLoop = 0;
+			for (CvCity* pEndCity = GET_PLAYER(vTeamPlayers[p]).firstCity(&iLoop); pEndCity != NULL; pEndCity = GET_PLAYER(vTeamPlayers[p]).nextCity(&iLoop))
+			{
+				if (pEndCity->plot() == pStartCity->plot())
+					continue;
+
+				if (GC.getGame().GetGameTrade()->CitiesHaveTradeConnection(pStartCity, pEndCity))
+				{
+					pair<int, int> destination(pEndCity->getOwner(), pEndCity->GetID());
+					localConnections[destination] = (CityConnectionTypes)(localConnections[destination] | CONNECTION_TRADE);
+				}
+			}
+		}
+
 		//save the result
 		m_connectionState[pStartCity->GetID()] = localConnections;
 	}
