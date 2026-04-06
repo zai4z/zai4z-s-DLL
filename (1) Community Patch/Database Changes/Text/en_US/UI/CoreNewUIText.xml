@@ -136,12 +136,12 @@
 		<Row Tag="TXT_KEY_ALLOWS_VASSALAGE">
 			<Text>Allows you to make rival Civilizations your Vassal State</Text>
 		</Row>
-		<!-- Don't work as described - see TechTableChanges.sql -->
+
 		<Row Tag="TXT_KEY_ABLTY_CITY_RANGE_INCREASE">
 			<Text>+1 City Attack Range</Text>
 		</Row>
 		<Row Tag="TXT_KEY_ABLTY_CITY_INDIRECT_INCREASE">
-			<Text>+1 City Indirect Attack Range</Text>
+			<Text>Grants Cities Indirect Fire</Text>
 		</Row>
 
 		<!-- Theming bonus -->

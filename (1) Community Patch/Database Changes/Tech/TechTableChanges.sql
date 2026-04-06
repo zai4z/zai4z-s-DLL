@@ -4,7 +4,6 @@ ALTER TABLE Technologies ADD ExtraBombardRange integer DEFAULT 0;
 -- Give indirect fire to city ranged strikes
 ALTER TABLE Technologies ADD BombardIndirect boolean DEFAULT 0;
 
-----------------------------------------------------------
 -- 1 move cost to embark from/disembark into cities or canal tiles
 ALTER TABLE Technologies ADD CityLessEmbarkCost boolean DEFAULT 0;
 

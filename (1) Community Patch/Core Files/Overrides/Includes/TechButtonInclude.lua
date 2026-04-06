@@ -17,10 +17,6 @@ local GetCivsFromTrait = VP.GetCivsFromTrait;
 local IconHookupOrDefault = VP.IconHookupOrDefault;
 local CustomModOptionEnabled = CPK.Misc.CustomModOptionEnabled;
 
-local MOD_EVENTS_CITY_BOMBARD = CustomModOptionEnabled("EVENTS_CITY_BOMBARD")
-	and not CustomModOptionEnabled("BALANCE_NO_CITY_RANGED_ATTACK")
-	and not CustomModOptionEnabled("BALANCE_BOMBARD_RANGE_BUILDINGS");
-
 -- VP/bal: gamespeed is currently only used to calculate chop yields, possibly can be applied in other places too
 -- Assume forest and jungle have the same base chop production
 local iBuildPercent = GameInfo.GameSpeeds[Game.GetGameSpeedType()].BuildPercent;
@@ -567,16 +563,14 @@ function AddSmallButtonsToTechButton(buttonStack, kTechInfo, iButtonCount, iText
 		if iButtonIndex > iButtonCount then return iButtonCount end
 	end
 
-	if MOD_EVENTS_CITY_BOMBARD then
-		if kTechInfo.BombardRange > 0 then
-			GenerateNextButtonFromInfo(SetupGenericButton, GameInfo.Missions.MISSION_RANGE_ATTACK, L("TXT_KEY_ABLTY_CITY_RANGE_INCREASE"), nil, true);
-			if iButtonIndex > iButtonCount then return iButtonCount end
-		end
+	if kTechInfo.ExtraBombardRange > 0 then
+		GenerateNextButtonFromInfo(SetupGenericButton, GameInfo.Missions.MISSION_RANGE_ATTACK, L("TXT_KEY_ABLTY_CITY_RANGE_INCREASE"), nil, true);
+		if iButtonIndex > iButtonCount then return iButtonCount end
+	end
 
-		if kTechInfo.BombardIndirect > 0 then
-			GenerateNextButtonFromInfo(SetupGenericButton, GameInfo.Missions.MISSION_RANGE_ATTACK, L("TXT_KEY_ABLTY_CITY_INDIRECT_INCREASE"), nil, true);
-			if iButtonIndex > iButtonCount then return iButtonCount end
-		end
+	if kTechInfo.BombardIndirect then
+		GenerateNextButtonFromInfo(SetupGenericButton, GameInfo.Missions.MISSION_SET_UP_FOR_RANGED_ATTACK, L("TXT_KEY_ABLTY_CITY_INDIRECT_INCREASE"), nil, true);
+		if iButtonIndex > iButtonCount then return iButtonCount end
 	end
 
 	if kTechInfo.UnitFortificationModifier ~= 0 then
