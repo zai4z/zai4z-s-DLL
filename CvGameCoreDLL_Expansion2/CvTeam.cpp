@@ -204,6 +204,8 @@ void CvTeam::uninit()
 	m_bCanBuildOceanCrossingUnit = false;
 
 	m_iVassalageTradingAllowedCount = 0;
+	m_iBombardIndirectCount = 0;
+	m_iExtraBombardRange = 0;
 
 	m_eCurrentEra = ((EraTypes) 0);
 
@@ -3513,6 +3515,40 @@ void CvTeam::ChangeResearchAgreementTradingAllowedCount(int iChange)
 {
 	m_iResearchAgreementTradingAllowedCount = (m_iResearchAgreementTradingAllowedCount + iChange);
 	ASSERT(GetResearchAgreementTradingAllowedCount() >= 0);
+}
+
+//	--------------------------------------------------------------------------------
+bool CvTeam::IsBombardIndirect() const
+{
+	return m_iBombardIndirectCount > 0;
+}
+
+int CvTeam::GetBombardIndirectCount() const
+{
+	return m_iBombardIndirectCount;
+}
+
+void CvTeam::ChangeBombardIndirectEnabledCount(int iChange)
+{
+	m_iBombardIndirectCount = m_iBombardIndirectCount + iChange;
+	ASSERT(GetBombardIndirectCount() >= 0);
+}
+
+//	--------------------------------------------------------------------------------
+
+bool CvTeam::IsCityExtraBombardRange() const
+{
+	return (GetExtraBombardRange() != 0);
+}
+
+int CvTeam::GetExtraBombardRange() const
+{
+	return m_iExtraBombardRange;
+}
+
+void CvTeam::ChangeExtraBombardRangeCount(int iChange)
+{
+	m_iExtraBombardRange = m_iExtraBombardRange + iChange;
 }
 
 //	--------------------------------------------------------------------------------
@@ -7747,6 +7783,16 @@ void CvTeam::processTech(TechTypes eTech, int iChange, bool bNoBonus)
 		changeCorporationsEnabledCount(iChange);
 	}
 
+	if (pTech->GetExtraBombardRange() != 0)
+	{
+		ChangeExtraBombardRangeCount(pTech->GetExtraBombardRange() * iChange);
+	}
+
+	if (pTech->IsBombardIndirect())
+	{
+		ChangeBombardIndirectEnabledCount(iChange);
+	}
+
 	if(pTech->IsAllowEmbassyTradingAllowed())
 	{
 		changeAllowEmbassyTradingAllowedCount(iChange);
@@ -9187,6 +9233,8 @@ void CvTeam::Serialize(Team& team, Visitor& visitor)
 	visitor(team.m_aeRevealedResources);
 
 	visitor(team.m_iVassalageTradingAllowedCount);
+	visitor(team.m_iBombardIndirectCount);
+	visitor(team.m_iExtraBombardRange);
 	visitor(team.m_eMaster);
 	visitor(team.m_bIsVoluntaryVassal);
 	visitor(team.m_iNumTurnsIsVassal);

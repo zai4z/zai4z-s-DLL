@@ -817,12 +817,6 @@
 		<!--   GameEvents.CityCanAirlift.Add(function(iPlayer, iCity) return false end) -->
 		<Row Class="3" Name="EVENTS_CITY_AIRLIFT" Value="0"/>
 
-		<!-- Event sent to ascertain the bombard range for a city, and if indirect fire is allowed -->
-		<!-- Return a negative range if indirect fire is permitted -->
-		<!--   GameEvents.GetBombardRange.Add(function(iPlayer, iCity) return (-1 * GameDefines.CITY_ATTACK_RANGE) end) -->
-		<!-- See also: "Global - City Bombard Range" -->
-		<Row Class="3" Name="EVENTS_CITY_BOMBARD" Value="0"/>
-
 		<!-- Event sent to ascertain if a city can acquire a plot -->
 		<!--   GameEvents.CityCanAcquirePlot.Add(function(iPlayer, iCity, iPlotX, iPlotY) return true end) -->
 		<!-- See also: "Global - Coastal Waters Only" -->

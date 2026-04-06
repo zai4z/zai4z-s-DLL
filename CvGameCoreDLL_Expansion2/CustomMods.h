@@ -716,10 +716,6 @@
 //   GameEvents.CityCanAirlift.Add(function(iPlayer, iCity) return false end)
 #define MOD_EVENTS_CITY_AIRLIFT										gCustomMods.isEVENTS_CITY_AIRLIFT()
 
-// Events sent to ascertain the bombard range for a city, and if indirect fire is allowed
-//   GameEvents.GetBombardRange.Add(function(iPlayer, iCity) return (-1 * GameDefines.CITY_ATTACK_RANGE) end)
-#define MOD_EVENTS_CITY_BOMBARD										gCustomMods.isEVENTS_CITY_BOMBARD()
-
 // Event sent to ascertain if a city can acquire a plot
 //   GameEvents.CityCanAcquirePlot.Add(function(iPlayer, iCity, iPlotX, iPlotY) return true end)
 #define MOD_EVENTS_CITY_BORDERS										gCustomMods.isEVENTS_CITY_BORDERS()
@@ -1229,7 +1225,6 @@ enum BattleTypeTypes
 #define GAMEEVENT_EspionageNotificationData		"EspionageNotificationData",	"iiiiiiiibiibi"
 #define GAMEEVENT_EspionageState				"EspionageState",				"iiiii"
 #define GAMEEVENT_GetDiploModifier				"GetDiploModifier",				"iii"
-#define GAMEEVENT_GetBombardRange				"GetBombardRange",				"ii"
 #define GAMEEVENT_GetReligionToFound			"GetReligionToFound",			"iib"
 #define GAMEEVENT_GetBeliefToFound				"GetBeliefToFound",				"ii"
 #define GAMEEVENT_GoodyHutCanNotReceive			"GoodyHutCanNotReceive",		"iiib"
@@ -1706,7 +1701,6 @@ public:
 	MOD_OPT_DECL(EVENTS_CIRCUMNAVIGATION);
 	MOD_OPT_DECL(EVENTS_CITY);
 	MOD_OPT_DECL(EVENTS_CITY_AIRLIFT);
-	MOD_OPT_DECL(EVENTS_CITY_BOMBARD);
 	MOD_OPT_DECL(EVENTS_CITY_BORDERS);
 	MOD_OPT_DECL(EVENTS_CITY_CAPITAL);
 	MOD_OPT_DECL(EVENTS_CITY_CONNECTIONS);

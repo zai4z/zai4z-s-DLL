@@ -100,6 +100,8 @@ public:
 	int GetPrereqAndTechs(int i) const;
 	int GetTechYieldChanges(int i, int j) const;
 	int GetHappiness() const;
+	int GetExtraBombardRange() const;
+	bool IsBombardIndirect() const;
 	bool IsCorporationsEnabled() const;
 	int GetEurekaPerMillion() const;
 
@@ -162,6 +164,8 @@ private:
 	bool* m_pabFreePromotion;
 	int** m_ppiTechYieldChanges;
 	int m_iHappiness;
+	int m_iExtraBombardRange;
+	bool m_bBombardIndirect;
 	bool m_bCorporationsEnabled;
 	int m_iEurekaPerMillion;
 	bool m_bVassalageTradingAllowed;

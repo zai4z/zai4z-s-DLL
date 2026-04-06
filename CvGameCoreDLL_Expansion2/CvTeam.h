@@ -179,6 +179,14 @@ public:
 	bool isCityWorkingChange() const;
 	void changeCityWorkingChange(int iChange);
 
+	int GetBombardIndirectCount() const;
+	bool IsBombardIndirect() const;
+	void ChangeBombardIndirectEnabledCount(int iChange);
+
+	int GetExtraBombardRange() const;
+	bool IsCityExtraBombardRange() const;
+	void ChangeExtraBombardRangeCount(int iChange);
+
 	int GetCityAutomatonWorkersChange() const;
 	bool isCityAutomatonWorkersChange() const;
 	void changeCityAutomatonWorkersChange(int iChange);
@@ -504,6 +512,8 @@ protected:
 	int m_iDefensivePactTradingAllowedCount;
 	int m_iResearchAgreementTradingAllowedCount;
 	int m_iCityWorkingChange;
+	int m_iBombardIndirectCount;
+	int m_iExtraBombardRange;
 	int m_iCityAutomatonWorkersChange;
 	int m_iBridgeBuildingCount;
 	int m_iCityLessEmbarkCost;

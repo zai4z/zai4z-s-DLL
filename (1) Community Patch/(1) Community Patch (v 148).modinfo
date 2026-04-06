@@ -417,7 +417,6 @@
     <File md5="004BEA672244A2AD3705B61431A4E3DB" import="1">Assets/Yields/yieldatlas_128_general.dds</File>
     <File md5="8DBF300FFEC8BB9D400845CA40DD933D" import="1">Assets/Yields/YieldAtlas_128_GoldenAge.dds</File>
     <File md5="ABD5FA5416A63C4E062E3F9113215550" import="1">Assets/Yields/YieldAtlas_128_Tourism.dds</File>
-    <File md5="9E9413423E76DAA8D884CC45D0516E72" import="0">Core Files/New Lua/GlobalCityBombardRange.lua</File>
     <File md5="29FC5A961FBDB9E4E38744DBAE80DB3F" import="0">Core Files/New UI/CityEventPopup.lua</File>
     <File md5="DB148EB48CB0FC537C7B3ED852F8ED14" import="0">Core Files/New UI/CityEventPopup.xml</File>
     <File md5="464FF5291A70846BA602CF2367E84695" import="1">Core Files/New UI/CityEventsInfo.lua</File>
@@ -930,10 +929,6 @@
     </OnModActivated>
   </Actions>
   <EntryPoints>
-    <EntryPoint type="InGameUIAddin" file="Core Files/New Lua/GlobalCityBombardRange.lua">
-      <Name>GlobalCityBombardRange</Name>
-      <Description>GlobalCityBombardRange</Description>
-    </EntryPoint>
     <EntryPoint type="InGameUIAddin" file="Core Files/New UI/EventChoicePopup.lua">
       <Name>EventChoice</Name>
       <Description>EventChoice</Description>

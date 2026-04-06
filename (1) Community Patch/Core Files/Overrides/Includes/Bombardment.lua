@@ -53,8 +53,9 @@ function RangedStrikeHighlight()
 				local bCanRangeStrike = true;
 
 				if pTargetPlot then
-					if not bIndirectFireAllowed then
-						if not thisPlot:CanSeePlot(pTargetPlot, thisTeam, iRange - 1, NO_DIRECTION, thingThatCanActuallyFire:GetDomainType()) then
+					if not bIndirectFireAllowed and iRange > 1 then
+						local domainType = thingThatCanActuallyFire.GetDomainType and thingThatCanActuallyFire:GetDomainType() or -1
+						if not thisPlot:CanSeePlot(pTargetPlot, thisTeam, iRange, NO_DIRECTION, domainType) then
 							bCanRangeStrike = false;
 						end
 					end

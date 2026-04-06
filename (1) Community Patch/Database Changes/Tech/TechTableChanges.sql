@@ -1,20 +1,8 @@
-----------------------------------------------------------
--- Below 2 columns only function when:
--- 1. EVENTS_CITY_BOMBARD option is on
--- 2. BALANCE_NO_CITY_RANGED_ATTACK and BALANCE_BOMBARD_RANGE_BUILDINGS options are off
--- It's written in Lua, and only counts the highest range tech.
--- e.g. if tech A has BombardRange = 2, BombardIndirect = 1 and tech B has BombardRange = 3, BombardIndirect = 0,
--- having both techs will give cities range 3 without indirect fire.
---
--- TODO: integrate GlobalCityBombardRange.lua into DLL so both techs and buildings can grant range and indirect fire,
--- and make range stack additively.
-----------------------------------------------------------
+-- Add range onto city ranged strike
+ALTER TABLE Technologies ADD ExtraBombardRange integer DEFAULT 0;
 
--- Set range of city ranged strike to this
-ALTER TABLE Technologies ADD BombardRange integer DEFAULT 0;
-
--- Actually a boolean - set to 1 to grant the indirect fire ability to cities
-ALTER TABLE Technologies ADD BombardIndirect integer DEFAULT 0;
+-- Give indirect fire to city ranged strikes
+ALTER TABLE Technologies ADD BombardIndirect boolean DEFAULT 0;
 
 ----------------------------------------------------------
 -- 1 move cost to embark from/disembark into cities or canal tiles

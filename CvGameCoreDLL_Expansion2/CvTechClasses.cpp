@@ -68,6 +68,8 @@ CvTechEntry::CvTechEntry(void):
 	m_piPrereqOrTechs(NULL),
 	m_piPrereqAndTechs(NULL),
 	m_iHappiness(0),
+	m_iExtraBombardRange(0),
+	m_bBombardIndirect(false),
 	m_ppiTechYieldChanges(NULL),
 	m_bCorporationsEnabled(false),
 	m_iEurekaPerMillion(0),
@@ -137,6 +139,8 @@ bool CvTechEntry::CacheResults(Database::Results& kResults, CvDatabaseUtility& k
 	m_bVassalageTradingAllowed = kResults.GetBool("VassalageTradingAllowed");
 
 	m_iHappiness = kResults.GetInt("Happiness");
+	m_iExtraBombardRange = kResults.GetInt("ExtraBombardRange");
+	m_bBombardIndirect = kResults.GetBool("BombardIndirect");
 	m_bCorporationsEnabled = kResults.GetBool("CorporationsEnabled");
 	m_iEurekaPerMillion = kResults.GetInt("EurekaPerMillion");
 
@@ -571,6 +575,17 @@ int CvTechEntry::GetHappiness() const
 {
 	return m_iHappiness;
 }
+
+int CvTechEntry::GetExtraBombardRange() const
+{
+	return m_iExtraBombardRange;
+}
+
+bool CvTechEntry::IsBombardIndirect() const
+{
+	return m_bBombardIndirect;
+}
+
 bool CvTechEntry::IsCorporationsEnabled() const
 {
 	return m_bCorporationsEnabled;

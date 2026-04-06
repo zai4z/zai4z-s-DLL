@@ -429,7 +429,7 @@ VALUES
 	('PERSONALITY_FLAVOR_MIN_VALUE', 1),
 	('INFLUENCE_TARGET_DISTANCE_WEIGHT_VALUE', 3),
 	('UNIT_AUTO_EXTRA_AUTOMATIONS_DISABLED', 0),
-	('MAX_CITY_ATTACK_RANGE', 2), -- For EVENTS_CITY_BOMBARD: base city attack range
+	('CITY_ATTACK_RANGE', 1),
 	('UNIT_SPAWN_NUM_CHOICES', 5), -- Number of top choices considered when spawning a random free unit. Also used for militaristic city states' unique unit choice.
 	('BLOCKADED_CITY_ATTACK_MODIFIER', 0), -- Attack bonus against blockaded cities
 	('GWAM_THRESHOLD_DECREASE', 0), -- Flat GPP cost reduction for GWAM

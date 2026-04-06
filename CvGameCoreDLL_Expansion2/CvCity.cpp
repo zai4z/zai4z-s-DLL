@@ -32540,22 +32540,10 @@ int CvCity::getBombardRange(bool& bIndirectFireAllowed) const
 		return 1 + getCityBuildingBombardRange();
 	}
 
-	if (MOD_EVENTS_CITY_BOMBARD)
-	{
-		int iValue = 0;
-		if (GAMEEVENTINVOKE_VALUE(iValue, GAMEEVENT_GetBombardRange, getOwner(), GetID()) == GAMEEVENTRETURN_VALUE)
-		{
-			// Defend against modder stupidity!
-			if (iValue != 0 && ::abs(iValue) <= /*2*/ GD_INT_GET(MAX_CITY_ATTACK_RANGE))
-			{
-				bIndirectFireAllowed = (iValue < 0);
-				return ::abs(iValue);
-			}
-		}
-	}
+    CvTeam& kTeam = GET_TEAM(getTeam());
 
-	bIndirectFireAllowed = /*1*/ GD_INT_GET(CAN_CITY_USE_INDIRECT_FIRE) > 0;
-	return /*2*/ GD_INT_GET(CITY_ATTACK_RANGE);
+	bIndirectFireAllowed = kTeam.IsBombardIndirect();
+	return (/*1*/ GD_INT_GET(CITY_ATTACK_RANGE) + kTeam.GetExtraBombardRange());
 }
 
 //	--------------------------------------------------------------------------------
