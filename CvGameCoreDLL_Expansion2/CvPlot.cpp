@@ -8230,7 +8230,8 @@ void CvPlot::setImprovementType(ImprovementTypes eNewValue, PlayerTypes eBuilder
 			{
 				CvPlayer& owningPlayer = GET_PLAYER(owningPlayerID);
 				owningPlayer.changeImprovementCount(eOldImprovement, -1, eOldBuilder == owningPlayerID);
-				pOwningCity->ChangeImprovementCount(eOldImprovement, -1);
+				if (pOwningCity != NULL)
+					pOwningCity->ChangeImprovementCount(eOldImprovement, -1);
 
 				// Siphon resource changes
 				if (oldImprovementEntry.GetLuxuryCopiesSiphonedFromMinor() > 0 && eOldBuilder != NO_PLAYER)
@@ -8602,7 +8603,8 @@ void CvPlot::setImprovementType(ImprovementTypes eNewValue, PlayerTypes eBuilder
 			{
 				CvPlayer& owningPlayer = GET_PLAYER(owningPlayerID);
 				owningPlayer.changeImprovementCount(eNewValue, 1, eBuilder == owningPlayerID);
-				pOwningCity->ChangeImprovementCount(eNewValue, 1);
+				if (pOwningCity != NULL)
+					pOwningCity->ChangeImprovementCount(eNewValue, 1);
 
 				//DLC_04 Achievement
 				if (MOD_ENABLE_ACHIEVEMENTS)
