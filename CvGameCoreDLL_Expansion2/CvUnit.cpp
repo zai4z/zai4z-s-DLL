@@ -10202,18 +10202,6 @@ bool CvUnit::canPillage(const CvPlot* pPlot) const
 			return false;
 	}
 
-	if(pPlot->getOwner() == NO_PLAYER && pPlot->isRoute())
-	{
-		PlayerTypes eRouteOwner = pPlot->GetPlayerResponsibleForRoute();
-		if(eRouteOwner != NO_PLAYER && GET_PLAYER(eRouteOwner).isAlive())
-		{
-			if (!atWar(getTeam(), GET_PLAYER(eRouteOwner).getTeam()))
-			{
-				return false;
-			}
-		}
-	}
-
 	TechTypes ePillagePrereq = (TechTypes) getUnitInfo().GetPrereqPillageTech();
 	if(ePillagePrereq != NO_TECH)
 	{
@@ -10246,7 +10234,7 @@ bool CvUnit::canPillage(const CvPlot* pPlot) const
 	{
 		//can't pillage what we built ourselves unless at war with the new owner ... stops exploits
 		PlayerTypes eBuilder = pPlot->GetPlayerThatBuiltImprovement();
-		if (eBuilder != NO_PLAYER && GET_PLAYER(eBuilder).getTeam() == getTeam())
+		if (eBuilder != NO_PLAYER && eBuilder != NULL && GET_PLAYER(eBuilder).getTeam() == getTeam())
 			if (!GET_PLAYER(getOwner()).IsAtWarWith(pPlot->getOwner()))
 				return false;
 
