@@ -2973,15 +2973,18 @@ bool CvPlot::canBuild(BuildTypes eBuild, PlayerTypes ePlayer, bool bTestVisible,
 	{
 		if(!getPlotCity() && getRouteType() != NO_ROUTE)
 		{
+			ImprovementTypes eOldImprovement = getImprovementType();
+			CvImprovementEntry* pkImprovement = eOldImprovement != NO_IMPROVEMENT ? GC.getImprovementInfo(eOldImprovement) : NULL;
+			
 			if(getOwner() == ePlayer)
 			{
 				bValid = true;
 			}
-			else if(getOwner() == NO_PLAYER && GetPlayerResponsibleForRoute() == ePlayer)
+			else if(getOwner() == NO_PLAYER && GetPlayerResponsibleForRoute() == ePlayer && !(pkImprovement && pkImprovement->IsLinkRoute()))
 			{
 				bValid = true;
 			}
-			else if(getOwner() == NO_PLAYER && (GetPlayerResponsibleForRoute() == NO_PLAYER || !GET_PLAYER(GetPlayerResponsibleForRoute()).isAlive()))
+			else if(getOwner() == NO_PLAYER && (GetPlayerResponsibleForRoute() == NO_PLAYER || !GET_PLAYER(GetPlayerResponsibleForRoute()).isAlive()) && !(pkImprovement && pkImprovement->IsLinkRoute()))
 			{
 				bValid = true;
 			}
@@ -12745,7 +12748,15 @@ bool CvPlot::changeBuildProgress(BuildTypes eBuild, int iChange, PlayerTypes ePl
 
 			if(pkBuildInfo->IsRemoveRoute())
 			{
-				setRouteType(NO_ROUTE, ePlayer);
+				ImprovementTypes eOldImprovement = getImprovementType();
+				CvImprovementEntry* pkImprovement = eOldImprovement != NO_IMPROVEMENT ? GC.getImprovementInfo(eOldImprovement) : NULL;
+				// If there is an improvement that is linked to the route, we also need to remove this
+				if (pkImprovement && pkImprovement->IsLinkRoute())
+				{
+					setImprovementType(NO_IMPROVEMENT);
+				}
+				
+				setRouteType(NO_ROUTE);
 			}
 
 			bFinished = true;

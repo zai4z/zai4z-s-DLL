@@ -102,6 +102,7 @@ public:
 
 	bool IsHillsMakesValid() const;
 	bool IsUnderground() const;
+	bool IsLinkRoute() const;
 	bool IsMountainsMakesValid() const;
 	bool IsMakesPassable() const;
 	bool IsWaterAdjacencyMakesValid() const;
@@ -274,6 +275,7 @@ protected:
 
 	bool m_bHillsMakesValid;
 	bool m_bUnderground;
+	bool m_bLinkRoute;
 	bool m_bMountainsMakesValid;
 	bool m_bMakesPassable;
 	bool m_bWaterAdjacencyMakesValid;

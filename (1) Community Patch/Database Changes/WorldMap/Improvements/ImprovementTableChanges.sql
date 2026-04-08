@@ -101,3 +101,9 @@ ALTER TABLE Improvements ADD RequiresResource boolean DEFAULT 0;
 
 -- Stops units from shooting from this tile, and being shoot from other tiles, also "hides" units visually
 ALTER TABLE Improvements ADD Underground boolean DEFAULT 0;
+
+-- If the route on this tile is removed, this improvemnent is also removed
+-- If this improvement is pillaged, the route is also pillaged
+-- If this improvement is removed, the route is also removed
+-- Also, players are blocked from removing a route if this improvement is on the tile and it's outside their territory
+ALTER TABLE Improvements ADD LinkRoute boolean DEFAULT 0;

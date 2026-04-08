@@ -101,6 +101,7 @@ CvImprovementEntry::CvImprovementEntry(void):
 	m_bBlockTileSteal(false),
 	m_bHillsMakesValid(false),
 	m_bUnderground(false),
+	m_bLinkRoute(false),
 	m_bMountainsMakesValid(false),
 	m_bMakesPassable(false),
 	m_bWaterAdjacencyMakesValid(false),
@@ -276,6 +277,7 @@ bool CvImprovementEntry::CacheResults(Database::Results& kResults, CvDatabaseUti
 	m_bBlockTileSteal = kResults.GetBool("BlockTileSteal");
 	m_bHillsMakesValid = kResults.GetBool("HillsMakesValid");
 	m_bUnderground = kResults.GetBool("Underground");
+	m_bLinkRoute = kResults.GetBool("LinkRoute");
 	m_bMountainsMakesValid = kResults.GetBool("MountainsMakesValid");
 	m_bMakesPassable = kResults.GetBool("MakesPassable");
 	m_bWaterAdjacencyMakesValid = kResults.GetBool("WaterAdjacencyMakesValid");
@@ -1128,6 +1130,12 @@ bool CvImprovementEntry::IsHillsMakesValid() const
 bool CvImprovementEntry::IsUnderground() const
 {
 	return m_bUnderground;
+}
+
+/// Links the route to the improvement
+bool CvImprovementEntry::IsLinkRoute() const
+{
+	return m_bLinkRoute;
 }
 
 /// Requires mountains to be constructed

@@ -10597,25 +10597,12 @@ bool CvUnit::pillage()
 			// Improvement that's destroyed?
 			bSuccessfulNonRoadPillage = true;
 			iPotentialHealFromPillage = getPillageHealAmount(plot(), true);
-			if(pkImprovement->IsDestroyedWhenPillaged())
+			if (pkImprovement->IsDestroyedWhenPillaged())
 			{
-				// If this improvement auto-added a route, we also need to remove the route
-				ImprovementTypes eOldImprovement = pPlot->getImprovementType();
-				
-				// Find the build for this improvement
-				for (int i = 0; i < GC.getNumBuildInfos(); i++) {
-					CvBuildInfo* pkBuild = GC.getBuildInfo((BuildTypes)i);
-					
-					if (pkBuild && ((ImprovementTypes)pkBuild->getImprovement()) == eOldImprovement) {
-						// Found it, but did it auto-add a route?
-						if (pkBuild->getRoute() != NO_ROUTE) {
-							// Yes, so remove the route as well
-							pPlot->setRouteType(NO_ROUTE);
-						}
-						
-						// Our work here is done
-						break;
-					}
+				// If this improvement is linked to route, we also need to remove the route
+				if (pkImprovement->IsLinkRoute())
+				{
+					pPlot->setRouteType(NO_ROUTE);
 				}
 
 				pPlot->setImprovementType(NO_IMPROVEMENT);
@@ -10623,6 +10610,12 @@ bool CvUnit::pillage()
 			// Improvement that's pillaged?
 			else
 			{
+				// If this improvement is linked to route, we also need to pillage the route
+				if (pkImprovement->IsLinkRoute())
+				{
+					pPlot->SetRoutePillaged(true);
+				}
+
 				pPlot->SetImprovementPillaged(true);
 			}
 
@@ -13263,6 +13256,13 @@ bool CvUnit::build(BuildTypes eBuild)
 				CvImprovementEntry *pkImprovementEntry = GC.getImprovementInfo(eImprovement);
 				if (!pkImprovementEntry || !pkImprovementEntry->IsRequiresImprovement())
 				{
+					// If the existing improvement is linked to a route, remove that route too
+					CvImprovementEntry* pkOldImprovement = GC.getImprovementInfo(pPlot->getImprovementType());
+					if (pkOldImprovement && pkOldImprovement->IsLinkRoute())
+					{
+						pPlot->setRouteType(NO_ROUTE);
+					}
+
 					pPlot->setImprovementType(NO_IMPROVEMENT);
 				}
 			}
