@@ -305,10 +305,8 @@ void CvDangerPlots::UpdateDangerInternal(const PlotIndexContainer& plotsToIgnore
 		{
 			//remember the plot based damage, but it depends on the unit's promotions also, so we won't apply it directly
 			int iPlotDamage = 0;
-			if (pPlot->getFeatureType() != NO_FEATURE)
-				iPlotDamage += (GC.getFeatureInfo(pPlot->getFeatureType())->getTurnDamage());
-			if (pPlot->getTerrainType() != NO_TERRAIN)
-				iPlotDamage += (GC.getTerrainInfo(pPlot->getTerrainType())->getTurnDamage());
+
+			iPlotDamage += pPlot->getTurnDamage(false, false, false, false);
 
 			if (pPlot->isWater())
 			{

@@ -107,3 +107,7 @@ ALTER TABLE Improvements ADD Underground boolean DEFAULT 0;
 -- If this improvement is removed, the route is also removed
 -- Also, players are blocked from removing a route if this improvement is on the tile and it's outside their territory
 ALTER TABLE Improvements ADD LinkRoute boolean DEFAULT 0;
+
+-- Stops units from being damaged by this tile from TurnDamage AND ExtraTurnDamage
+ALTER TABLE Improvements ADD NegatesTerrainDamage boolean DEFAULT 0;
+ALTER TABLE Improvements ADD NegatesFeatureDamage boolean DEFAULT 0;

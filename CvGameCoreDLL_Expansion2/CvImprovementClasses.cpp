@@ -102,6 +102,8 @@ CvImprovementEntry::CvImprovementEntry(void):
 	m_bHillsMakesValid(false),
 	m_bUnderground(false),
 	m_bLinkRoute(false),
+	m_bNegatesTerrainDamage(false),
+	m_bNegatesFeatureDamage(false),
 	m_bMountainsMakesValid(false),
 	m_bMakesPassable(false),
 	m_bWaterAdjacencyMakesValid(false),
@@ -278,6 +280,8 @@ bool CvImprovementEntry::CacheResults(Database::Results& kResults, CvDatabaseUti
 	m_bHillsMakesValid = kResults.GetBool("HillsMakesValid");
 	m_bUnderground = kResults.GetBool("Underground");
 	m_bLinkRoute = kResults.GetBool("LinkRoute");
+	m_bNegatesTerrainDamage = kResults.GetBool("NegatesTerrainDamage");
+	m_bNegatesFeatureDamage = kResults.GetBool("NegatesFeatureDamage");
 	m_bMountainsMakesValid = kResults.GetBool("MountainsMakesValid");
 	m_bMakesPassable = kResults.GetBool("MakesPassable");
 	m_bWaterAdjacencyMakesValid = kResults.GetBool("WaterAdjacencyMakesValid");
@@ -1136,6 +1140,18 @@ bool CvImprovementEntry::IsUnderground() const
 bool CvImprovementEntry::IsLinkRoute() const
 {
 	return m_bLinkRoute;
+}
+
+/// Prevents terrain TurnDamage AND ExtraTurnDamage
+bool CvImprovementEntry::IsNegatesTerrainDamage() const
+{
+	return m_bNegatesTerrainDamage;
+}
+
+/// Prevents feature TurnDamage AND ExtraTurnDamage
+bool CvImprovementEntry::IsNegatesFeatureDamage() const
+{
+	return m_bNegatesFeatureDamage;
 }
 
 /// Requires mountains to be constructed

@@ -14613,6 +14613,21 @@ int CvPlot::getTurnDamage(bool bIgnoreTerrainDamage, bool bIgnoreFeatureDamage, 
 {
 	int damage = 0;
 
+    // Check if the improvement on this plot negates damage
+    ImprovementTypes eImprovement = getImprovementType();
+    CvImprovementEntry* pkImprovement = eImprovement != NO_IMPROVEMENT ? GC.getImprovementInfo(eImprovement) : NULL;
+
+    if (pkImprovement && pkImprovement->IsNegatesFeatureDamage())
+	{
+        bIgnoreFeatureDamage = true;
+		bExtraFeatureDamage = false;
+	}
+    if (pkImprovement && pkImprovement->IsNegatesTerrainDamage())
+	{
+        bIgnoreTerrainDamage = true;
+		bExtraTerrainDamage = false;
+	}
+	
 	const TerrainTypes eTerrain = getTerrainType();
 	const FeatureTypes eFeature = getFeatureType();
 		

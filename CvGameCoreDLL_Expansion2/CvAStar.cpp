@@ -1178,13 +1178,10 @@ int PathEndTurnCost(CvPlot* pToPlot, const CvPathNodeCacheData& kToNodeCacheData
 		iCost += (PATH_DEFENSE_WEIGHT * std::max(0, (PATH_ASSUMED_MAX_DEFENSE - ((pUnit->noDefensiveBonus()) ? 0 : pToPlot->defenseModifier(eUnitTeam, false, false)))));
 	}
 
-	// Damage caused by features (mods)
+	// Damage caused by features and terrain (mods)
 	if (/*0*/ GD_INT_GET(PATH_DAMAGE_WEIGHT) != 0)
 	{
-		if(pToPlot->getFeatureType() != NO_FEATURE)
-		{
-			iCost += (GD_INT_GET(PATH_DAMAGE_WEIGHT) * std::max(0, pToPlot->getTurnDamage(pUnit->ignoreTerrainDamage(), pUnit->ignoreFeatureDamage(), pUnit->extraTerrainDamage(), pUnit->extraFeatureDamage()))) / GD_INT_GET(MAX_HIT_POINTS);
-		}
+		iCost += (GD_INT_GET(PATH_DAMAGE_WEIGHT) * std::max(0, pToPlot->getTurnDamage(pUnit->ignoreTerrainDamage(), pUnit->ignoreFeatureDamage(), pUnit->extraTerrainDamage(), pUnit->extraFeatureDamage()))) / GD_INT_GET(MAX_HIT_POINTS);
 
 		if(pToPlot->getExtraMovePathCost() > 0)
 			iCost += (PATH_BASE_COST * pToPlot->getExtraMovePathCost());
