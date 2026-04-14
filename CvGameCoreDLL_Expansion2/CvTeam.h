@@ -415,6 +415,9 @@ public:
 
 	void setDynamicTurnsSimultMode(bool simultaneousTurns);
 
+	void SetCanMeetAnyone(bool bNewValue);
+	bool IsCanMeetAnyone() const;
+
 	bool IsVoluntaryVassal(TeamTypes eIndex) const;
 	bool IsVassal(TeamTypes eIndex) const;
 	void setVassal(TeamTypes eIndex, bool bNewValue, bool bVoluntary = false);
@@ -598,6 +601,7 @@ protected:
 
 	TeamTypes m_eMaster;
 	bool m_bIsVoluntaryVassal;
+	bool m_bIsCanMeetAnyone;
 	int m_iNumTurnsIsVassal;
 	int m_iNumCitiesWhenVassalMade;
 	int m_iTotalPopulationWhenVassalMade;

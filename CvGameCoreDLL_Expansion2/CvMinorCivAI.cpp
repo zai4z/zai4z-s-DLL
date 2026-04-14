@@ -4914,6 +4914,9 @@ void CvMinorCivAI::DoFirstContactWithMajor(PlayerTypes eMeetingPlayer, bool bSup
 
 	TeamTypes eTeam = GET_PLAYER(eMeetingPlayer).getTeam();
 
+	if (!GET_TEAM(eTeam).IsCanMeetAnyone())
+		return;
+
 	// This guy's at war with our ally or we declared Permanent War, so we DoW him
 	if (IsPeaceBlocked(eTeam))
 		GET_TEAM(GetPlayer()->getTeam()).declareWar(eTeam, true, GetPlayer()->GetID());

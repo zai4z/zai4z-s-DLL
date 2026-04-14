@@ -19,6 +19,7 @@
 #include "CvLuaTeam.h"
 #include "CvLuaTeamTech.h"
 #include "CvLuaArea.h"
+#include "CvLuaPlot.h"
 
 #pragma warning(disable:4800 ) //forcing value to bool 'true' or 'false'
 
@@ -228,6 +229,9 @@ void CvLuaTeam::PushMethods(lua_State* L, int t)
 
 	Method(UpdateEmbarkGraphics);
 
+	Method(SetCanMeetAnyone);
+	Method(GetRevealedPlots);
+
 	Method(IsVassal);
 	Method(CanBecomeVassal);
 	Method(CanMakeVassal);
@@ -362,6 +366,38 @@ int CvLuaTeam::lMeet(lua_State* L)
 			GET_PLAYER(eMeeted).GetMinorCivAI()->DoFirstContactWithMajor(eMeeter, bSuppressMessages);
 	}
 	return 0;
+}
+//------------------------------------------------------------------------------
+// void SetCanMeetAnyone(bool bNewValue)
+int CvLuaTeam::lSetCanMeetAnyone(lua_State* L)
+{
+	CvTeam* pkTeam = GetInstance(L);
+	const bool bNewValue = luaL_optbool(L, 2, false);
+
+	pkTeam->SetCanMeetAnyone(bNewValue);
+	return 0;
+}
+//------------------------------------------------------------------------------
+// Returns an array of plots revealed to this team
+int CvLuaTeam::lGetRevealedPlots(lua_State* L)
+{
+    CvTeam* pkTeam = GetInstance(L);
+    TeamTypes eTeam = pkTeam->GetID();
+
+    lua_newtable(L);
+    int iCount = 1;
+
+    for (int iPlot = 0; iPlot < GC.getMap().numPlots(); iPlot++)
+    {
+        CvPlot* pPlot = GC.getMap().plotByIndexUnchecked(iPlot);
+        if (pPlot && pPlot->isRevealed(eTeam))
+        {
+            CvLuaPlot::Push(L, pPlot);
+            lua_rawseti(L, -2, iCount++);
+        }
+    }
+
+    return 1;
 }
 //------------------------------------------------------------------------------
 //int getScore();

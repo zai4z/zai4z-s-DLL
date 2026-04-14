@@ -248,6 +248,7 @@ void CvTeam::uninit()
 	m_iCorporationsEnabledCount = 0;
 
 	m_bIsVoluntaryVassal = false;
+	m_bIsCanMeetAnyone = true;
 	m_iNumTurnsIsVassal = -1;
 	m_iNumCitiesWhenVassalMade = 0;
 	m_iTotalPopulationWhenVassalMade = 0;
@@ -2496,7 +2497,7 @@ void CvTeam::meet(TeamTypes eTeam, bool bSuppressMessages)
 	if(!isAlive())
 		return;
 
-	if(!isHasMet(eTeam))
+	if (IsCanMeetAnyone() && !isHasMet(eTeam))
 	{
 		makeHasMet(eTeam, bSuppressMessages);
 		GET_TEAM(eTeam).makeHasMet(GetID(), bSuppressMessages);
@@ -2514,6 +2515,16 @@ void CvTeam::meet(TeamTypes eTeam, bool bSuppressMessages)
 	}
 }
 
+//	--------------------------------------------------------------------------------
+void CvTeam::SetCanMeetAnyone(bool bNewValue)
+{
+	m_bIsCanMeetAnyone = bNewValue;
+}
+
+bool CvTeam::IsCanMeetAnyone() const
+{
+	return m_bIsCanMeetAnyone;
+}
 
 //	--------------------------------------------------------------------------------
 int CvTeam::getPower() const
@@ -9237,6 +9248,7 @@ void CvTeam::Serialize(Team& team, Visitor& visitor)
 	visitor(team.m_iExtraBombardRange);
 	visitor(team.m_eMaster);
 	visitor(team.m_bIsVoluntaryVassal);
+	visitor(team.m_bIsCanMeetAnyone);
 	visitor(team.m_iNumTurnsIsVassal);
 	visitor(team.m_iNumCitiesWhenVassalMade);
 	visitor(team.m_iTotalPopulationWhenVassalMade);

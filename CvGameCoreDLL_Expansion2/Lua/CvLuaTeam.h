@@ -49,6 +49,9 @@ protected:
 	static int lGetNumTurnsLockedIntoWar(lua_State* L);
 	static int lMeet(lua_State* L);
 
+	static int lSetCanMeetAnyone(lua_State* L);
+	static int lGetRevealedPlots(lua_State* L);
+
 	static int lGetScore(lua_State* L);
 	static int lGetPower(lua_State* L);
 	static int lGetDefensivePower(lua_State* L);
