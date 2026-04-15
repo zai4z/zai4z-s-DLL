@@ -3056,10 +3056,22 @@ bool CvPlot::canBuild(BuildTypes eBuild, PlayerTypes ePlayer, bool bTestVisible,
 			}
 		}
 
-		// Requirements on adjacent plots?
 		if (!bTestVisible)
 		{
 			CvImprovementEntry *pkImprovement = GC.getImprovementInfo(eImprovement);
+
+			// Block permanent and great person improvements from being built on artifacts
+			if (pkImprovement && (pkImprovement->IsPermanent() || pkImprovement->IsCreatedByGreatPerson()))
+			{
+				ResourceTypes eArtifact = static_cast<ResourceTypes>(GD_INT_GET(ARTIFACT_RESOURCE));
+				ResourceTypes eHiddenArtifact = static_cast<ResourceTypes>(GD_INT_GET(HIDDEN_ARTIFACT_RESOURCE));
+				if (getResourceType() == eArtifact || getResourceType() == eHiddenArtifact)
+				{
+					return false;
+				}
+			}
+
+			// Requirements on adjacent plots?
 			bool bHasLuxuryRequirement = pkImprovement->IsAdjacentLuxury();
 			bool bHasNoAdjacencyRequirement = pkImprovement->IsNoTwoAdjacent();
 			if (pkImprovement && (bHasLuxuryRequirement || bHasNoAdjacencyRequirement))
@@ -8289,6 +8301,7 @@ void CvPlot::setImprovementType(ImprovementTypes eNewValue, PlayerTypes eBuilder
 		if (eNewValue != NO_IMPROVEMENT)
 		{
 			CvImprovementEntry& newImprovementEntry = *GC.getImprovementInfo(eNewValue);
+			// blocked by canbuild, but just in case...
 			// destroy archaeological site (needs to be done before setting the improvement, otherwise the removed artifact will incorrectly be treated as improved, messing with the resource counters)
 			if (newImprovementEntry.IsPermanent() || newImprovementEntry.IsCreatedByGreatPerson())
 			{
