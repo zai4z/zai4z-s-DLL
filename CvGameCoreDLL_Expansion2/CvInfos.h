@@ -2095,6 +2095,7 @@ public:
 	int getMinCityHillNoFreshWater() const;
 	int getMinCityMountainFreshWater() const;
 	int getMinCityMountainNoFreshWater() const;
+	int getMinCityLake() const;
 	int getGoldenAgeYield() const;
 	int getGoldenAgeYieldThreshold() const;
 	int getGoldenAgeYieldMod() const;
@@ -2117,6 +2118,7 @@ protected:
 	int m_iMinCityHillNoFreshWater;
 	int m_iMinCityMountainFreshWater;
 	int m_iMinCityMountainNoFreshWater;
+	int m_iMinCityLake;
 	int m_iGoldenAgeYield;
 	int m_iGoldenAgeYieldThreshold;
 	int m_iGoldenAgeYieldMod;

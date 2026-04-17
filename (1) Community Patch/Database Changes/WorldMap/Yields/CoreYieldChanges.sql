@@ -10,3 +10,7 @@ UPDATE Yields SET ImageOffset = 256 WHERE Type = 'YIELD_GOLD';
 UPDATE Yields SET ImageOffset = 384 WHERE Type = 'YIELD_SCIENCE';
 UPDATE Yields SET ImageTexture = 'YieldAtlas_128_Culture.dds' WHERE Type = 'YIELD_CULTURE';
 UPDATE Yields SET ImageTexture = 'YieldAtlas_128_Faith.dds' WHERE Type = 'YIELD_FAITH';
+
+-- base +2 food +2 production, +1 food from lake cities
+UPDATE Yields SET MinCity = '2' WHERE Type = 'YIELD_PRODUCTION';
+UPDATE Yields SET MinCityLake = '1' WHERE Type = 'YIELD_FOOD';

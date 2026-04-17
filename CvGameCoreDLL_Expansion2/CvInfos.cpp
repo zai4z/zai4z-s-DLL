@@ -7240,6 +7240,7 @@ CvYieldInfo::CvYieldInfo() :
 	m_iMinCityHillNoFreshWater(0),
 	m_iMinCityMountainFreshWater(0),
 	m_iMinCityMountainNoFreshWater(0),
+	m_iMinCityLake(0),
 	m_iGoldenAgeYield(0),
 	m_iGoldenAgeYieldThreshold(0),
 	m_iGoldenAgeYieldMod(0)
@@ -7321,6 +7322,11 @@ int CvYieldInfo::getMinCityMountainNoFreshWater() const
 	return m_iMinCityMountainNoFreshWater;
 }
 //------------------------------------------------------------------------------
+int CvYieldInfo::getMinCityLake() const
+{
+	return m_iMinCityLake;
+}
+//------------------------------------------------------------------------------
 int CvYieldInfo::getGoldenAgeYield() const
 {
 	return m_iGoldenAgeYield;
@@ -7356,6 +7362,7 @@ bool CvYieldInfo::CacheResults(Database::Results& kResults, CvDatabaseUtility& k
 	kResults.GetValue("MinCityHillNoFreshWater", m_iMinCityHillNoFreshWater);
 	kResults.GetValue("MinCityMountainFreshWater", m_iMinCityMountainFreshWater);
 	kResults.GetValue("MinCityMountainNoFreshWater", m_iMinCityMountainNoFreshWater);
+	kResults.GetValue("MinCityLake", m_iMinCityLake);
 	kResults.GetValue("GoldenAgeYield", m_iGoldenAgeYield);
 	kResults.GetValue("GoldenAgeYieldThreshold", m_iGoldenAgeYieldThreshold);
 	kResults.GetValue("GoldenAgeYieldMod", m_iGoldenAgeYieldMod);

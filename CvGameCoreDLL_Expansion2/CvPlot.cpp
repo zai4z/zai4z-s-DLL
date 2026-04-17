@@ -10043,9 +10043,21 @@ int CvPlot::calculateNatureYield(YieldTypes eYield, PlayerTypes ePlayer, Feature
 			else
 				iYield += isFreshWater() ? pkYieldInfo->getMinCityFlatFreshWater() : pkYieldInfo->getMinCityFlatNoFreshWater();
 		}
-		// Community Patch Only: Min. 2 Food & 1 Production for city center tile yields
+		// Community Patch Only: Min. 2 Food & 2 Production, + from lakes
 		else
+		{
 			iYield = std::max(iYield, pkYieldInfo->getMinCity());
+
+			for (int iI = 0; iI < NUM_DIRECTION_TYPES; iI++)
+			{
+				CvPlot* pAdjacentPlot = plotDirection(getX(), getY(), (DirectionTypes)iI);
+				if (pAdjacentPlot && pAdjacentPlot->isLake())
+				{
+					iYield += pkYieldInfo->getMinCityLake();
+					break;
+				}
+			}
+		}
 
 		// Yields from garrison
 		if (pOwningCity->HasGarrison())

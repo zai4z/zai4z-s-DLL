@@ -10,3 +10,4 @@ ALTER TABLE Yields ADD MinCityHillFreshWater integer DEFAULT 0;
 ALTER TABLE Yields ADD MinCityHillNoFreshWater integer DEFAULT 0;
 ALTER TABLE Yields ADD MinCityMountainFreshWater integer DEFAULT 0;
 ALTER TABLE Yields ADD MinCityMountainNoFreshWater integer DEFAULT 0;
+ALTER TABLE Yields ADD MinCityLake integer DEFAULT 0;
