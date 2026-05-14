@@ -168,9 +168,6 @@
 // Separates the Great People counters for Engineers, Scientists, and Merchants
 #define MOD_GLOBAL_SEPARATE_GP_COUNTERS								gCustomMods.isGLOBAL_SEPARATE_GP_COUNTERS()
 
-// Permits ships to enter coastal forts/citadels in friendly lands
-#define MOD_GLOBAL_PASSABLE_FORTS									gCustomMods.isGLOBAL_PASSABLE_FORTS()
-
 // Paratroopers take interception damage from hostile anti-air units
 #define MOD_GLOBAL_PARATROOPS_AA_DAMAGE								gCustomMods.isGLOBAL_PARATROOPS_AA_DAMAGE()
 
@@ -1513,7 +1510,6 @@ public:
 
 	// Enabled Pick'N'Mix Mods (VP Only)
 	MOD_OPT_DECL(GLOBAL_SEPARATE_GP_COUNTERS);
-	MOD_OPT_DECL(GLOBAL_PASSABLE_FORTS);
 	MOD_OPT_DECL(GLOBAL_PARATROOPS_AA_DAMAGE);
 	MOD_OPT_DECL(GLOBAL_CS_GIFTS);
 	MOD_OPT_DECL(GLOBAL_CS_GIFT_SHIPS);

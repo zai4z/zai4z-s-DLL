@@ -53,6 +53,7 @@ CvTraitEntry::CvTraitEntry() :
 	m_iWonderProductionModifier(0),
 	m_iPlunderModifier(0),
 	m_iImprovementMaintenanceModifier(0),
+	m_iRouteMaintenanceModifier(0),
 	m_iRouteBuilderCostModifier(0),
 	m_iGoldenAgeDurationModifier(0),
 	m_iGoldenAgeMoveChange(0),
@@ -96,7 +97,7 @@ CvTraitEntry::CvTraitEntry() :
 	m_bKeepConqueredBuildings(false),
 	m_iWLTKDGPImprovementModifier(0),
 	m_iGrowthBoon(0),
-	m_bMountainPass(false),
+	m_bSettleBuildMountains(false),
 	m_bUniqueBeliefsOnly(false),
 	m_iAllianceCSDefense(0),
 	m_iAllianceCSStrength(0),
@@ -606,6 +607,12 @@ int CvTraitEntry::GetImprovementMaintenanceModifier() const
 	return m_iImprovementMaintenanceModifier;
 }
 
+/// Accessor:: percent change to cost of route maintenance
+int CvTraitEntry::GetRouteMaintenanceModifier() const
+{
+	return m_iRouteMaintenanceModifier;
+}
+
 /// Accessor:: percent change to builder cost of roads
 int CvTraitEntry::GetRouteBuilderCostModifier() const
 {
@@ -771,9 +778,9 @@ bool CvTraitEntry::IsKeepConqueredBuildings() const
 {
 	return m_bKeepConqueredBuildings;
 }
-bool CvTraitEntry::IsMountainPass() const
+bool CvTraitEntry::IsSettleBuildMountains() const
 {
-	return m_bMountainPass;
+	return m_bSettleBuildMountains;
 }
 int CvTraitEntry::GetWLTKDGPImprovementModifier() const
 {
@@ -2352,6 +2359,7 @@ bool CvTraitEntry::CacheResults(Database::Results& kResults, CvDatabaseUtility& 
 	m_iWonderProductionModifier				= kResults.GetInt("WonderProductionModifier");
 	m_iPlunderModifier						= kResults.GetInt("PlunderModifier");
 	m_iImprovementMaintenanceModifier       = kResults.GetInt("ImprovementMaintenanceModifier");
+	m_iRouteMaintenanceModifier       		= kResults.GetInt("RouteMaintenanceModifier");
 	m_iGoldenAgeDurationModifier			= kResults.GetInt("GoldenAgeDurationModifier");
 	m_iGoldenAgeMoveChange				    = kResults.GetInt("GoldenAgeMoveChange");
 	m_iGoldenAgeCombatModifier				= kResults.GetInt("GoldenAgeCombatModifier");
@@ -2390,7 +2398,7 @@ bool CvTraitEntry::CacheResults(Database::Results& kResults, CvDatabaseUtility& 
 	m_bExpansionWLTKD						= kResults.GetBool("ExpansionWLTKD");
 	m_bTradeRouteOnly						= kResults.GetBool("TradeRouteOnly");
 	m_bKeepConqueredBuildings				= kResults.GetBool("KeepConqueredBuildings");
-	m_bMountainPass							= kResults.GetBool("MountainPass");
+	m_bSettleBuildMountains					= kResults.GetBool("SettleBuildMountains");
 	m_bUniqueBeliefsOnly					= kResults.GetBool("UniqueBeliefsOnly");
 	m_bNoNaturalReligionSpread				= kResults.GetBool("NoNaturalReligionSpread");
 	m_bNoOpenTrade							= kResults.GetBool("NoOpenTrade");
@@ -4364,6 +4372,7 @@ void CvPlayerTraits::InitPlayerTraits()
 			m_iWonderProductionModifier += trait->GetWonderProductionModifier();
 			m_iPlunderModifier += trait->GetPlunderModifier();
 			m_iImprovementMaintenanceModifier += trait->GetImprovementMaintenanceModifier();
+			m_iRouteMaintenanceModifier += trait->GetRouteMaintenanceModifier();
 			m_iGoldenAgeDurationModifier += trait->GetGoldenAgeDurationModifier();
 			m_iGoldenAgeMoveChange += trait->GetGoldenAgeMoveChange();
 			m_iGoldenAgeCombatModifier += trait->GetGoldenAgeCombatModifier();
@@ -4440,9 +4449,9 @@ void CvPlayerTraits::InitPlayerTraits()
 			{
 				m_bKeepConqueredBuildings = true;
 			}
-			if(trait->IsMountainPass())
+			if(trait->IsSettleBuildMountains())
 			{
-				m_bMountainPass = true;
+				m_bSettleBuildMountains = true;
 			}
 			if(trait->IsUniqueBeliefsOnly())
 			{
@@ -5256,6 +5265,7 @@ void CvPlayerTraits::Reset()
 	m_iWonderProductionModifier = 0;
 	m_iPlunderModifier = 0;
 	m_iImprovementMaintenanceModifier = 0;
+	m_iRouteMaintenanceModifier = 0;
 	m_iGoldenAgeDurationModifier = 0;
 	m_iGoldenAgeMoveChange = 0;
 	m_iGoldenAgeCombatModifier = 0;
@@ -5301,7 +5311,7 @@ void CvPlayerTraits::Reset()
 	m_bExpansionWLTKD = false;
 	m_bTradeRouteOnly = false;
 	m_bKeepConqueredBuildings = false;
-	m_bMountainPass = false;
+	m_bSettleBuildMountains = false;
 	m_bUniqueBeliefsOnly = false;
 	m_bNoNaturalReligionSpread = false;
 	m_bNoOpenTrade = false;
@@ -7426,6 +7436,7 @@ void CvPlayerTraits::Serialize(PlayerTraits& playerTraits, Visitor& visitor)
 	visitor(playerTraits.m_iWonderProductionModifier);
 	visitor(playerTraits.m_iPlunderModifier);
 	visitor(playerTraits.m_iImprovementMaintenanceModifier);
+	visitor(playerTraits.m_iRouteMaintenanceModifier);
 	visitor(playerTraits.m_iGoldenAgeDurationModifier);
 	visitor(playerTraits.m_iGoldenAgeMoveChange);
 	visitor(playerTraits.m_iGoldenAgeCombatModifier);
@@ -7456,7 +7467,7 @@ void CvPlayerTraits::Serialize(PlayerTraits& playerTraits, Visitor& visitor)
 	visitor(playerTraits.m_bExpansionWLTKD);
 	visitor(playerTraits.m_bTradeRouteOnly);
 	visitor(playerTraits.m_bKeepConqueredBuildings);
-	visitor(playerTraits.m_bMountainPass);
+	visitor(playerTraits.m_bSettleBuildMountains);
 	visitor(playerTraits.m_bUniqueBeliefsOnly);
 	visitor(playerTraits.m_bNoNaturalReligionSpread);
 	visitor(playerTraits.m_bNoOpenTrade);

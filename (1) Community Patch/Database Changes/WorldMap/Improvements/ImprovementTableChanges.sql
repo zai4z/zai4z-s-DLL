@@ -88,7 +88,7 @@ ALTER TABLE Improvements ADD BlockTileSteal boolean DEFAULT 0;
 -- GLOBAL_ALPINE_PASSES (integrated)
 ALTER TABLE Improvements ADD MountainsMakesValid integer DEFAULT 0;
 
--- GLOBAL_PASSABLE_FORTS
+-- Allows naval units to traverse this land tile, sight and range same as at water level
 ALTER TABLE Improvements ADD MakesPassable integer DEFAULT 0;
 
 -- GLOBAL_RELOCATION (integrated)
@@ -100,6 +100,7 @@ ALTER TABLE Improvements ADD AllowsAirliftTo integer DEFAULT 0;
 ALTER TABLE Improvements ADD RequiresResource boolean DEFAULT 0;
 
 -- Stops units from shooting from this tile, and being shoot from other tiles, also "hides" units visually
+-- Also causes the AI to treat this tile as a tunnel on mountains (build route through, trade through, move through)
 ALTER TABLE Improvements ADD Underground boolean DEFAULT 0;
 
 -- If the route on this tile is removed, this improvemnent is also removed

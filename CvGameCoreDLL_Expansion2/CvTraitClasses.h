@@ -140,6 +140,7 @@ public:
 	int GetWonderProductionModifier() const;
 	int GetPlunderModifier() const;
 	int GetImprovementMaintenanceModifier() const;
+	int GetRouteMaintenanceModifier() const;
 	int GetRouteBuilderCostModifier() const;
 	int GetGoldenAgeDurationModifier() const;
 	int GetGoldenAgeMoveChange() const;
@@ -172,7 +173,7 @@ public:
 	bool IsExpansionWLTKD() const;
 	bool IsTradeRouteOnly() const;
 	bool IsKeepConqueredBuildings() const;
-	bool IsMountainPass() const;
+	bool IsSettleBuildMountains() const;
 	bool IsUniqueBeliefsOnly() const;
 	bool IsNoNaturalReligionSpread() const;
 	bool IsNoOpenTrade() const;
@@ -472,6 +473,7 @@ protected:
 	int m_iWonderProductionModifier;
 	int m_iPlunderModifier;
 	int m_iImprovementMaintenanceModifier;
+	int m_iRouteMaintenanceModifier;
 	int m_iRouteBuilderCostModifier;
 	int m_iGoldenAgeDurationModifier;
 	int m_iGoldenAgeMoveChange;
@@ -513,7 +515,7 @@ protected:
 	bool m_bExpansionWLTKD;
 	bool m_bTradeRouteOnly;
 	bool m_bKeepConqueredBuildings;
-	bool m_bMountainPass;
+	bool m_bSettleBuildMountains;
 	bool m_bUniqueBeliefsOnly;
 	int m_iGrowthBoon;
 	int m_iWLTKDGPImprovementModifier;
@@ -989,6 +991,10 @@ public:
 	{
 		return m_iImprovementMaintenanceModifier;
 	};
+	int GetRouteMaintenanceModifier() const
+	{
+		return m_iRouteMaintenanceModifier;
+	};
 	int GetRouteBuilderCostModifier() const
 	{
 		return m_iRouteBuilderCostModifier;
@@ -1115,9 +1121,9 @@ public:
 	{
 		return m_bKeepConqueredBuildings;
 	};
-	bool IsMountainPass() const
+	bool IsSettleBuildMountains() const
 	{
-		return m_bMountainPass;
+		return m_bSettleBuildMountains;
 	};
 	bool IsUniqueBeliefsOnly() const
 	{
@@ -2060,6 +2066,7 @@ private:
 	int m_iWonderProductionModifier;
 	int m_iPlunderModifier;
 	int m_iImprovementMaintenanceModifier;
+	int m_iRouteMaintenanceModifier;
 	int m_iRouteBuilderCostModifier;
 	int m_iGoldenAgeDurationModifier;
 	int m_iGoldenAgeMoveChange;
@@ -2091,7 +2098,7 @@ private:
 	bool m_bExpansionWLTKD;
 	bool m_bTradeRouteOnly;
 	bool m_bKeepConqueredBuildings;
-	bool m_bMountainPass;
+	bool m_bSettleBuildMountains;
 	bool m_bUniqueBeliefsOnly;
 	bool m_bNoNaturalReligionSpread;
 	bool m_bNoOpenTrade;

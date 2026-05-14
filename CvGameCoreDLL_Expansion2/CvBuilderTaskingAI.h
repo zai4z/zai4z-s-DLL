@@ -132,6 +132,8 @@ public:
 	pair<RouteTypes, int> GetBestRouteTypeAndValue(const CvPlot* pPlot) const;
 	bool IsRoutePlanned(CvPlot* pPlot, RouteTypes eRoute, RoutePurpose ePurpose) const;
 	bool WantCanalAtPlot(const CvPlot* pPlot) const; //build it and keep it
+	bool WantBridgeAtPlot(const CvPlot* pPlot) const; //build it and keep it
+	bool WantTunnelAtPlot(const CvPlot* pPlot) const; //build it and keep it
 	bool WillNeverBuildVillageOnPlot(CvPlot* pPlot, RouteTypes eRoute, bool bIgnoreUnowned) const;
 	ImprovementTypes SavePlotForUniqueImprovement(const CvPlot* pPlot) const;
 
@@ -198,6 +200,8 @@ protected:
 	void SetupExtraXAdjacentPlotsForBuild(BuildTypes eBuild, ImprovementTypes eImprovement, int iAdjacencyRequirement);
 
 	void UpdateCanalPlots();
+	void UpdateBridgePlots();
+	void UpdateTunnelPlots();
 
 	bool PlotHasSpecialImprovement(const CvPlot* pPlot) const;
 
@@ -216,6 +220,8 @@ protected:
 	map<int, RoutePurpose> m_plotRoutePurposes; //serialized
 	map<int, PlannedRoute> m_bestRouteForPlot;
 	set<int> m_canalWantedPlots; //serialized
+	set<int> m_bridgeWantedPlots; //serialized
+	set<int> m_tunnelWantedPlots; //serialized
 	vector<BuilderDirective> m_directives;
 	map<int, BuilderDirective> m_assignedDirectives;
 	map<const CvCity*, int> m_worstCityPlotValues;

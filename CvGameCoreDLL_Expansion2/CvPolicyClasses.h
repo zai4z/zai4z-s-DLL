@@ -302,7 +302,6 @@ public:
 	int GetTechCostXCitiesMod() const;
 	int GetTourismCostXCitiesMod() const;
 	int GetCultureBombBoost() const;
-	bool GetCultureBombForeignTerritory() const;
 	bool GetRetainRazedTerritory() const;
 	int GetPuppetProdMod() const;
 	int GetOccupiedProdMod() const;
@@ -741,7 +740,6 @@ private:
 	int m_iPuppetProdMod;
 	int m_iOccupiedProdMod;
 	int m_iCultureBombBoost;
-	bool m_bCultureBombForeignTerritory;
 	bool m_bRetainRazedTerritory;
 	int m_iInternalTradeGold;
 	int m_iFreeWCVotes;

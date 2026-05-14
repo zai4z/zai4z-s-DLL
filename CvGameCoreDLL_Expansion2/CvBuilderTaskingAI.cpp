@@ -100,6 +100,8 @@ void CvBuilderTaskingAI::Serialize(BuilderTaskingAI& builderTaskingAI, Visitor& 
 	visitor(builderTaskingAI.m_plotRoutePurposes);
 	visitor(builderTaskingAI.m_anyRoutePlanned);
 	visitor(builderTaskingAI.m_canalWantedPlots);
+	visitor(builderTaskingAI.m_bridgeWantedPlots);
+	visitor(builderTaskingAI.m_tunnelWantedPlots);
 	visitor(builderTaskingAI.m_uniqueImprovements);
 }
 
@@ -143,6 +145,8 @@ void CvBuilderTaskingAI::Update(void)
 	SetupExtraXAdjacentPlots();
 	UpdateRoutePlots();
 	UpdateCanalPlots();
+	UpdateBridgePlots();
+	UpdateTunnelPlots();
 	UpdateImprovementPlots();
 
 	if(m_bLogging)
@@ -265,8 +269,8 @@ int CvBuilderTaskingAI::GetMoveCostWithRoute(const CvPlot* pFromPlot, const CvPl
 		//in some cases, we ignore terrain and feature costs if the destination tile contains a specific terrain/feature
 		if (pTraits->IsFasterInHills() && pToPlot->isHills())
 			bIgnoreCostsHere = true;
-		else if (pTraits->IsMountainPass() && pToPlot->isMountain())
-			bIgnoreCostsHere = true;
+		//else if (pTraits->IsSettleBuildMountains() && pToPlot->isMountain())
+			//bIgnoreCostsHere = true;
 
 		if (bIgnoreCostsHere) // Incan UA bypasses the check for river crossings, so no need to check those defines
 			iRegularCost = 1;
@@ -991,6 +995,24 @@ bool CvBuilderTaskingAI::WantCanalAtPlot(const CvPlot* pPlot) const
 	return (it != m_canalWantedPlots.end());
 }
 
+bool CvBuilderTaskingAI::WantBridgeAtPlot(const CvPlot* pPlot) const
+{
+    if (!pPlot)
+        return false;
+
+    set<int>::const_iterator it = m_bridgeWantedPlots.find(pPlot->GetPlotIndex());
+    return (it != m_bridgeWantedPlots.end());
+}
+
+bool CvBuilderTaskingAI::WantTunnelAtPlot(const CvPlot* pPlot) const
+{
+    if (!pPlot)
+        return false;
+
+    set<int>::const_iterator it = m_tunnelWantedPlots.find(pPlot->GetPlotIndex());
+    return (it != m_tunnelWantedPlots.end());
+}
+
 bool CvBuilderTaskingAI::IsPlannedRouteForPurpose(const CvPlot* pPlot, RoutePurpose ePurpose) const
 {
 	if (!pPlot)
@@ -1178,7 +1200,7 @@ void CvBuilderTaskingAI::UpdateCanalPlots()
 	if ((GC.getGame().getGameTurn() + m_pPlayer->GetID()) % 7 == 0)
 		return;
 
-	//only majors build canals
+	//only majors build canals (minor have no other cities to path to)
 	if (m_pPlayer->isMinorCiv())
 		return;
 
@@ -1206,31 +1228,125 @@ void CvBuilderTaskingAI::UpdateCanalPlots()
 		map<int, SPath> waterpaths = GC.GetStepFinder().GetMultiplePaths(pOriginCity->plot(), vDestPlots, data);
 		for (map<int, SPath>::iterator it = waterpaths.begin(); it != waterpaths.end(); ++it)
 		{
-			//the paths may contain not-yet-existing canals but the path cost for them is very high
-			//so they should only be used if there really is no other way.
+			//the paths may contain not-yet-existing canals but the path cost for them is higher
 			SPath& currentPath = it->second;
 			for (int i = 0; i < currentPath.length(); i++)
 			{
 				CvPlot* pCheck = currentPath.get(i);
 
-				if (pCheck->isWater() || pCheck->isCity())
-					continue;
-
-				//existing canal in use, remember that so we don't replace it by something else
-				if (pCheck->IsImprovementPassable())
+				//existing canal in use, or new place to build
+				if (!pCheck->isWater() && !pCheck->isCity())
 				{
-					if (pCheck->getOwner() == m_pPlayer->GetID())
-						m_canalWantedPlots.insert(pCheck->GetPlotIndex());
-				}
-				else
-				{
-					//this is where we must build a new canal
-					if (pCheck->getOwner() == m_pPlayer->GetID())
+					if (pCheck->getOwner() == m_pPlayer->GetID() || pCheck->getOwner() == NO_PLAYER)
 						m_canalWantedPlots.insert(pCheck->GetPlotIndex());
 				}
 			}
 		}
 	}
+}
+
+void CvBuilderTaskingAI::UpdateBridgePlots()
+{
+	//not needed every turn ... simple performance optimization
+    if ((GC.getGame().getGameTurn() + m_pPlayer->GetID()) % 7 == 0)
+        return;
+
+	//only majors build bridges (minor have no other cities to path to)
+    if (m_pPlayer->isMinorCiv())
+        return;
+
+    m_bridgeWantedPlots.clear();
+
+    vector<CvPlot*> vDestPlots;
+    for (int iPlayer = 0; iPlayer < MAX_PLAYERS; ++iPlayer)
+    {
+        int iCity = 0;
+        CvPlayer& kLoopPlayer = GET_PLAYER((PlayerTypes)iPlayer);
+        for (CvCity* pDestCity = kLoopPlayer.firstCity(&iCity); pDestCity != NULL; pDestCity = kLoopPlayer.nextCity(&iCity))
+            vDestPlots.push_back(pDestCity->plot());
+    }
+
+    int iOriginCityLoop = 0;
+    for (CvCity* pOriginCity = m_pPlayer->firstCity(&iOriginCityLoop); pOriginCity != NULL; pOriginCity = m_pPlayer->nextCity(&iOriginCityLoop))
+    {
+
+        SPathFinderUserData data(m_pPlayer->GetID(), PT_TRADE_LAND);
+		//this is the important flag
+        data.iFlags = CvUnit::MOVEFLAG_PRETEND_BRIDGES;
+		//doesn't really matter but we don't want to underestimate the real range, so use the real range
+        data.iMaxNormalizedDistance = m_pPlayer->GetTrade()->GetTradeRouteRange(DOMAIN_LAND, pOriginCity);
+
+		//get all paths
+        map<int, SPath> bridgePaths = GC.GetStepFinder().GetMultiplePaths(pOriginCity->plot(), vDestPlots, data);
+        for (map<int, SPath>::iterator it = bridgePaths.begin(); it != bridgePaths.end(); ++it)
+        {
+			//the paths may contain not-yet-existing bridges but the path cost for them is higher
+            SPath& currentPath = it->second;
+            for (int i = 0; i < currentPath.length(); i++)
+            {
+                CvPlot* pCheck = currentPath.get(i);
+
+				//existing bridge in use, or new place to build
+				if (pCheck->isWater())
+				{
+					if (pCheck->getOwner() == m_pPlayer->GetID() || pCheck->getOwner() == NO_PLAYER)
+						m_bridgeWantedPlots.insert(pCheck->GetPlotIndex());
+				}
+            }
+        }
+    }
+}
+
+void CvBuilderTaskingAI::UpdateTunnelPlots()
+{
+	//not needed every turn ... simple performance optimization
+    if ((GC.getGame().getGameTurn() + m_pPlayer->GetID()) % 7 == 0)
+        return;
+
+	//only majors build tunnels (minor have no other cities to path to), inca don't need tunnels
+    if (m_pPlayer->isMinorCiv() || m_pPlayer->GetPlayerTraits()->IsSettleBuildMountains())
+        return;
+
+    m_tunnelWantedPlots.clear();
+
+    vector<CvPlot*> vDestPlots;
+    for (int iPlayer = 0; iPlayer < MAX_PLAYERS; ++iPlayer)
+    {
+        int iCity = 0;
+        CvPlayer& kLoopPlayer = GET_PLAYER((PlayerTypes)iPlayer);
+        for (CvCity* pDestCity = kLoopPlayer.firstCity(&iCity); pDestCity != NULL; pDestCity = kLoopPlayer.nextCity(&iCity))
+            vDestPlots.push_back(pDestCity->plot());
+    }
+
+    int iOriginCityLoop = 0;
+    for (CvCity* pOriginCity = m_pPlayer->firstCity(&iOriginCityLoop); pOriginCity != NULL; pOriginCity = m_pPlayer->nextCity(&iOriginCityLoop))
+    {
+
+        SPathFinderUserData data(m_pPlayer->GetID(), PT_TRADE_LAND);
+		//this is the important flag
+        data.iFlags = CvUnit::MOVEFLAG_PRETEND_TUNNELS;
+		//doesn't really matter but we don't want to underestimate the real range, so use the real range
+        data.iMaxNormalizedDistance = m_pPlayer->GetTrade()->GetTradeRouteRange(DOMAIN_LAND, pOriginCity);
+
+		//get all paths
+        map<int, SPath> tunnelPaths = GC.GetStepFinder().GetMultiplePaths(pOriginCity->plot(), vDestPlots, data);
+        for (map<int, SPath>::iterator it = tunnelPaths.begin(); it != tunnelPaths.end(); ++it)
+        {
+			//the paths may contain not-yet-existing tunnels but the path cost for them is higher
+            SPath& currentPath = it->second;
+            for (int i = 0; i < currentPath.length(); i++)
+            {
+                CvPlot* pCheck = currentPath.get(i);
+
+				//existing tunnel in use, or new place to build
+				if (pCheck->isMountain() && !pCheck->isCity())
+				{
+					if (pCheck->getOwner() == m_pPlayer->GetID() || pCheck->getOwner() == NO_PLAYER)
+						m_tunnelWantedPlots.insert(pCheck->GetPlotIndex());
+				}
+            }
+        }
+    }
 }
 
 vector<BuilderDirective> CvBuilderTaskingAI::GetDirectives()
@@ -2093,7 +2209,7 @@ vector<OptionWithScore<BuilderDirective>> CvBuilderTaskingAI::GetImprovementDire
 			AddScrubFalloutDirectives(aDirectives, pPlot, pWorkingCity);
 			AddRepairImprovementDirective(aDirectives, pPlot, pWorkingCity);
 		}
-		else if ((!pPlot->isOwned() || m_pPlayer->IsCultureBombForeignTerritory()) && pPlot->isAdjacentPlayer(m_pPlayer->GetID()))
+		else if ((!pPlot->isOwned()) && pPlot->isAdjacentPlayer(m_pPlayer->GetID()))
 		{
 			//some special improvements
 			AddImprovingPlotsDirective(aDirectives, pPlot, pWorkingCity, aPossibleBuilds);
@@ -2832,7 +2948,7 @@ bool CvBuilderTaskingAI::ShouldAnyBuilderConsiderPlot(const CvPlot* pPlot) const
 	//can't build in other major player's territory (unless they are our vassal or we border them)
 	if (pPlot->isOwned() && pPlot->getOwner() != m_pPlayer->GetID() && GET_PLAYER(pPlot->getOwner()).isMajorCiv())
 	{
-		if ((!m_pPlayer->IsCultureBombForeignTerritory() || !pPlot->isAdjacentTeam(m_pPlayer->getTeam())) && !GET_TEAM(pPlot->getTeam()).IsVassal(m_pPlayer->getTeam()))
+		if ((!pPlot->isAdjacentTeam(m_pPlayer->getTeam())) && !GET_TEAM(pPlot->getTeam()).IsVassal(m_pPlayer->getTeam()))
 			return false;
 	}
 
@@ -3991,9 +4107,23 @@ pair<int,int> CvBuilderTaskingAI::ScorePlotBuild(CvPlot* pPlot, ImprovementTypes
 	}
 
 	// Do we want a canal here?
-	if (MOD_GLOBAL_PASSABLE_FORTS && WantCanalAtPlot(pPlot))
+	if (WantCanalAtPlot(pPlot))
 	{
 		if (pkImprovementInfo && pkImprovementInfo->IsMakesPassable())
+			iSecondaryScore += 3000;
+	}
+
+	// Do we want a bridge here?
+	if (WantBridgeAtPlot(pPlot))
+	{
+		if (pkImprovementInfo && pkImprovementInfo->IsAllowsWalkWater())
+			iSecondaryScore += 3000;
+	}
+
+	// Do we want a Tunnel here?
+	if (WantTunnelAtPlot(pPlot))
+	{
+		if (pkImprovementInfo && pkImprovementInfo->IsUnderground())
 			iSecondaryScore += 3000;
 	}
 

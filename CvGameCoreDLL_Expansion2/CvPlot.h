@@ -470,6 +470,7 @@ public:
 
 	int getTurnDamage(bool bIgnoreTerrainDamage, bool bIgnoreFeatureDamage, bool bExtraTerrainDamage, bool bExtraFeatureDamage) const;
 	bool isImpassable(TeamTypes eTeam = NO_TEAM) const;
+	bool IsUnderground() const;
 	bool IsAllowsWalkWater() const;
 	bool needsEmbarkation(const CvUnit* pUnit) const;
 
@@ -776,6 +777,7 @@ public:
 
 	bool IsCivilization(CivilizationTypes iCivilizationType) const;
 	bool HasFeature(FeatureTypes iFeatureType) const;
+	bool HasPermanentFeature() const;
 	bool HasAnyNaturalWonder() const;
 	bool HasNaturalWonder(FeatureTypes iFeatureType) const;
 	LUAAPIINLINE(IsFeatureIce, HasFeature, FEATURE_ICE)

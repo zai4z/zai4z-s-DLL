@@ -6648,7 +6648,7 @@ int CvDealAI::GetMapValue(bool bFromMe, PlayerTypes eOtherPlayer)
 	CvPlayer* pBuyer = bFromMe ? &GET_PLAYER(eOtherPlayer) : GetPlayer();	// Who is buying this map?
 	TeamTypes eSellerTeam = pSeller->getTeam();
 	TeamTypes eBuyerTeam = pBuyer->getTeam();
-	bool bBuyerIsInca = pBuyer->CanCrossMountain();
+	bool bBuyerIsInca = pBuyer->GetPlayerTraits()->IsSettleBuildMountains();
 	ResourceTypes eUranium = (ResourceTypes)GC.getInfoTypeForString("RESOURCE_URANIUM", true);
 
 	// Look at every tile on map

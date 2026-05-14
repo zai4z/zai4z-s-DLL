@@ -165,10 +165,6 @@
 		<!-- Separates the Great People counters for Engineers, Scientists, and Merchants -->
 		<Row Class="6" Name="GLOBAL_SEPARATE_GP_COUNTERS" Value="0"/>
 
-		<!-- Permits ships to enter coastal forts/citadels in friendly lands -->
-		<!-- If GLOBAL_PASSABLE_FORTS=0, ships may only enter player cities or pass through allied City-State cities -->
-		<Row Class="6" Name="GLOBAL_PASSABLE_FORTS" Value="0"/>
-
 		<!-- Paratroopers take interception damage from hostile anti-air units -->
 		<Row Class="5" Name="GLOBAL_PARATROOPS_AA_DAMAGE" Value="0"/>
 

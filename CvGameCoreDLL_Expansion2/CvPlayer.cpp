@@ -248,6 +248,7 @@ CvPlayer::CvPlayer() :
 	, m_iGoldPerUnit()
 	, m_iGoldPerMilitaryUnit()
 	, m_iImprovementGoldMaintenanceMod()
+	, m_iRouteGoldMaintenanceMod()
 	, m_iRouteBuilderCostMod()
 	, m_iBuildingGoldMaintenanceMod()
 	, m_iUnitGoldMaintenanceMod()
@@ -681,7 +682,6 @@ CvPlayer::CvPlayer() :
 	, m_iDoubleBorderGrowthWLTKD()
 	, m_iIncreasedQuestInfluence()
 	, m_iCultureBombBoost()
-	, m_iCultureBombForeignTerritory()
 	, m_iRetainRazedTerritory()
 	, m_iPuppetProdMod()
 	, m_iOccupiedProdMod()
@@ -947,6 +947,7 @@ void CvPlayer::init(PlayerTypes eID)
 		GetTreasury()->ChangeCityConnectionTradeRouteGoldChange(GetPlayerTraits()->GetCityConnectionTradeRouteChange());
 		changeWonderProductionModifier(GetPlayerTraits()->GetWonderProductionModifier());
 		ChangeImprovementGoldMaintenanceMod(GetPlayerTraits()->GetImprovementMaintenanceModifier());
+		ChangeRouteGoldMaintenanceMod(GetPlayerTraits()->GetRouteMaintenanceModifier());
 
 		for(iJ = 0; iJ < NUM_YIELD_TYPES; iJ++)
 		{
@@ -1396,6 +1397,7 @@ void CvPlayer::uninit()
 	m_iGoldPerUnit = 0;
 	m_iGoldPerMilitaryUnit = 0;
 	m_iImprovementGoldMaintenanceMod = 0;
+	m_iRouteGoldMaintenanceMod = 0;
 	m_iRouteBuilderCostMod = 0;
 	m_iBuildingGoldMaintenanceMod = 0;
 	m_iUnitGoldMaintenanceMod = 0;
@@ -1492,7 +1494,6 @@ void CvPlayer::uninit()
 	m_iDoubleBorderGrowthWLTKD = 0;
 	m_iIncreasedQuestInfluence = 0;
 	m_iCultureBombBoost = 0;
-	m_iCultureBombForeignTerritory = 0;
 	m_iRetainRazedTerritory = 0;
 	m_iPuppetProdMod = 0;
 	m_iOccupiedProdMod = 0;
@@ -2828,7 +2829,7 @@ CvPlot* CvPlayer::addFreeUnit(UnitTypes eUnit, bool bGameStart, UnitAITypes eUni
 				{
 					// Hard check against mountains, ice and ocean if the player doesn't have the respective traits
 					// Initializing free units seems to be called before plot impassability is updated
-					if (pLoopPlot->isMountain() && !CanCrossMountain())
+					if (pLoopPlot->isMountain())
 						continue;
 
 					if (pLoopPlot->isIce() && !CanCrossIce())
@@ -29170,9 +29171,19 @@ int CvPlayer::GetImprovementGoldMaintenanceMod() const
 	return m_iImprovementGoldMaintenanceMod;
 }
 
+int CvPlayer::GetRouteGoldMaintenanceMod() const
+{
+	return m_iRouteGoldMaintenanceMod;
+}
+
 void CvPlayer::ChangeImprovementGoldMaintenanceMod(int iChange)
 {
 	m_iImprovementGoldMaintenanceMod += iChange;
+}
+
+void CvPlayer::ChangeRouteGoldMaintenanceMod(int iChange)
+{
+	m_iRouteGoldMaintenanceMod += iChange;
 }
 
 int CvPlayer::GetRouteBuilderCostMod() const
@@ -34826,22 +34837,6 @@ int CvPlayer::GetCultureBombBoost() const
 void CvPlayer::changeCultureBombBoost(int iChange)
 {
 	m_iCultureBombBoost += iChange;
-}
-
-// Place Citadel anywhere
-bool CvPlayer::IsCultureBombForeignTerritory() const
-{
-	return m_iCultureBombForeignTerritory > 0;
-}
-
-int CvPlayer::GetCultureBombForeignTerritory() const
-{
-	return m_iCultureBombForeignTerritory;
-}
-
-void CvPlayer::changeCultureBombForeignTerritory(int iChange)
-{
-	m_iCultureBombForeignTerritory += iChange;
 }
 
 // Retain tiles from razed cities
@@ -42167,7 +42162,6 @@ void CvPlayer::processPolicies(PolicyTypes ePolicy, int iChange)
 	ChangeSpySecurityModifier(pkPolicyInfo->GetSpySecurityModifier() * iChange);
 	ChangeVotesPerFollowingCityTimes100(pkPolicyInfo->GetVotesPerFollowingCityTimes100() * iChange);
 	changeCultureBombBoost(pkPolicyInfo->GetCultureBombBoost() * iChange);
-	changeCultureBombForeignTerritory(pkPolicyInfo->GetCultureBombForeignTerritory() * iChange);
 	changeRetainRazedTerritory(pkPolicyInfo->GetRetainRazedTerritory() * iChange);
 	changePuppetProdMod(pkPolicyInfo->GetPuppetProdMod() * iChange);
 	changeOccupiedProdMod(pkPolicyInfo->GetOccupiedProdMod() * iChange);
@@ -43532,7 +43526,6 @@ void CvPlayer::Serialize(Player& player, Visitor& visitor)
 	visitor(player.m_iDoubleBorderGrowthWLTKD);
 	visitor(player.m_iIncreasedQuestInfluence);
 	visitor(player.m_iCultureBombBoost);
-	visitor(player.m_iCultureBombForeignTerritory);
 	visitor(player.m_iRetainRazedTerritory);
 	visitor(player.m_iPuppetProdMod);
 	visitor(player.m_iOccupiedProdMod);
@@ -43589,6 +43582,7 @@ void CvPlayer::Serialize(Player& player, Visitor& visitor)
 	visitor(player.m_iGoldPerUnit);
 	visitor(player.m_iGoldPerMilitaryUnit);
 	visitor(player.m_iImprovementGoldMaintenanceMod);
+	visitor(player.m_iRouteGoldMaintenanceMod);
 	visitor(player.m_iRouteBuilderCostMod);
 	visitor(player.m_iBuildingGoldMaintenanceMod);
 	visitor(player.m_iUnitGoldMaintenanceMod);
@@ -46767,7 +46761,7 @@ bool CvPlayer::CanCrossOcean() const
 }
 bool CvPlayer::CanCrossMountain() const
 {
-	return GetPlayerTraits()->IsMountainPass() || (getGreatGeneralsCreated(false) > 0 && GetPlayerTraits()->IsAbleToCrossMountainsWithGreatGeneral());
+	return (getGreatGeneralsCreated(false) > 0 && GetPlayerTraits()->IsAbleToCrossMountainsWithGreatGeneral());
 }
 bool CvPlayer::CanCrossIce() const
 {
@@ -47470,6 +47464,7 @@ void CvPlayer::GatherPerTurnReplayStats(int iGameTurn)
 		setReplayDataValue("REPLAYDATASET_UNITMAINTENANCE", iGameTurn, pkTreasury->GetExpensePerTurnUnitMaintenance());
 		setReplayDataValue("REPLAYDATASET_BUILDINGMAINTENANCE", iGameTurn, pkTreasury->GetBuildingGoldMaintenance());
 		setReplayDataValue("REPLAYDATASET_IMPROVEMENTMAINTENANCE", iGameTurn, pkTreasury->GetImprovementGoldMaintenance());
+		setReplayDataValue("REPLAYDATASET_ROUTEMAINTENANCE", iGameTurn, pkTreasury->GetRouteGoldMaintenance());
 		setReplayDataValue("REPLAYDATASET_NUMBEROFPOLICIES", iGameTurn, GetPlayerPolicies()->GetNumPoliciesOwned());
 
 		// workers

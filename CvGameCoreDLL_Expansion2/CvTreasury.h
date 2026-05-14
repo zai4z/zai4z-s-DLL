@@ -97,6 +97,11 @@ public:
 	void SetBaseImprovementGoldMaintenance(int iValue);
 	void ChangeBaseImprovementGoldMaintenance(int iChange);
 
+	int GetRouteGoldMaintenance() const;
+	int GetBaseRouteGoldMaintenance() const;
+	void SetBaseRouteGoldMaintenance(int iValue);
+	void ChangeBaseRouteGoldMaintenance(int iChange);
+
 	// Methods to query financial history
 	int AverageIncome100(int iTurns);
 	void LogExpenditure(const CvString& strExpenditure, int iAmount, int iColumn);
@@ -129,6 +134,7 @@ protected:
 
 	int m_iBaseBuildingGoldMaintenance;
 	int m_iBaseImprovementGoldMaintenance;
+	int m_iBaseRouteGoldMaintenance;
 
 	int m_iLifetimeGrossGoldIncome;
 

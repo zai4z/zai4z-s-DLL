@@ -26,6 +26,7 @@ CvTreasury::CvTreasury():
 	m_iCityConnectionTradeRouteGoldChange(0),
 	m_iBaseBuildingGoldMaintenance(0),
 	m_iBaseImprovementGoldMaintenance(0),
+	m_iBaseRouteGoldMaintenance(0),
 	m_iLifetimeGrossGoldIncome(0),
 	m_iInternalTradeGoldBonus(0),
 	m_iExpensePerTurnFromVassalTax(0),
@@ -51,6 +52,7 @@ void CvTreasury::Init(CvPlayer* pPlayer)
 	m_iCityConnectionTradeRouteGoldChange = 0;
 	m_iBaseBuildingGoldMaintenance = 0;
 	m_iBaseImprovementGoldMaintenance = 0;
+	m_iBaseRouteGoldMaintenance = 0;
 	m_iLifetimeGrossGoldIncome = 0;
 	m_iInternalTradeGoldBonus = 0;
 	m_iExpensePerTurnFromVassalTax = 0;
@@ -589,6 +591,7 @@ int CvTreasury::CalculateTotalCosts()
 	int iTotalCosts = m_iExpensePerTurnUnitMaintenance;
 	iTotalCosts += GetBuildingGoldMaintenance();
 	iTotalCosts += GetImprovementGoldMaintenance();
+	iTotalCosts += GetRouteGoldMaintenance();
 	iTotalCosts += GetVassalGoldMaintenance();
 	iTotalCosts += GetExpensePerTurnFromVassalTaxes();
 	iTotalCosts += MOD_BALANCE_CORE_JFD ? GetContractGoldMaintenance() : 0;
@@ -684,10 +687,39 @@ int CvTreasury::GetImprovementGoldMaintenance() const
 	return iMaintenance;
 }
 
+/// What are our gold maintenance costs because of Routes?
+int CvTreasury::GetRouteGoldMaintenance() const
+{
+    int iMaintenance = m_iBaseRouteGoldMaintenance;
+
+    iMaintenance *= 100 + m_pPlayer->GetRouteGoldMaintenanceMod();
+    iMaintenance /= 100;
+
+	// Handicap (use improvement)
+	if (m_pPlayer->isMajorCiv())
+	{
+		iMaintenance *= m_pPlayer->getHandicapInfo().getImprovementCostPercent();
+		iMaintenance /= 100;
+		if (!m_pPlayer->isHuman(ISHUMAN_HANDICAP))
+		{
+			iMaintenance *= GC.getGame().getHandicapInfo().getAIImprovementCostPercent();
+			iMaintenance /= 100;
+		}
+	}
+
+	return iMaintenance;
+}
+
 /// What are our gold maintenance costs because of Improvements?
 int CvTreasury::GetBaseImprovementGoldMaintenance() const
 {
 	return m_iBaseImprovementGoldMaintenance;
+}
+
+/// What are our gold maintenance costs because of Routes?
+int CvTreasury::GetBaseRouteGoldMaintenance() const
+{
+	return m_iBaseRouteGoldMaintenance;
 }
 
 /// What are our gold maintenance costs because of Improvements?
@@ -702,10 +734,28 @@ void CvTreasury::SetBaseImprovementGoldMaintenance(int iValue)
 	}
 }
 
+/// What are our gold maintenance costs because of Routes?
+void CvTreasury::SetBaseRouteGoldMaintenance(int iValue)
+{
+	if (GetBaseRouteGoldMaintenance() != iValue)
+	{
+		m_iBaseRouteGoldMaintenance = max(iValue, 0);
+
+		if (m_pPlayer->GetID() == GC.getGame().getActivePlayer())
+			GC.GetEngineUserInterface()->setDirty(GameData_DIRTY_BIT, true);
+	}
+}
+
 /// What are our gold maintenance costs because of Improvements?
 void CvTreasury::ChangeBaseImprovementGoldMaintenance(int iChange)
 {
 	SetBaseImprovementGoldMaintenance(GetBaseImprovementGoldMaintenance() + iChange);
+}
+
+/// What are our gold maintenance costs because of Routes?
+void CvTreasury::ChangeBaseRouteGoldMaintenance(int iChange)
+{
+	SetBaseRouteGoldMaintenance(GetBaseRouteGoldMaintenance() + iChange);
 }
 
 /// Average change in gold balance over N turns
@@ -892,6 +942,7 @@ void CvTreasury::Serialize(Treasury& treasury, Visitor& visitor)
 	visitor(treasury.m_iCityConnectionTradeRouteGoldChange);
 	visitor(treasury.m_iBaseBuildingGoldMaintenance);
 	visitor(treasury.m_iBaseImprovementGoldMaintenance);
+	visitor(treasury.m_iBaseRouteGoldMaintenance);
 	visitor(treasury.m_GoldBalanceForTurnTimes100);
 	visitor(treasury.m_GoldChangeForTurnTimes100);
 	visitor(treasury.m_iLifetimeGrossGoldIncome);

@@ -209,8 +209,11 @@ ALTER TABLE Traits ADD KeepConqueredBuildings boolean DEFAULT 0;
 -- New Traits - Extra Terrain Yields IF you have a trade route or city connection crossing tile - this scales with era (making this false causes terrain yields not to be scaled)
 ALTER TABLE Traits ADD TradeRouteOnly boolean DEFAULT 0;
 
--- New Traits - Mountain Movement and City Connections
-ALTER TABLE Traits ADD MountainPass boolean DEFAULT 0;
+-- New Traits - Mountain settling and building routes
+ALTER TABLE Traits ADD SettleBuildMountains boolean DEFAULT 0;
+
+-- Modifer for route maintenance only, ImprovementMaintenanceModifier now handles improvements only
+ALTER TABLE Traits ADD RouteMaintenanceModifier integer DEFAULT 0;
 
 -- % of Total Wonder Production Modifier from traits, policies, beliefs, units, improvements, etc. is added to building production modifier when building non-wonderclass buildings, value of 100 is all, 50 is 50%, etc.
 ALTER TABLE Traits ADD WonderProductionModifierToBuilding integer DEFAULT 0;

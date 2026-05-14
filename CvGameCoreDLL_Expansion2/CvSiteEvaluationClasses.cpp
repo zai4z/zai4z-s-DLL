@@ -108,6 +108,24 @@ bool CvCitySiteEvaluator::CanFoundCity(const CvPlot* pPlot, const CvPlayer* pPla
 			return false;
 		}
 
+		// can't settle on mountains unless inca
+		if (pPlot->isMountain())
+		{
+			if (!pPlayer->GetPlayerTraits()->IsSettleBuildMountains())
+				return false;
+
+			// can't settle if completely surrounded by mountains/naturalwonders/missing plots
+			int iAccessibleNeighbors = 0;
+			for (int iI = 0; iI < NUM_DIRECTION_TYPES; iI++)
+			{
+				CvPlot* pAdjacentPlot = plotDirection(pPlot->getX(), pPlot->getY(), ((DirectionTypes)iI));
+				if (pAdjacentPlot && !pAdjacentPlot->isMountain() && !pAdjacentPlot->IsNaturalWonder())
+					iAccessibleNeighbors++;
+			}
+			if (iAccessibleNeighbors == 0)
+				return false;
+		}
+
 		// Has the AI agreed to not settle here?
 		if (!pPlayer->isHuman(ISHUMAN_AI_DIPLOMACY) && pPlayer->isMajorCiv())
 		{
@@ -523,12 +541,21 @@ int CvSiteEvaluatorForSettler::PlotFoundValue(CvPlot* pPlot, const CvPlayer* pPl
 			++iDesertCount;
 		}
 
-		if (pLoopPlot->isMountain() && pPlayer && pPlayer->GetPlayerTraits()->IsMountainPass())
+		if (pLoopPlot->isMountain() && pPlayer && pPlayer->GetPlayerTraits()->IsSettleBuildMountains())
 		{
 			int iAdjacentMountains = pLoopPlot->GetNumAdjacentMountains();
 			//give the bonus if it's hills, with additional if bordered by mountains
 			iCivModifier += (iAdjacentMountains+1) * m_iIncaMultiplier;
 			if (pDebug) vQualifiersPositive.push_back("(C) incan mountains");
+
+			if (iDistance == 0)
+			{
+				if (iAdjacentMountains >= 6)
+				{
+					if (pDebug) vQualifiersNegative.push_back("(C) fully enclosed mountain");
+					return 0;
+				}
+			}
 		}
 	}
 

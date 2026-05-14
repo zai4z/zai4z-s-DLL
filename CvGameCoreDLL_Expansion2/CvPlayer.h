@@ -1175,6 +1175,9 @@ public:
 	int GetImprovementGoldMaintenanceMod() const;
 	void ChangeImprovementGoldMaintenanceMod(int iChange);
 
+	int GetRouteGoldMaintenanceMod() const;
+	void ChangeRouteGoldMaintenanceMod(int iChange);
+
 	int GetRouteBuilderCostMod() const;
 	void ChangeRouteBuilderCostMod(int iChange);
 
@@ -1825,10 +1828,6 @@ public:
 	bool IsCultureBombBoost() const;
 	int GetCultureBombBoost() const;
 	void changeCultureBombBoost(int iChange);
-
-	bool IsCultureBombForeignTerritory() const;
-	int GetCultureBombForeignTerritory() const;
-	void changeCultureBombForeignTerritory(int iChange);
 
 	bool IsRetainRazedTerritory() const;
 	int GetRetainRazedTerritory() const;
@@ -3145,7 +3144,6 @@ protected:
 	int m_iDoubleBorderGrowthWLTKD;
 	int m_iIncreasedQuestInfluence;
 	int m_iCultureBombBoost;
-	int m_iCultureBombForeignTerritory;
 	int m_iRetainRazedTerritory;
 	int m_iPuppetProdMod;
 	int m_iOccupiedProdMod;
@@ -3209,6 +3207,7 @@ protected:
 	int m_iGoldPerUnit;
 	int m_iGoldPerMilitaryUnit;
 	int m_iImprovementGoldMaintenanceMod;
+	int m_iRouteGoldMaintenanceMod;
 	int m_iRouteBuilderCostMod;
 	int m_iBuildingGoldMaintenanceMod;
 	int m_iUnitGoldMaintenanceMod;
@@ -3958,7 +3957,6 @@ SYNC_ARCHIVE_VAR(int, m_iDoubleBorderGrowthGA)
 SYNC_ARCHIVE_VAR(int, m_iDoubleBorderGrowthWLTKD)
 SYNC_ARCHIVE_VAR(int, m_iIncreasedQuestInfluence)
 SYNC_ARCHIVE_VAR(int, m_iCultureBombBoost)
-SYNC_ARCHIVE_VAR(int, m_iCultureBombForeignTerritory)
 SYNC_ARCHIVE_VAR(int, m_iRetainRazedTerritory)
 SYNC_ARCHIVE_VAR(int, m_iPuppetProdMod)
 SYNC_ARCHIVE_VAR(int, m_iOccupiedProdMod)
@@ -4015,6 +4013,7 @@ SYNC_ARCHIVE_VAR(int, m_iFreeMilitaryUnitsPopulationPercent)
 SYNC_ARCHIVE_VAR(int, m_iGoldPerUnit)
 SYNC_ARCHIVE_VAR(int, m_iGoldPerMilitaryUnit)
 SYNC_ARCHIVE_VAR(int, m_iImprovementGoldMaintenanceMod)
+SYNC_ARCHIVE_VAR(int, m_iRouteGoldMaintenanceMod)
 SYNC_ARCHIVE_VAR(int, m_iRouteBuilderCostMod)
 SYNC_ARCHIVE_VAR(int, m_iBuildingGoldMaintenanceMod)
 SYNC_ARCHIVE_VAR(int, m_iUnitGoldMaintenanceMod)

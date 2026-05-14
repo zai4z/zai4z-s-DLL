@@ -2290,11 +2290,11 @@ int LandUnitSimpleValid(const CvAStarNode* parent, const CvAStarNode* node, cons
 		return FALSE;
 
 	//check terrain
-	if (pToPlot->isWater() && finder->HaveFlag(CvUnit::MOVEFLAG_NO_EMBARK))
+	if (pToPlot->isWater() && finder->HaveFlag(CvUnit::MOVEFLAG_NO_EMBARK) && !pToPlot->IsAllowsWalkWater())
 		return FALSE;
 	if (pToPlot->isDeepWater() && !kPlayer.CanCrossOcean())
 		return FALSE;
-	if (pToPlot->isMountain() && !kPlayer.CanCrossMountain())
+	if (pToPlot->isMountain() && !pToPlot->IsUnderground() && !kPlayer.CanCrossMountain())
 		return FALSE;
 	if (pToPlot->isIce() && !kPlayer.CanCrossIce())
 		return FALSE;
@@ -2502,10 +2502,12 @@ int BuildRouteValid(const CvAStarNode* parent, const CvAStarNode* node, const SP
 	if(!bThisPlayerIsMinor && !(pNewPlot->isRevealed(kPlayer.getTeam())))
 		return FALSE;
 
-	if(pNewPlot->isWater())
+	// allow building routes over bridges
+	if(pNewPlot->isWater() && !pNewPlot->IsAllowsWalkWater())
 		return FALSE;
 
-	if(!pNewPlot->isValidMovePlot(ePlayer) && (!pNewPlot->isMountain() || !kPlayer.IsWorkersIgnoreImpassable()))
+	// allow building routes through mountains (if inca or a tunnel exists), block carthage as they can't build
+	if( (!pNewPlot->isValidMovePlot(ePlayer) || !(pNewPlot->isMountain() && kPlayer.CanCrossMountain())) && !(pNewPlot->isMountain() && (kPlayer.GetPlayerTraits()->IsSettleBuildMountains() || pNewPlot->IsUnderground())))
 		return FALSE;
 
 	if (!bIsManual && pNewPlot->GetPlannedRouteState(ePlayer) == ROAD_PLANNING_EXCLUDE && !pNewPlot->isCity())
@@ -3371,6 +3373,8 @@ struct TradePathCacheData
 	bool m_bCanEmbark:1;
 	bool m_bCanCrossOcean:1;
 	bool m_bCanCrossMountain:1;
+	bool m_bIsSettleBuildMountains:1;
+	bool m_bIsFasterInHills:1;
 	bool m_bIsRiverTradeRoad:1;
 	bool m_bIsWoodlandMovementBonus:1;
 
@@ -3379,6 +3383,8 @@ struct TradePathCacheData
 	inline bool CanEmbark() const { return m_bCanEmbark; }
 	inline bool CanCrossOcean() const { return m_bCanCrossOcean; }
 	inline bool CanCrossMountain() const { return m_bCanCrossMountain; }
+	inline bool IsSettleBuildMountains() const { return m_bIsSettleBuildMountains; }
+	inline bool IsFasterInHills() const { return m_bIsFasterInHills; }
 	inline bool IsRiverTradeRoad() const { return m_bIsRiverTradeRoad; }
 	inline bool IsWoodlandMovementBonus() const { return m_bIsWoodlandMovementBonus; }
 };
@@ -3402,11 +3408,15 @@ void TradePathInitialize(const SPathFinderUserData& data, CvAStar* finder)
 		{
 			pCacheData->m_bIsRiverTradeRoad = pPlayerTraits->IsRiverTradeRoad();
 			pCacheData->m_bIsWoodlandMovementBonus = pPlayerTraits->IsWoodlandMovementBonus();
+			pCacheData->m_bIsSettleBuildMountains = pPlayerTraits->IsSettleBuildMountains();
+			pCacheData->m_bIsFasterInHills = pPlayerTraits->IsFasterInHills();
 		}
 		else
 		{
 			pCacheData->m_bIsRiverTradeRoad = false;
 			pCacheData->m_bIsWoodlandMovementBonus = false;
+			pCacheData->m_bIsSettleBuildMountains = false;
+			pCacheData->m_bIsFasterInHills = false;
 		}
 	}
 	else
@@ -3416,6 +3426,8 @@ void TradePathInitialize(const SPathFinderUserData& data, CvAStar* finder)
 		pCacheData->m_bCanCrossOcean = !finder->HaveFlag(CvUnit::MOVEFLAG_NO_OCEAN);
 		pCacheData->m_bCanEmbark = !finder->HaveFlag(CvUnit::MOVEFLAG_NO_OCEAN);
 		pCacheData->m_bCanCrossMountain = false;
+		pCacheData->m_bIsSettleBuildMountains = false;
+		pCacheData->m_bIsFasterInHills = false;
 		pCacheData->m_bIsRiverTradeRoad = false;
 		pCacheData->m_bIsWoodlandMovementBonus = false;
 	}
@@ -3440,7 +3452,6 @@ int TradePathLandCost(const CvAStarNode* parent, const CvAStarNode* node, const 
 
 	const TradePathCacheData* pCacheData = reinterpret_cast<const TradePathCacheData*>(finder->GetScratchBuffer());
 	FeatureTypes eFeature = pToPlot->getFeatureType();
-	TerrainTypes eTerrain = pToPlot->getTerrainType();
 
 	int iRouteDiscountTimes120 = 0;
 	bool bIgnoreTerrain = false;
@@ -3455,7 +3466,7 @@ int TradePathLandCost(const CvAStarNode* parent, const CvAStarNode* node, const 
 	else if (((eFeature == FEATURE_FOREST || eFeature == FEATURE_JUNGLE) && pCacheData->IsWoodlandMovementBonus()) &&
 		(MOD_BALANCE_VP || pToPlot->getTeam() == GET_PLAYER(finder->GetData().ePlayer).getTeam()) &&
 		!(pFromPlot->isRiverCrossing(directionXY(pFromPlot, pToPlot))))
-		iRouteDiscountTimes120 = 40;
+		iRouteDiscountTimes120 = 54;
 	// ignore terrain cost for moving along rivers
 	else if (pFromPlot->IsAlongSameRiver(pToPlot))
 	{
@@ -3501,15 +3512,27 @@ int TradePathLandCost(const CvAStarNode* parent, const CvAStarNode* node, const 
 	// do not use extreme discounts here because we also need to use these paths for military target selection
 	int iCost = PATH_BASE_COST * (120 - iRouteDiscountTimes120) / 120;
 
-	// try to avoid difficult terrains/features
-	if ((eTerrain == TERRAIN_DESERT || eTerrain == TERRAIN_SNOW || eFeature == FEATURE_FOREST || eFeature == FEATURE_JUNGLE || eFeature == FEATURE_MARSH) &&
-			eFeature != FEATURE_FLOOD_PLAINS && eFeature != FEATURE_OASIS &&
-			!bIgnoreTerrain)
+	// rough features increase cost 25%
+	if ((eFeature == FEATURE_FOREST || eFeature == FEATURE_JUNGLE || eFeature == FEATURE_MARSH) && !bIgnoreTerrain)
 		iCost += PATH_BASE_COST / 4;
 
-	// avoid hills also if not Inca
-	if (!pToPlot->isFlatlands() && !bIgnoreTerrain && !pCacheData->CanCrossMountain())
+	// hills increase cost 25% unless ability
+	if (pToPlot->isHills() && !bIgnoreTerrain && !pCacheData->IsFasterInHills())
 		iCost += PATH_BASE_COST / 4;
+
+	// water is blocked, but add cost for AI pathfinding shortcut for bridge
+	if (pToPlot->isShallowWater())
+	{
+		if (!pToPlot->IsAllowsWalkWater())
+			iCost += PATH_BASE_COST * 4; // path would need to be 4 tiles shorter for AI to consider building bridge
+	}
+
+	// mountains increase cost by 50% unless tunnel, also AI pathfinding shortcut for tunnel
+	if (pToPlot->isMountain())
+	{
+		if (!pToPlot->IsUnderground())
+			iCost += PATH_BASE_COST / 2;
+	}
 	
 	return iCost;
 }
@@ -3520,13 +3543,13 @@ int TradePathLandValid(const CvAStarNode* parent, const CvAStarNode* node, const
 	if(parent == NULL)
 		return TRUE;
 
-	const TradePathCacheData* pCacheData = reinterpret_cast<const TradePathCacheData*>(finder->GetScratchBuffer());
-	CvPlot* pToPlot = GC.getMap().plotUnchecked(node->m_iX, node->m_iY);
+    const TradePathCacheData* pCacheData = reinterpret_cast<const TradePathCacheData*>(finder->GetScratchBuffer());
+    CvPlot* pToPlot = GC.getMap().plotUnchecked(node->m_iX, node->m_iY);
+    CvMap& kMap = GC.getMap();
+    CvPlot* pPrevPlot = kMap.plotUnchecked(parent->m_iX, parent->m_iY);
 
-	if (!pToPlot->isRevealed(pCacheData->GetTeam()))
-	{
-		return FALSE;
-	}
+    if (!pToPlot->isRevealed(pCacheData->GetTeam()))
+        return FALSE;
 
 	if (pToPlot->isCity())
 	{
@@ -3535,32 +3558,54 @@ int TradePathLandValid(const CvAStarNode* parent, const CvAStarNode* node, const
 		return TRUE;
 	}
 
-	if (pToPlot->isWater())
+    if (pToPlot->getRevealedImprovementType(pCacheData->GetTeam()) == (ImprovementTypes)GD_INT_GET(BARBARIAN_CAMP_IMPROVEMENT))
+        return FALSE;
+
+    // water plots - handle before isValidMovePlot since embarkation may not be available
+	if (pToPlot->isShallowWater())
 	{
-		ImprovementTypes eImp = pToPlot->getImprovementType();
-		CvImprovementEntry* pkImp = (eImp != NO_IMPROVEMENT) ? GC.getImprovementInfo(eImp) : NULL;
+		// real bridge exists
+		if (pToPlot->IsAllowsWalkWater() && !pToPlot->IsEnemyTerritory(pCacheData->GetPlayer()))
+			return TRUE;
 
-		bool bAllowsWalkWater = (pkImp && pkImp->IsAllowsWalkWater());
-		bool bEnemy = pToPlot->IsEnemyTerritory(pCacheData->GetPlayer());
+		// pretend bridge for AI build evaluation
+		if (finder->HaveFlag(CvUnit::MOVEFLAG_PRETEND_BRIDGES))
+		{
+			if (!pPrevPlot->isWater() && !pToPlot->HasPermanentFeature() && (pToPlot->getOwner() == pCacheData->GetPlayer() || pToPlot->getOwner() == NO_PLAYER))
+				return TRUE;
+		}
 
-		// allow land trade routes over bridges in non-enemy territory
-		if (!(bAllowsWalkWater && !bEnemy))
-			return FALSE;
-	}
-
-	if (pToPlot->getRevealedImprovementType(pCacheData->GetTeam())==(ImprovementTypes)GD_INT_GET(BARBARIAN_CAMP_IMPROVEMENT))
-	{
 		return FALSE;
 	}
 
-	if (!pToPlot->isValidMovePlot( pCacheData->GetPlayer(), false ))
-	{
-		return FALSE;
-	}
+    // mountain plots - handle before isValidMovePlot since mountains are impassable normally
+    if (pToPlot->isMountain() && !pToPlot->IsNaturalWonder())
+    {
+        // Inca caravan cross freely if there is a road
+        if (pCacheData->IsSettleBuildMountains() && pToPlot->isRoute())
+            return TRUE;
+
+        // allow all other players if tunnel
+        if (pToPlot->IsUnderground())
+        {
+            if (!pToPlot->IsEnemyTerritory(pCacheData->GetPlayer()))
+                return TRUE;
+        }
+
+        // pretend tunnel for AI build evaluation
+        if (finder->HaveFlag(CvUnit::MOVEFLAG_PRETEND_TUNNELS))
+        {
+            if (!pPrevPlot->isMountain() && !pToPlot->HasPermanentFeature() && (pToPlot->getOwner() == pCacheData->GetPlayer() || pToPlot->getOwner() == NO_PLAYER))
+                return TRUE;
+        }
+
+        return FALSE;
+    }
+
+    if (!pToPlot->isValidMovePlot(pCacheData->GetPlayer(), false))
+        return FALSE;
 
 	//do not allow paths through enemy cities (but we do allow paths *into* enemy cities for military targeting)
-	CvMap& kMap = GC.getMap();
-	CvPlot* pPrevPlot = kMap.plotUnchecked(parent->m_iX, parent->m_iY);
 	if (pPrevPlot->isOwned() && pPrevPlot->isCity() && GET_TEAM(pCacheData->GetTeam()).isAtWar(pPrevPlot->getTeam()))
 		return FALSE;
 
@@ -3582,13 +3627,10 @@ int TradePathWaterCost(const CvAStarNode*, const CvAStarNode* node, const SPathF
 	if (pToPlot->isDeepWater() && !pCacheData->m_bCanCrossOcean)
 		iCost += PATH_BASE_COST/3;
 
-	// using canals is expensive!
 	if (!pToPlot->isWater() && !pToPlot->isCity())
 	{
-		if (pToPlot->IsImprovementPassable())
-			iCost += PATH_BASE_COST * 3;
-		else
-			iCost += PATH_BASE_COST * 11; //a non-existing canal is even more expensive!
+		if (!pToPlot->IsImprovementPassable())
+			iCost += PATH_BASE_COST * 8; // path would need to be 8 tiles shorter for AI to consider building canal
 	}
 
 	return iCost;
@@ -3604,12 +3646,13 @@ int TradePathWaterValid(const CvAStarNode* parent, const CvAStarNode* node, cons
 
 	CvMap& kMap = GC.getMap();
 	CvPlot* pNewPlot = kMap.plotUnchecked(node->m_iX, node->m_iY);
+	CvPlot* pPrevPlot = kMap.plotUnchecked(parent->m_iX, parent->m_iY);
 
 	if (!pNewPlot->isRevealed(pCacheData->GetTeam()))
 		return FALSE;
 
-	//ice in unowned territory is not allowed
-	if (pNewPlot->isIce() && !pNewPlot->isOwned())
+	//ice not allowed
+	if (pNewPlot->isIce())
 		return FALSE;
 
 	//ocean needs trait or tech
@@ -3622,7 +3665,6 @@ int TradePathWaterValid(const CvAStarNode* parent, const CvAStarNode* node, cons
 	{
 		//since we use the trade paths also for military targeting, we have to allow paths into enemy cities (see below)
 		//however, we do not want to allow paths *through* enemy cities!
-		CvPlot* pPrevPlot = kMap.plotUnchecked(parent->m_iX, parent->m_iY);
 		if (pPrevPlot->isOwned())
 		{
 			if (GET_TEAM(pCacheData->GetTeam()).isAtWar(pPrevPlot->getTeam()) && pPrevPlot->isCoastalCityOrPassableImprovement(pCacheData->GetPlayer(), false, false, false, false))
@@ -3635,17 +3677,16 @@ int TradePathWaterValid(const CvAStarNode* parent, const CvAStarNode* node, cons
 	else if (pNewPlot->isCoastalCityOrPassableImprovement(pCacheData->GetPlayer(),false,false,true,true))
 	{
 		//most of the time we check for reachable plots so we can't decide if a city is the target city or not
-		//so we have to allow all cities and forts
+		//so we have to allow all cities and canals
 		return TRUE;
 	}
 	//check for shortcuts ...
 	else if (finder->HaveFlag(CvUnit::MOVEFLAG_PRETEND_CANALS))
 	{
-		CvPlot* pPrevPlot = kMap.plotUnchecked(parent->m_iX, parent->m_iY);
-		//only single plot canals on plots without resource
+		//only single plot canals on flatland plots without permanent feature
 		//not that this is asymmetric, we can build a canal into a city but not out of a city ... shouldn't matter too much
-		if (pPrevPlot->isWater() && !pNewPlot->isWater() && pNewPlot->getOwner() == pCacheData->GetPlayer())
-			return pNewPlot->getResourceType(pCacheData->GetTeam()) == NO_RESOURCE;
+		if (pPrevPlot->isWater() && !pNewPlot->HasPermanentFeature() && pNewPlot->isFlatlands() && (pNewPlot->getOwner() == pCacheData->GetPlayer() || pNewPlot->getOwner() == NO_PLAYER))
+			return TRUE;
 	}
 
 	return FALSE;
@@ -3745,9 +3786,9 @@ int ArmyStepValidLand(const CvAStarNode* parent, const CvAStarNode* node, const 
 		return FALSE;
 
 	//check terrain
-	if (pToPlot->isWater())
+	if (pToPlot->isWater() && !pToPlot->IsAllowsWalkWater())
 		return FALSE;
-	if (pToPlot->isMountain() && !kPlayer.CanCrossMountain())
+	if (pToPlot->isMountain() && !pToPlot->IsUnderground() && !kPlayer.CanCrossMountain())
 		return FALSE;
 
 	//check territory
@@ -3818,7 +3859,7 @@ int ArmyStepValidMixed(const CvAStarNode* parent, const CvAStarNode* node, const
 	}
 	else
 	{
-		if (pToPlot->isMountain() && !kPlayer.CanCrossMountain())
+		if (pToPlot->isMountain() && !pToPlot->IsUnderground() && !kPlayer.CanCrossMountain())
 			return FALSE;
 	}
 

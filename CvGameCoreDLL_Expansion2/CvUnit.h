@@ -218,6 +218,8 @@ public:
 		MOVEFLAG_TURN_END_IS_NEXT_TURN			= 0x4000000, //consider when a unit may take action again, ie if the target plot has zero moves left, add one to the turn count
 		MOVEFLAG_VISIBLE_ONLY					= 0x8000000, //workers typically should not go exploring
 		MOVEFLAG_PRETEND_CANALS					= 0x10000000, //pretend ships can move one tile inland to see if a canal would make sense
+		MOVEFLAG_PRETEND_BRIDGES				= 0x10000000, //pretend land units can move one tile inland to see if a bridge would make sense
+		MOVEFLAG_PRETEND_TUNNELS				= 0x10000000, //pretend land units can move one tile through mountain to see if a bridge would make sense
 	    MOVEFLAG_IGNORE_STACKING_NEUTRAL		= 0x20000000, // stacking rules (with neutral units) don't apply (on turn end plots)
 		MOVEFLAG_CONTINUE_TO_CLOSEST_PLOT		= 0x40000000, //if the target plot is occupied go to the closest available plot instead
 		MOVEFLAG_KEEP_LINK                      = 0x80000000, //if flag is present, will not break unit link upon issuance of a new move mission

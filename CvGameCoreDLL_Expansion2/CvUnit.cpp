@@ -12359,10 +12359,6 @@ bool CvUnit::CanCultureBomb(const CvPlot* pPlot, bool bTestVisible) const
 
 		if(pPlot != NULL)
 		{
-			// Can't be inside someone else's territory unless we have that ability
-			if(pPlot->getOwner() != NO_PLAYER && pPlot->getOwner() != getOwner() && !GET_PLAYER(getOwner()).IsCultureBombForeignTerritory())
-				return false;
-
 			// We have to be in or next to friendly territory
 			bool bFoundAdjacent = false;
 
@@ -14353,9 +14349,7 @@ bool CvUnit::isNativeDomain(const CvPlot* pPlot) const
 			return true;
 		else
 		{
-			ImprovementTypes eImprovement = pPlot->getImprovementType();
-			CvImprovementEntry* pkImprovementInfo = eImprovement != NO_IMPROVEMENT ? GC.getImprovementInfo(eImprovement) : NULL;
-			if (pkImprovementInfo != NULL && pkImprovementInfo->IsAllowsWalkWater())
+			if (pPlot->IsAllowsWalkWater())
 			{
 				// if embarked, treat like water (not native land)
 				if (isEmbarked())
@@ -20161,11 +20155,9 @@ void CvUnit::setXY(int iX, int iY, bool bGroup, bool bUpdate, bool bShow, bool b
 	if(pOldPlot != NULL)
 	{
 		pOldPlot->removeUnit(this, bUpdate);
+
 		// if leaving a city or tunnel, reveal the unit
-		ImprovementTypes eOldImprovement = pOldPlot->getImprovementType();
-		CvImprovementEntry* pkOldImprovement = (eOldImprovement != NO_IMPROVEMENT) ? GC.getImprovementInfo(eOldImprovement) : NULL;
-		
-		if (pOldPlot->isCity() || (pkOldImprovement && pkOldImprovement->IsUnderground()))
+		if (pOldPlot->isCity() || pOldPlot->IsUnderground())
 		{
 			// if pNewPlot is a valid pointer, we are leaving the city and need to visible
 			// if pNewPlot is NULL than we are "dead" (e.g. a settler) and need to blend out
@@ -20222,10 +20214,7 @@ void CvUnit::setXY(int iX, int iY, bool bGroup, bool bUpdate, bool bShow, bool b
 		}
 
         // if entering a city or tunnel, hide the unit
-        ImprovementTypes eImprovement = pNewPlot->getImprovementType();
-        CvImprovementEntry* pkImprovement = (eImprovement != NO_IMPROVEMENT) ? GC.getImprovementInfo(eImprovement) : NULL;
-        
-        if (pNewPlot->isCity() || (pkImprovement && pkImprovement->IsUnderground()))
+        if (pNewPlot->isCity() || pNewPlot->IsUnderground())
         {
             CvInterfacePtr<ICvUnit1> pDllUnit(new CvDllUnit(this));
             gDLL->GameplayUnitVisibility(pDllUnit.get(), false /*bVisible*/);
@@ -28810,13 +28799,8 @@ bool CvUnit::canRangeStrike() const
 		return false;
 
 	// Inside tunnel
-	ImprovementTypes eImprovement = plot()->getImprovementType();
-	if (eImprovement != NO_IMPROVEMENT)
-	{
-		CvImprovementEntry* pkImprovement = GC.getImprovementInfo(eImprovement);
-		if (pkImprovement && pkImprovement->IsUnderground())
-			return false;
-	}
+	if (plot()->IsUnderground())
+		return false;
 
 	return true;
 }
@@ -28953,13 +28937,9 @@ bool CvUnit::canEverRangeStrikeAt(int iX, int iY, const CvPlot* pSourcePlot, boo
 			return false;
 
 		// TargetPlot has a tunnel?
-		ImprovementTypes eImprovement = pTargetPlot->getImprovementType();
-		if (eImprovement != NO_IMPROVEMENT)
-		{
-			CvImprovementEntry* pkImprovement = GC.getImprovementInfo(eImprovement);
-			if (pkImprovement && pkImprovement->IsUnderground())
-				return false;
-		}
+		if (pTargetPlot->IsUnderground())
+			return false;
+		
 	}
 	else //no source plot given, do only the most basic checks
 	{

@@ -623,11 +623,9 @@ void CvPlot::updateCenterUnit()
 		if(pUnitNode != NULL)
 		{
 			CvUnit* pLoopUnit = GetPlayerUnit(*pUnitNode);
-			ImprovementTypes eImprovement = getImprovementType();
-			CvImprovementEntry* pkImprovement = (eImprovement != NO_IMPROVEMENT) ? GC.getImprovementInfo(eImprovement) : NULL;
 
 			// Don't show units in cities or tunnels unless selected
-			if(pLoopUnit && !pLoopUnit->IsGarrisoned() && !(pkImprovement && pkImprovement->IsUnderground()) && pLoopUnit->getDomainType() != DOMAIN_AIR && !pLoopUnit->isInvisible(eActiveTeam,false))
+			if(pLoopUnit && !pLoopUnit->IsGarrisoned() && !IsUnderground() && pLoopUnit->getDomainType() != DOMAIN_AIR && !pLoopUnit->isInvisible(eActiveTeam,false))
 			{
 				setCenterUnit(pLoopUnit);
 			}
@@ -1111,7 +1109,7 @@ bool CvPlot::isCoastalLand(int iMinWaterSize, bool bUseCachedValue, bool bCheckC
 
 	// If not checking for canals, abort!
 	// Also, water tiles are not land, so always return false
-    if (!bCheckCanals || !MOD_GLOBAL_PASSABLE_FORTS || isWater())
+    if (!bCheckCanals || isWater())
         return false;
 
 	//check for areas of water connected by canals
@@ -3150,7 +3148,7 @@ bool CvPlot::canBuild(BuildTypes eBuild, PlayerTypes ePlayer, bool bTestVisible,
 						}
 						else if (getTeam() != eTeam)
 						{
-							if (GC.getImprovementInfo(eImprovement)->GetCultureBombRadius() > 0 && GET_PLAYER(ePlayer).IsCultureBombForeignTerritory())
+							if (GC.getImprovementInfo(eImprovement)->GetCultureBombRadius() > 0)
 							{
 								if (IsStealBlockedByImprovement() || !isAdjacentTeam(eTeam, false))
 									return false;
@@ -3200,6 +3198,13 @@ bool CvPlot::canBuild(BuildTypes eBuild, PlayerTypes ePlayer, bool bTestVisible,
 		// can't build roads in cities
 		if (isCity())
 			return false;
+
+		// can't build roads on mountains unless inca or there is a tunnel
+		if (isMountain() && !IsUnderground())
+		{
+			if (ePlayer == NO_PLAYER || !GET_PLAYER(ePlayer).GetPlayerTraits()->IsSettleBuildMountains())
+				return false;
+		}
 
 		if(getRouteType() != NO_ROUTE)
 		{
@@ -3842,6 +3847,18 @@ int CvPlot::MovementCostNoZOC(const CvUnit* pUnit, const CvPlot* pFromPlot, int 
 		return iMaxMoves;
 
 	return CvUnitMovement::MovementCostNoZOC(pUnit, pFromPlot, this, iMovesRemaining, iMaxMoves);
+}
+
+bool CvPlot::IsUnderground() const
+{
+	ImprovementTypes eImprovement = getImprovementType();
+	if (eImprovement != NO_IMPROVEMENT)
+	{
+		CvImprovementEntry *pkEntry = GC.getImprovementInfo(eImprovement);
+		if (pkEntry)
+			return pkEntry->IsUnderground();
+	}
+	return false;
 }
 
 //	--------------------------------------------------------------------------------
@@ -4838,7 +4855,7 @@ bool CvPlot::isCoastalCityOrPassableImprovement(PlayerTypes ePlayer, bool bCityM
 		return true;
 	}
 
-	bool bIsPassableImprovement = MOD_GLOBAL_PASSABLE_FORTS && IsImprovementPassable() && !IsImprovementPillaged();
+	bool bIsPassableImprovement = IsImprovementPassable() && !IsImprovementPillaged();
 
 	// Good enough
     if (bIsPassableImprovement)
@@ -8062,11 +8079,6 @@ void CvPlot::setIsCity(bool bValue, int iCityID, int iWorkRange)
 				pLoopPlot->changePlayerCityRadiusCount(getOwner(), 1);
 			}
 		}
-		if(isMountain())
-		{
-			ImprovementTypes eMachuPichu = (ImprovementTypes)GC.getInfoTypeForString("IMPROVEMENT_MOUNTAIN_CITY");
-			setImprovementType(eMachuPichu);
-		}
 		// Is a route is here?  If we already own this plot, then we were paying maintenance, now we don't have to.
 		if(getRouteType() != NO_ROUTE)
 		{
@@ -9461,7 +9473,7 @@ void CvPlot::SetPlayerResponsibleForRoute(PlayerTypes eNewValue)
 					// Old owner no longer needs to pay maintenance
 					if (MustPayMaintenanceHere(eOldValue))
 					{
-						GET_PLAYER(eOldValue).GetTreasury()->ChangeBaseImprovementGoldMaintenance(-pkRouteInfo->GetGoldMaintenance());
+						GET_PLAYER(eOldValue).GetTreasury()->ChangeBaseRouteGoldMaintenance(-pkRouteInfo->GetGoldMaintenance());
 					}
 
 					if (MOD_IMPROVEMENTS_EXTENSIONS)
@@ -9476,7 +9488,7 @@ void CvPlot::SetPlayerResponsibleForRoute(PlayerTypes eNewValue)
 					// New owner needs to pay maintenance
 					if (MustPayMaintenanceHere(eNewValue))
 					{
-						GET_PLAYER(eNewValue).GetTreasury()->ChangeBaseImprovementGoldMaintenance(pkRouteInfo->GetGoldMaintenance());
+						GET_PLAYER(eNewValue).GetTreasury()->ChangeBaseRouteGoldMaintenance(pkRouteInfo->GetGoldMaintenance());
 					}
 
 					if (MOD_IMPROVEMENTS_EXTENSIONS)
@@ -14729,7 +14741,7 @@ bool CvPlot::isValidMovePlot(PlayerTypes ePlayer, bool bCheckTerritory) const
 			//check some special traits
 			if (isIce() && GET_PLAYER(ePlayer).CanCrossIce() )
 				bCanPassBecauseOfPlayerTrait = true;
-			//inca
+			//carthage
 			if (isMountain() && GET_PLAYER(ePlayer).CanCrossMountain() )
 				bCanPassBecauseOfPlayerTrait = true;
 			//deep water...
@@ -14797,6 +14809,15 @@ bool CvPlot::HasFeature(FeatureTypes iFeatureType) const
 	}
 
 	return (getFeatureType() == iFeatureType);
+}
+
+bool CvPlot::HasPermanentFeature() const
+{
+	FeatureTypes eFeature = getFeatureType();
+	if (eFeature != NO_FEATURE && GC.getFeatureInfo(eFeature)->isNoImprovement())
+		return true;
+
+	return false;
 }
 
 bool CvPlot::IsFeatureLake() const
