@@ -3335,7 +3335,7 @@ void CvUnit::DoLocationPromotions(bool bSpawn, CvPlot* pOldPlot, CvPlot* pNewPlo
 					if(ePromotion != NO_PROMOTION)
 					{
 						CvPromotionEntry* pkOriginalPromotionInfo = GC.getPromotionInfo(ePromotion);
-						if(pkOriginalPromotionInfo && m_pUnitInfo->GetUnitCombatType() != NO_UNITCOMBAT && (::IsPromotionValidForUnitCombatType(ePromotion, getUnitType())))
+						if(pkOriginalPromotionInfo && (::IsPromotionValidForUnitCombatType(ePromotion, getUnitType()) || ::IsPromotionValidForCivilianUnitType(ePromotion, getUnitType())))
 						{
 							bool bNoPromotion = false;
 							// Check for negating promotions
@@ -3372,7 +3372,7 @@ void CvUnit::DoLocationPromotions(bool bSpawn, CvPlot* pOldPlot, CvPlot* pNewPlo
 					if(ePromotion != NO_PROMOTION)
 					{
 						CvPromotionEntry* pkOriginalPromotionInfo = GC.getPromotionInfo(ePromotion);
-						if(pkOriginalPromotionInfo && m_pUnitInfo->GetUnitCombatType() != NO_UNITCOMBAT && (::IsPromotionValidForUnitCombatType(ePromotion, getUnitType())))
+						if(pkOriginalPromotionInfo && (::IsPromotionValidForUnitCombatType(ePromotion, getUnitType()) || ::IsPromotionValidForCivilianUnitType(ePromotion, getUnitType())))
 						{
 							bool bNoPromotion = false;
 							// Check for negating promotions
@@ -3407,7 +3407,7 @@ void CvUnit::DoLocationPromotions(bool bSpawn, CvPlot* pOldPlot, CvPlot* pNewPlo
 					if(ePromotion != NO_PROMOTION)
 					{
 						CvPromotionEntry* pkOriginalPromotionInfo = GC.getPromotionInfo(ePromotion);
-						if(pkOriginalPromotionInfo && m_pUnitInfo->GetUnitCombatType() != NO_UNITCOMBAT && (::IsPromotionValidForUnitCombatType(ePromotion, getUnitType())))
+						if(pkOriginalPromotionInfo && (::IsPromotionValidForUnitCombatType(ePromotion, getUnitType()) || ::IsPromotionValidForCivilianUnitType(ePromotion, getUnitType())))
 						{
 							bool bNoPromotion = false;
 							// Check for negating promotions
@@ -3441,7 +3441,7 @@ void CvUnit::DoLocationPromotions(bool bSpawn, CvPlot* pOldPlot, CvPlot* pNewPlo
 					if(ePromotion != NO_PROMOTION)
 					{
 						CvPromotionEntry* pkOriginalPromotionInfo = GC.getPromotionInfo(ePromotion);
-						if(pkOriginalPromotionInfo && m_pUnitInfo->GetUnitCombatType() != NO_UNITCOMBAT && (::IsPromotionValidForUnitCombatType(ePromotion, getUnitType())))
+						if(pkOriginalPromotionInfo && (::IsPromotionValidForUnitCombatType(ePromotion, getUnitType()) || ::IsPromotionValidForCivilianUnitType(ePromotion, getUnitType())))
 						{
 							bool bNoPromotion = false;
 							// Check for negating promotions
@@ -3475,7 +3475,7 @@ void CvUnit::DoLocationPromotions(bool bSpawn, CvPlot* pOldPlot, CvPlot* pNewPlo
 					if(ePromotion != NO_PROMOTION)
 					{
 						CvPromotionEntry* pkOriginalPromotionInfo = GC.getPromotionInfo(ePromotion);
-						if(pkOriginalPromotionInfo && m_pUnitInfo->GetUnitCombatType() != NO_UNITCOMBAT && (::IsPromotionValidForUnitCombatType(ePromotion, getUnitType())))
+						if(pkOriginalPromotionInfo && (::IsPromotionValidForUnitCombatType(ePromotion, getUnitType()) || ::IsPromotionValidForCivilianUnitType(ePromotion, getUnitType())))
 						{
 							bool bNoPromotion = false;
 							// Check for negating promotions
@@ -3509,7 +3509,7 @@ void CvUnit::DoLocationPromotions(bool bSpawn, CvPlot* pOldPlot, CvPlot* pNewPlo
 					if(ePromotion != NO_PROMOTION)
 					{
 						CvPromotionEntry* pkOriginalPromotionInfo = GC.getPromotionInfo(ePromotion);
-						if(pkOriginalPromotionInfo && m_pUnitInfo->GetUnitCombatType() != NO_UNITCOMBAT && (::IsPromotionValidForUnitCombatType(ePromotion, getUnitType())))
+						if(pkOriginalPromotionInfo && (::IsPromotionValidForUnitCombatType(ePromotion, getUnitType()) || ::IsPromotionValidForCivilianUnitType(ePromotion, getUnitType())))
 						{
 							bool bNoPromotion = false;
 							// Check for negating promotions
@@ -3547,7 +3547,7 @@ void CvUnit::DoLocationPromotions(bool bSpawn, CvPlot* pOldPlot, CvPlot* pNewPlo
 			if(ePromotion != NO_PROMOTION)
 			{
 				CvPromotionEntry* pkOriginalPromotionInfo = GC.getPromotionInfo(ePromotion);
-				if(pkOriginalPromotionInfo && m_pUnitInfo->GetUnitCombatType() != NO_UNITCOMBAT && (::IsPromotionValidForUnitCombatType(ePromotion, getUnitType())))
+				if(pkOriginalPromotionInfo && (::IsPromotionValidForUnitCombatType(ePromotion, getUnitType()) || ::IsPromotionValidForCivilianUnitType(ePromotion, getUnitType())))
 				{
 					bool bNoPromotion = false;
 					// Check for negating promotions
@@ -3583,7 +3583,7 @@ void CvUnit::DoLocationPromotions(bool bSpawn, CvPlot* pOldPlot, CvPlot* pNewPlo
 			if(ePromotion != NO_PROMOTION)
 			{
 				CvPromotionEntry* pkOriginalPromotionInfo = GC.getPromotionInfo(ePromotion);
-				if(pkOriginalPromotionInfo && m_pUnitInfo->GetUnitCombatType() != NO_UNITCOMBAT && (::IsPromotionValidForUnitCombatType(ePromotion, getUnitType())))
+				if(pkOriginalPromotionInfo && (::IsPromotionValidForUnitCombatType(ePromotion, getUnitType()) || ::IsPromotionValidForCivilianUnitType(ePromotion, getUnitType())))
 				{
 					bool bNoPromotion = false;
 					// Check for negating promotions
@@ -3617,7 +3617,7 @@ void CvUnit::DoLocationPromotions(bool bSpawn, CvPlot* pOldPlot, CvPlot* pNewPlo
 			if(ePromotion != NO_PROMOTION)
 			{
 				CvPromotionEntry* pkOriginalPromotionInfo = GC.getPromotionInfo(ePromotion);
-				if(pkOriginalPromotionInfo && m_pUnitInfo->GetUnitCombatType() != NO_UNITCOMBAT && (::IsPromotionValidForUnitCombatType(ePromotion, getUnitType())))
+				if(pkOriginalPromotionInfo && (::IsPromotionValidForUnitCombatType(ePromotion, getUnitType()) || ::IsPromotionValidForCivilianUnitType(ePromotion, getUnitType())))
 				{
 					bool bNoPromotion = false;
 					// Check for negating promotions
@@ -3651,7 +3651,7 @@ void CvUnit::DoLocationPromotions(bool bSpawn, CvPlot* pOldPlot, CvPlot* pNewPlo
 			if(ePromotion != NO_PROMOTION)
 			{
 				CvPromotionEntry* pkOriginalPromotionInfo = GC.getPromotionInfo(ePromotion);
-				if(pkOriginalPromotionInfo && m_pUnitInfo->GetUnitCombatType() != NO_UNITCOMBAT && (::IsPromotionValidForUnitCombatType(ePromotion, getUnitType())))
+				if(pkOriginalPromotionInfo && (::IsPromotionValidForUnitCombatType(ePromotion, getUnitType()) || ::IsPromotionValidForCivilianUnitType(ePromotion, getUnitType())))
 				{
 					bool bNoPromotion = false;
 					// Check for negating promotions
@@ -3685,7 +3685,7 @@ void CvUnit::DoLocationPromotions(bool bSpawn, CvPlot* pOldPlot, CvPlot* pNewPlo
 			if(ePromotion != NO_PROMOTION)
 			{
 				CvPromotionEntry* pkOriginalPromotionInfo = GC.getPromotionInfo(ePromotion);
-				if(pkOriginalPromotionInfo && m_pUnitInfo->GetUnitCombatType() != NO_UNITCOMBAT && (::IsPromotionValidForUnitCombatType(ePromotion, getUnitType())))
+				if(pkOriginalPromotionInfo && (::IsPromotionValidForUnitCombatType(ePromotion, getUnitType()) || ::IsPromotionValidForCivilianUnitType(ePromotion, getUnitType())))
 				{
 					bool bNoPromotion = false;
 					// Check for negating promotions
@@ -3719,7 +3719,7 @@ void CvUnit::DoLocationPromotions(bool bSpawn, CvPlot* pOldPlot, CvPlot* pNewPlo
 			if(ePromotion != NO_PROMOTION)
 			{
 				CvPromotionEntry* pkOriginalPromotionInfo = GC.getPromotionInfo(ePromotion);
-				if(pkOriginalPromotionInfo && m_pUnitInfo->GetUnitCombatType() != NO_UNITCOMBAT && (::IsPromotionValidForUnitCombatType(ePromotion, getUnitType())))
+				if(pkOriginalPromotionInfo && (::IsPromotionValidForUnitCombatType(ePromotion, getUnitType()) || ::IsPromotionValidForCivilianUnitType(ePromotion, getUnitType())))
 				{
 					bool bNoPromotion = false;
 					// Check for negating promotions
@@ -3758,7 +3758,7 @@ void CvUnit::DoLocationPromotions(bool bSpawn, CvPlot* pOldPlot, CvPlot* pNewPlo
 			if(ePromotion != NO_PROMOTION)
 			{
 				CvPromotionEntry* pkOriginalPromotionInfo = GC.getPromotionInfo(ePromotion);
-				if(pkOriginalPromotionInfo && m_pUnitInfo->GetUnitCombatType() != NO_UNITCOMBAT && (::IsPromotionValidForUnitCombatType(ePromotion, getUnitType())))
+				if(pkOriginalPromotionInfo && (::IsPromotionValidForUnitCombatType(ePromotion, getUnitType()) || ::IsPromotionValidForCivilianUnitType(ePromotion, getUnitType())))
 				{
 					bool bNoPromotion = false;
 					// Check for negating promotions
@@ -3797,7 +3797,7 @@ void CvUnit::DoLocationPromotions(bool bSpawn, CvPlot* pOldPlot, CvPlot* pNewPlo
 				if(ePromotion != NO_PROMOTION)
 				{
 					CvPromotionEntry* pkOriginalPromotionInfo = GC.getPromotionInfo(ePromotion);
-					if(pkOriginalPromotionInfo && m_pUnitInfo->GetUnitCombatType() != NO_UNITCOMBAT && (::IsPromotionValidForUnitCombatType(ePromotion, getUnitType())))
+					if(pkOriginalPromotionInfo && (::IsPromotionValidForUnitCombatType(ePromotion, getUnitType()) || ::IsPromotionValidForCivilianUnitType(ePromotion, getUnitType())))
 					{
 						bool bNoPromotion = false;
 						// Check for negating promotions
@@ -3843,7 +3843,7 @@ void CvUnit::DoLocationPromotions(bool bSpawn, CvPlot* pOldPlot, CvPlot* pNewPlo
 			if(ePromotion != NO_PROMOTION)
 			{
 				CvPromotionEntry* pkOriginalPromotionInfo = GC.getPromotionInfo(ePromotion);
-				if(pkOriginalPromotionInfo && m_pUnitInfo->GetUnitCombatType() != NO_UNITCOMBAT && (::IsPromotionValidForUnitCombatType(ePromotion, getUnitType())))
+				if(pkOriginalPromotionInfo && (::IsPromotionValidForUnitCombatType(ePromotion, getUnitType()) || ::IsPromotionValidForCivilianUnitType(ePromotion, getUnitType())))
 				{
 					bool bNoPromotion = false;
 					// Check for negating promotions
@@ -3877,7 +3877,7 @@ void CvUnit::DoLocationPromotions(bool bSpawn, CvPlot* pOldPlot, CvPlot* pNewPlo
 			if(ePromotion != NO_PROMOTION)
 			{
 				CvPromotionEntry* pkOriginalPromotionInfo = GC.getPromotionInfo(ePromotion);
-				if(pkOriginalPromotionInfo && m_pUnitInfo->GetUnitCombatType() != NO_UNITCOMBAT && (::IsPromotionValidForUnitCombatType(ePromotion, getUnitType())))
+				if(pkOriginalPromotionInfo && (::IsPromotionValidForUnitCombatType(ePromotion, getUnitType()) || ::IsPromotionValidForCivilianUnitType(ePromotion, getUnitType())))
 				{
 					bool bNoPromotion = false;
 					// Check for negating promotions
@@ -3911,7 +3911,7 @@ void CvUnit::DoLocationPromotions(bool bSpawn, CvPlot* pOldPlot, CvPlot* pNewPlo
 			if(ePromotion != NO_PROMOTION)
 			{
 				CvPromotionEntry* pkOriginalPromotionInfo = GC.getPromotionInfo(ePromotion);
-				if(pkOriginalPromotionInfo && m_pUnitInfo->GetUnitCombatType() != NO_UNITCOMBAT && (::IsPromotionValidForUnitCombatType(ePromotion, getUnitType())))
+				if(pkOriginalPromotionInfo && (::IsPromotionValidForUnitCombatType(ePromotion, getUnitType()) || ::IsPromotionValidForCivilianUnitType(ePromotion, getUnitType())))
 				{
 					bool bNoPromotion = false;
 					// Check for negating promotions
@@ -3945,7 +3945,7 @@ void CvUnit::DoLocationPromotions(bool bSpawn, CvPlot* pOldPlot, CvPlot* pNewPlo
 			if(ePromotion != NO_PROMOTION)
 			{
 				CvPromotionEntry* pkOriginalPromotionInfo = GC.getPromotionInfo(ePromotion);
-				if(pkOriginalPromotionInfo && m_pUnitInfo->GetUnitCombatType() != NO_UNITCOMBAT && (::IsPromotionValidForUnitCombatType(ePromotion, getUnitType())))
+				if(pkOriginalPromotionInfo && (::IsPromotionValidForUnitCombatType(ePromotion, getUnitType()) || ::IsPromotionValidForCivilianUnitType(ePromotion, getUnitType())))
 				{
 					bool bNoPromotion = false;
 					// Check for negating promotions
@@ -3979,7 +3979,7 @@ void CvUnit::DoLocationPromotions(bool bSpawn, CvPlot* pOldPlot, CvPlot* pNewPlo
 			if(ePromotion != NO_PROMOTION)
 			{
 				CvPromotionEntry* pkOriginalPromotionInfo = GC.getPromotionInfo(ePromotion);
-				if(pkOriginalPromotionInfo && m_pUnitInfo->GetUnitCombatType() != NO_UNITCOMBAT && (::IsPromotionValidForUnitCombatType(ePromotion, getUnitType())))
+				if(pkOriginalPromotionInfo && (::IsPromotionValidForUnitCombatType(ePromotion, getUnitType()) || ::IsPromotionValidForCivilianUnitType(ePromotion, getUnitType())))
 				{
 					bool bNoPromotion = false;
 					// Check for negating promotions
@@ -4023,7 +4023,7 @@ void CvUnit::DoLocationPromotions(bool bSpawn, CvPlot* pOldPlot, CvPlot* pNewPlo
 				if(ePromotion != NO_PROMOTION)
 				{
 					CvPromotionEntry* pkOriginalPromotionInfo = GC.getPromotionInfo(ePromotion);
-					if(pkOriginalPromotionInfo && m_pUnitInfo->GetUnitCombatType() != NO_UNITCOMBAT && (::IsPromotionValidForUnitCombatType(ePromotion, getUnitType())))
+					if(pkOriginalPromotionInfo && (::IsPromotionValidForUnitCombatType(ePromotion, getUnitType()) || ::IsPromotionValidForCivilianUnitType(ePromotion, getUnitType())))
 					{
 						bool bNoPromotion = false;
 						// Check for negating promotions
@@ -4059,7 +4059,7 @@ void CvUnit::DoLocationPromotions(bool bSpawn, CvPlot* pOldPlot, CvPlot* pNewPlo
 				if(ePromotion != NO_PROMOTION)
 				{
 					CvPromotionEntry* pkOriginalPromotionInfo = GC.getPromotionInfo(ePromotion);
-					if(pkOriginalPromotionInfo && m_pUnitInfo->GetUnitCombatType() != NO_UNITCOMBAT && (::IsPromotionValidForUnitCombatType(ePromotion, getUnitType())))
+					if(pkOriginalPromotionInfo && (::IsPromotionValidForUnitCombatType(ePromotion, getUnitType()) || ::IsPromotionValidForCivilianUnitType(ePromotion, getUnitType())))
 					{
 						bool bNoPromotion = false;
 						// Check for negating promotions
@@ -4094,7 +4094,7 @@ void CvUnit::DoLocationPromotions(bool bSpawn, CvPlot* pOldPlot, CvPlot* pNewPlo
 				if(ePromotion != NO_PROMOTION)
 				{
 					CvPromotionEntry* pkOriginalPromotionInfo = GC.getPromotionInfo(ePromotion);
-					if(pkOriginalPromotionInfo && m_pUnitInfo->GetUnitCombatType() != NO_UNITCOMBAT && (::IsPromotionValidForUnitCombatType(ePromotion, getUnitType())))
+					if(pkOriginalPromotionInfo && (::IsPromotionValidForUnitCombatType(ePromotion, getUnitType()) || ::IsPromotionValidForCivilianUnitType(ePromotion, getUnitType())))
 					{
 						bool bNoPromotion = false;
 						// Check for negating promotions
@@ -4129,7 +4129,7 @@ void CvUnit::DoLocationPromotions(bool bSpawn, CvPlot* pOldPlot, CvPlot* pNewPlo
 				if(ePromotion != NO_PROMOTION)
 				{
 					CvPromotionEntry* pkOriginalPromotionInfo = GC.getPromotionInfo(ePromotion);
-					if(pkOriginalPromotionInfo && m_pUnitInfo->GetUnitCombatType() != NO_UNITCOMBAT && (::IsPromotionValidForUnitCombatType(ePromotion, getUnitType())))
+					if(pkOriginalPromotionInfo && (::IsPromotionValidForUnitCombatType(ePromotion, getUnitType()) || ::IsPromotionValidForCivilianUnitType(ePromotion, getUnitType())))
 					{
 						bool bNoPromotion = false;
 						// Check for negating promotions
@@ -4163,7 +4163,7 @@ void CvUnit::DoLocationPromotions(bool bSpawn, CvPlot* pOldPlot, CvPlot* pNewPlo
 				if(ePromotion != NO_PROMOTION)
 				{
 					CvPromotionEntry* pkOriginalPromotionInfo = GC.getPromotionInfo(ePromotion);
-					if(pkOriginalPromotionInfo && m_pUnitInfo->GetUnitCombatType() != NO_UNITCOMBAT && (::IsPromotionValidForUnitCombatType(ePromotion, getUnitType())))
+					if(pkOriginalPromotionInfo && (::IsPromotionValidForUnitCombatType(ePromotion, getUnitType()) || ::IsPromotionValidForCivilianUnitType(ePromotion, getUnitType())))
 					{
 						bool bNoPromotion = false;
 						// Check for negating promotions
@@ -4197,7 +4197,7 @@ void CvUnit::DoLocationPromotions(bool bSpawn, CvPlot* pOldPlot, CvPlot* pNewPlo
 				if(ePromotion != NO_PROMOTION)
 				{
 					CvPromotionEntry* pkOriginalPromotionInfo = GC.getPromotionInfo(ePromotion);
-					if(pkOriginalPromotionInfo && m_pUnitInfo->GetUnitCombatType() != NO_UNITCOMBAT && (::IsPromotionValidForUnitCombatType(ePromotion, getUnitType())))
+					if(pkOriginalPromotionInfo && (::IsPromotionValidForUnitCombatType(ePromotion, getUnitType()) || ::IsPromotionValidForCivilianUnitType(ePromotion, getUnitType())))
 					{
 						bool bNoPromotion = false;
 						// Check for negating promotions
