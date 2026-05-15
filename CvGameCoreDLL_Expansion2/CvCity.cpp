@@ -32285,22 +32285,25 @@ bool CvCity::isValidBuildingLocation(BuildingTypes eBuilding) const
 		}
 	}
 
-	// Requires adjacent Mountain
+	// Requires mountain or adjacent mountain
 	if (pkBuildingInfo->IsMountain())
 	{
-		bool bFoundMountain = false;
+		bool bFoundMountain = plot()->isMountain();
 
-		CvPlot* pAdjacentPlot = NULL;
-		for (int iDirectionLoop = 0; iDirectionLoop < NUM_DIRECTION_TYPES; iDirectionLoop++)
+		if (!bFoundMountain)
 		{
-			pAdjacentPlot = plotDirection(getX(), getY(), ((DirectionTypes)iDirectionLoop));
-
-			if (pAdjacentPlot != NULL)
+			CvPlot* pAdjacentPlot = NULL;
+			for (int iDirectionLoop = 0; iDirectionLoop < NUM_DIRECTION_TYPES; iDirectionLoop++)
 			{
-				if (pAdjacentPlot->isMountain())
+				pAdjacentPlot = plotDirection(getX(), getY(), ((DirectionTypes)iDirectionLoop));
+
+				if (pAdjacentPlot != NULL)
 				{
-					bFoundMountain = true;
-					break;
+					if (pAdjacentPlot->isMountain())
+					{
+						bFoundMountain = true;
+						break;
+					}
 				}
 			}
 		}

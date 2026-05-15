@@ -10563,10 +10563,12 @@ int CvPlot::calculateImprovementYield(YieldTypes eYield, PlayerTypes ePlayer, Im
 	}
 
 	// Check to see if there's a bonus to apply before doing any looping
-	if	(	pkImprovementInfo->GetAdjacentCityYieldChange(eYield) > 0
-		||	pkImprovementInfo->GetAdjacentMountainYieldChange(eYield) > 0
-		)
+	if	(pkImprovementInfo->GetAdjacentCityYieldChange(eYield) > 0 || pkImprovementInfo->GetAdjacentMountainYieldChange(eYield) > 0)
 	{
+		// check the base plot itself for mountain yield
+		if (isMountain())
+			iYield += pkImprovementInfo->GetAdjacentMountainYieldChange(eYield);
+		
 		for(iI = 0; iI < NUM_DIRECTION_TYPES; ++iI)
 		{
 			CvPlot* pAdjacentPlot = plotDirection(getX(), getY(), ((DirectionTypes)iI));
