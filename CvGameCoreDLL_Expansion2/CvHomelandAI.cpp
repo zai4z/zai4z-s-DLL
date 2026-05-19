@@ -620,6 +620,7 @@ void CvHomelandAI::AssignHomelandMoves()
 	PlotSSPartMoves();
 
 	PlotTreasureMoves();
+	PlotRefugeeMoves();
 	PlotTradeUnitMoves();
 	PlotArchaeologistMoves();
 
@@ -2217,6 +2218,25 @@ void CvHomelandAI::PlotTreasureMoves()
 	{
 		ExecuteTreasureMoves();
 	}
+}
+
+void CvHomelandAI::PlotRefugeeMoves()
+{
+    ClearCurrentMoveUnits(AI_HOMELAND_MOVE_REFUGEE);
+
+    for (list<int>::iterator it = m_CurrentTurnUnits.begin(); it != m_CurrentTurnUnits.end(); ++it)
+    {
+        CvUnit* pUnit = m_pPlayer->getUnit(*it);
+        if (pUnit && pUnit->AI_getUnitAIType() == UNITAI_REFUGEE)
+        {
+            CvHomelandUnit unit;
+            unit.SetID(pUnit->GetID());
+            m_CurrentMoveUnits.push_back(unit);
+        }
+    }
+
+    if (m_CurrentMoveUnits.size() > 0)
+        ExecuteRefugeeMoves();
 }
 
 /// Find moves for great generals
@@ -5541,6 +5561,57 @@ void CvHomelandAI::ExecuteTreasureMoves()
 	}
 }
 
+// Moves a refugee to a non-razing, non-occupied, non-resistance, non-puppet owned city
+void CvHomelandAI::ExecuteRefugeeMoves()
+{
+    // find best valid city to move to
+    CvCity* pBestCity = NULL;
+    int iBestDistance = INT_MAX;
+
+    for (CHomelandUnitArray::iterator it = m_CurrentMoveUnits.begin(); it != m_CurrentMoveUnits.end(); ++it)
+    {
+        CvUnit* pUnit = m_pPlayer->getUnit(it->GetID());
+        if (!pUnit)
+            continue;
+
+        pBestCity = NULL;
+        iBestDistance = INT_MAX;
+
+        int iLoop = 0;
+        for (CvCity* pLoopCity = m_pPlayer->firstCity(&iLoop); pLoopCity != NULL; pLoopCity = m_pPlayer->nextCity(&iLoop))
+        {
+            if (pLoopCity->IsRazing() || pLoopCity->IsResistance() || (pLoopCity->IsOccupied() && !pLoopCity->IsNoOccupiedUnhappiness()) || pLoopCity->IsPuppet())
+                continue;
+
+			// skip starving or stagnating cities
+			if (pLoopCity->getFoodTurnsLeft() <= 0 && pLoopCity->getYieldRateTimes100(YIELD_FOOD) <= 0)
+				continue;
+
+            int iDistance = plotDistance(pUnit->getX(), pUnit->getY(), pLoopCity->getX(), pLoopCity->getY());
+            if (iDistance < iBestDistance)
+            {
+                iBestDistance = iDistance;
+                pBestCity = pLoopCity;
+            }
+        }
+
+        if (!pBestCity)
+            continue;
+
+        ExecuteMoveToTarget(pUnit, pBestCity->plot(), CvUnit::MOVEFLAG_NO_ENEMY_TERRITORY);
+        UnitProcessed(pUnit->GetID());
+
+        if (GC.getLogging() && GC.getAILogging())
+        {
+            CvString strLogString;
+            CvString strTemp;
+            strTemp = pUnit->getUnitInfo().GetDescription();
+            strLogString.Format("Moving %s to city - now at, X: %d, Y: %d", strTemp.GetCString(), pUnit->getX(), pUnit->getY());
+            LogHomelandMessage(strLogString);
+        }
+    }
+}
+
 /// Moves an aircraft into an important city near the front to aid its defense (or offense)
 void CvHomelandAI::ExecuteAircraftMoves()
 {
@@ -6826,6 +6897,7 @@ const char* homelandMoveNames[] =
 	"H_MOVE_SPACESHIP_PART",
 	"H_MOVE_AIRCRAFT_REBASE",
 	"H_MOVE_TREASURE",
+	"H_MOVE_REFUGEE",
 	"H_MOVE_PROPHET_RELIGION",
 	"H_MOVE_MISSIONARY",
 	"H_MOVE_INQUISITOR",

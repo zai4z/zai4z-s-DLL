@@ -1623,6 +1623,9 @@ void getUnitAIString(CvString& strString, UnitAITypes eUnitAI)
 	case UNITAI_TREASURE:
 		strString = "treasure";
 		break;
+	case UNITAI_REFUGEE:
+		strString = "refugee";
+		break;
 	case UNITAI_PROPHET:
 		strString = "prophet";
 		break;

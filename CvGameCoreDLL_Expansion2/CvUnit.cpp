@@ -1026,7 +1026,7 @@ void CvUnit::initWithNameOffset(int iID, UnitTypes eUnit, int iNameOffset, UnitA
 			m_Religion.SetFullStrength(pCity->getOwner(),getUnitInfo(),eReligion);
 		}
 	}
-	else if (MOD_GLOBAL_RELIGIOUS_SETTLERS && getUnitInfo().GetUnitAIType(UNITAI_SETTLE))
+	else if (MOD_GLOBAL_RELIGIOUS_SETTLERS && (getUnitInfo().GetUnitAIType(UNITAI_SETTLE) || getUnitInfo().GetUnitAIType(UNITAI_REFUGEE)))
 	{
 		ReligionTypes eReligion = RELIGION_PANTHEON;
 		CvCity *pPlotCity = plot()->getPlotCity();
@@ -1040,7 +1040,8 @@ void CvUnit::initWithNameOffset(int iID, UnitTypes eUnit, int iNameOffset, UnitA
 				{
 					ReligionTypes eLoopReligion = (ReligionTypes)i;
 					int iNumFollowers = pCityReligions->GetNumFollowers(eLoopReligion);
-					vReligions.push_back(eLoopReligion, iNumFollowers);
+					if (iNumFollowers > 0)
+						vReligions.push_back(eLoopReligion, iNumFollowers);
 				}
 				if (!vReligions.empty())
 				{
@@ -20734,6 +20735,23 @@ void CvUnit::setXY(int iX, int iY, bool bGroup, bool bUpdate, bool bShow, bool b
 	{
 		if(!bNoMove)
 		{
+			// Refugee moving into a city
+			if (pNewPlot->isCity() && AI_getUnitAIType() == UNITAI_REFUGEE && pNewPlot == LastMissionPlot() && !isDelayedDeath())
+			{
+				CvCity* pCity = pNewPlot->getPlotCity();
+				if (pCity && pCity->getOwner() == getOwner() && !pCity->IsRazing() && !pCity->IsResistance() && !(pCity->IsOccupied() && !pCity->IsNoOccupiedUnhappiness()) && !pCity->IsPuppet())
+				{
+					// add 1 population, also increases majority followers by 1
+					pCity->changePopulation(1, true);
+
+					// replace the 1 extra majority follower with the religion of the refugee (if any)
+					pCity->GetCityReligions()->AddFollower(GetReligionData()->GetReligion());
+
+					kill(true);
+					return;
+				}
+			}
+
 			if(pNewPlot->isGoody(getTeam()))
 			{
 				GET_PLAYER(getOwner()).doGoody(pNewPlot, this);

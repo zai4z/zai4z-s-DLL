@@ -19586,6 +19586,40 @@ bool CvCity::DoRazingTurn()
 					}
 				}
 			}
+
+			// Refugees?
+			if (MOD_BALANCE_RAZING_CREATES_REFUGEES)
+			{
+				UnitTypes eRefugeeUnit = (UnitTypes)GC.getInfoTypeForString("UNIT_REFUGEE");
+				if (eRefugeeUnit != NO_UNIT)
+				{
+					// base chance is 1/4, scaled by raze speed modifier
+					// e.g. 2x raze speed = 2/4 chance to compensate for fewer turns
+					int iRazeSpeedModifier = kPlayer.GetPlayerTraits()->GetRazeSpeedModifier() + kPlayer.GetRazingSpeedBonus();
+					int iNumerator = max(1, (100 + iRazeSpeedModifier) / 100);
+					int iRoll = GC.getGame().randRangeExclusive(0, 4, plot()->GetPseudoRandomSeed().mix(GET_PLAYER(getOwner()).GetPseudoRandomSeed()).mix(GC.getGame().getGameTurn()));
+
+					if (iRoll < iNumerator)
+					{
+						// spawn on city plot so religion init picks up the city's religion
+						CvUnit* pRefugee = kPlayer.initUnit(eRefugeeUnit, getX(), getY(), UNITAI_REFUGEE);
+						if (pRefugee)
+						{
+							// set original owner to original city owner
+							pRefugee->SetOriginalOwner(getOriginalOwner());
+
+							// notification to razing player
+							CvNotifications* pNotifications = kPlayer.GetNotifications();
+							if (pNotifications && kPlayer.isHuman())
+							{
+								Localization::String strMessage(GetLocalizedText("TXT_KEY_NOTIFICATION_REFUGEE_SPAWNED", getName()));
+								Localization::String strSummary(GetLocalizedText("TXT_KEY_NOTIFICATION_REFUGEE_SPAWNED_TITLE", getName()));
+								pNotifications->Add(NOTIFICATION_GREAT_PERSON_ACTIVE_PLAYER, strMessage.toUTF8(), strSummary.toUTF8(), getX(), getY(), eRefugeeUnit);
+							}
+						}
+					}
+				}
+			}
 		}
 	}
 

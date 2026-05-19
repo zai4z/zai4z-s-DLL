@@ -404,6 +404,13 @@
 		<!-- Cities that are being razed will spawn partisans (free units) for the opposing player if still at war, or Barbarians if not still at war -->
 		<Row Class="6" Name="BALANCE_RAZING_CREATES_PARTISANS" Value="0"/>
 
+		<!-- Requires refugee mod work -->
+		<!-- Razing cities have a 25% chance to produce UNIT_REFUGEE every turn, chance scales with raze speed -->
+		<!-- Unit will carry religion if GLOBAL_RELIGIOUS_SETTLERS is enabled -->
+		<!-- Moving a refugee into owned non-puppet non-occupied non-razing non-resistance cities will increase the city by 1 population, add 1 follower of the religion (if any) and consume the unit -->
+		<!-- Original owner of the unit is set to the razing city original owner (unless unit is produced from capture of settler, then it will already have original owner) -->
+		<Row Class="6" Name="BALANCE_RAZING_CREATES_REFUGEES" Value="0"/>
+
 		<!-- Halve starting XP for combat units purchased with Gold -->
 		<Row Class="6" Name="BALANCE_HALF_XP_GOLD_PURCHASES" Value="0"/>
 

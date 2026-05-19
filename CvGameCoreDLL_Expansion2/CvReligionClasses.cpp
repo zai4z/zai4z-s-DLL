@@ -4610,6 +4610,47 @@ bool CvCityReligions::WouldExertTradeRoutePressureToward (CvCity* pTargetCity, R
 	return iAmount>0;
 }
 
+// Method for "adding" +1 follower, takes 1 follower from the majority religion
+void CvCityReligions::AddFollower(ReligionTypes eReligion)
+{
+    if (eReligion <= RELIGION_PANTHEON)
+        return;
+
+    int iCityPop = m_pCity->getPopulation();
+    if (iCityPop < 1)
+        return;
+
+    int iTotalPressure = 0;
+    ReligionInCityList::iterator itMajority = m_ReligionStatus.end();
+    ReligionInCityList::iterator itReligion = m_ReligionStatus.end();
+    ReligionTypes eMajority = GetReligiousMajority();
+
+    if (eMajority == eReligion)
+        return;
+
+    for (ReligionInCityList::iterator it = m_ReligionStatus.begin(); it != m_ReligionStatus.end(); ++it)
+    {
+        iTotalPressure += it->m_iPressure;
+        if (it->m_eReligion == eMajority)
+            itMajority = it;
+        if (it->m_eReligion == eReligion)
+            itReligion = it;
+    }
+
+    if (iTotalPressure < 1 || itMajority == m_ReligionStatus.end())
+        return;
+
+    int iPressurePerFollower = max(1, iTotalPressure / iCityPop);
+
+    itMajority->m_iPressure = max(0, itMajority->m_iPressure - iPressurePerFollower);
+
+    if (itReligion != m_ReligionStatus.end())
+        itReligion->m_iPressure += iPressurePerFollower;
+    else
+        m_ReligionStatus.push_back(CvReligionInCity(eReligion, 0, iPressurePerFollower));
+
+    RecomputeFollowers(FOLLOWER_CHANGE_SCRIPTED_CONVERSION);
+}
 
 /// Handle a change in the city population
 void CvCityReligions::DoPopulationChange(int iChange)

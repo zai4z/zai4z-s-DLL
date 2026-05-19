@@ -423,6 +423,7 @@ public:
 	int GetNumTradeRouteConnections (ReligionTypes eReligion);
 	bool WouldExertTradeRoutePressureToward (CvCity* pTargetCity, ReligionTypes& eReligion, int& iAmount);
 
+	void AddFollower(ReligionTypes eReligion);
 	// Routines to update religious status of citizens
 	void DoPopulationChange(int iChange);
 	void DoReligionFounded(ReligionTypes eReligion);

@@ -9245,6 +9245,7 @@ void CvPlayer::disbandUnit(bool)
 			case UNITAI_ENGINEER:
 			case UNITAI_SPACESHIP_PART:
 			case UNITAI_TREASURE:
+			case UNITAI_REFUGEE:
 			case UNITAI_PROPHET:
 			case UNITAI_MISSIONARY:
 			case UNITAI_INQUISITOR:

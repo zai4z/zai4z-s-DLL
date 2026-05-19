@@ -306,6 +306,7 @@ private:
 	void PlotInquisitorMoves();
 	void PlotSSPartMoves();
 	void PlotTreasureMoves();
+	void PlotRefugeeMoves();
 	void PlotTradeUnitMoves();
 	void PlotArchaeologistMoves();
 	void ReviewUnassignedUnits();
@@ -336,6 +337,7 @@ private:
 	void ExecuteInquisitorMoves();
 	void ExecuteSSPartMoves();
 	void ExecuteTreasureMoves();
+	void ExecuteRefugeeMoves();
 	void ExecuteTradeUnitMoves();
 	void ExecuteArchaeologistMoves();
 

@@ -9,3 +9,9 @@ WHERE ROWID NOT IN (
 -- Anti-air fix
 DELETE FROM Unit_AITypes WHERE UnitType = 'UNIT_ANTI_AIRCRAFT_GUN' AND UnitAIType = 'UNITAI_CITY_SPECIAL';
 DELETE FROM Unit_AITypes WHERE UnitType = 'UNIT_MOBILE_SAM' AND UnitAIType = 'UNITAI_CITY_SPECIAL';
+
+-- Refugee units move into non-puppet non-occupied cities
+INSERT INTO UnitAIInfos
+	(Type, Description)
+VALUES
+	('UNITAI_REFUGEE', 'UNITAI_REFUGEE');
