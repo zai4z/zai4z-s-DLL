@@ -4,6 +4,10 @@
 -- Attack strength is affected by promotions/terrain etc. Ranged attackers will use their melee strength, unsuccessful plunders will do nothing and finish unit moves
 ALTER TABLE Units ADD ProtectedTrade boolean DEFAULT 0;
 
+-- If the original owner recaptures this unit (or is liberated by another player), this class will be chosen
+-- Also allows the unit to build the unique improvement of the original owner (if it has a work rate)
+ALTER TABLE Units ADD CaptureOriginal text REFERENCES UnitClasses(Type);
+
 ALTER TABLE Units ADD CargoCombat integer DEFAULT 0;
 
 -- Adds ability for units to have max HP values other than 100 (whoward)

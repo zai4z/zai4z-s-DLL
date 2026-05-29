@@ -94,6 +94,7 @@ public:
 	int GetUnitClassType() const;
 	int GetSpecialUnitType() const;
 	int GetUnitCaptureClassType() const;
+	int GetUnitCaptureOriginalClassType() const;
 	int GetUnitCombatType() const;
 	int GetUnitPromotionType() const;
 	bool IsSendCanMoveIntoEvent() const;
@@ -291,6 +292,7 @@ private:
 	int m_iUnitClassType;
 	int m_iSpecialUnitType;
 	int m_iUnitCaptureClassType;
+	int m_iUnitCaptureOriginalClassType;
 	int m_iUnitCombatType;
 	int m_iUnitPromotionType;
 	bool m_bSendCanMoveIntoEvent;
