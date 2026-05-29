@@ -88,6 +88,7 @@ CvUnitEntry::CvUnitEntry(void) :
 	m_iUnitClassType(NO_UNITCLASS),
 	m_iSpecialUnitType(NO_SPECIALUNIT),
 	m_iUnitCaptureClassType(NO_UNITCLASS),
+	m_iUnitCaptureOriginalClassType(NO_UNITCLASS),
 	m_iUnitCombatType(NO_UNITCOMBAT),
 	m_iUnitPromotionType(NO_UNITCOMBAT),
 	m_bSendCanMoveIntoEvent(false),
@@ -336,6 +337,9 @@ bool CvUnitEntry::CacheResults(Database::Results& kResults, CvDatabaseUtility& k
 
 	szTextVal = kResults.GetText("Capture");
 	m_iUnitCaptureClassType = GC.getInfoTypeForString(szTextVal, true);
+
+	szTextVal = kResults.GetText("CaptureOriginal");
+	m_iUnitCaptureOriginalClassType = GC.getInfoTypeForString(szTextVal, true);
 
 	szTextVal = kResults.GetText("CombatClass");
 	m_iUnitCombatType = GC.getInfoTypeForString(szTextVal, true);
@@ -1013,6 +1017,12 @@ int CvUnitEntry::GetSpecialUnitType() const
 int CvUnitEntry::GetUnitCaptureClassType() const
 {
 	return m_iUnitCaptureClassType;
+}
+
+/// If captured by original owner, what unit does it become?
+int CvUnitEntry::GetUnitCaptureOriginalClassType() const
+{
+	return m_iUnitCaptureOriginalClassType;
 }
 
 /// Combat type (melee, mounted, siege, air, etc.)

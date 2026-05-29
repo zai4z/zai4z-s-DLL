@@ -16198,7 +16198,8 @@ bool CvPlayer::canBuild(const CvPlot* pPlot, BuildTypes eBuild, bool bTestEra, b
 		if(pkEntry->IsSpecificCivRequired())
 		{
 			CivilizationTypes eCiv = pkEntry->GetRequiredCivilization();
-			PlayerTypes eCheckPlayer = (pUnit != NULL) ? pUnit->GetOriginalOwner() : GetID();
+			bool bUseOriginalOwner = pUnit != NULL && pUnit->getUnitInfo().GetUnitCaptureOriginalClassType() != NO_UNITCLASS;
+			PlayerTypes eCheckPlayer = bUseOriginalOwner ? pUnit->GetOriginalOwner() : GetID();
 			if(eCiv != GET_PLAYER(eCheckPlayer).getCivilizationType())
 			{
 				return false;
@@ -36425,7 +36426,15 @@ void CvPlayer::DoCivilianReturnLogic(bool bReturn, PlayerTypes eToPlayer, int iU
 	}
 
 	// What are the details for the new unit?
-	UnitTypes eNewUnitType = bReturn ? pUnit->getUnitType() : pUnit->getCaptureUnitType(GetID());
+	UnitTypes eType = NO_UNIT;
+
+	UnitClassTypes eUnitClass = static_cast<UnitClassTypes>(pUnit->getUnitInfo().GetUnitCaptureOriginalClassType());
+	if (eUnitClass != NO_UNITCLASS)
+		eType = GET_PLAYER(eToPlayer).GetSpecificUnitType(eUnitClass);
+	else
+		eType = pUnit->getUnitType();
+
+	UnitTypes eNewUnitType = bReturn ? eType : pUnit->getCaptureUnitType(GetID());
 	int iX = pUnit->getX();
 	int iY = pUnit->getY();
 
