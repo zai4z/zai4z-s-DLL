@@ -36,7 +36,6 @@ public:
 	// Accessor Functions (Non-Arrays)
 	int GetResearchCost() const;
 	int GetEra() const;
-	int GetFeatureProductionModifier() const;
 	int GetUnitFortificationModifier() const;
 	int GetUnitBaseHealModifier() const;
 	int GetWorkerSpeedModifier() const;
@@ -108,7 +107,6 @@ public:
 private:
 	int m_iResearchCost;
 	int m_iEra;
-	int m_iFeatureProductionModifier;
 	int m_iUnitFortificationModifier;
 	int m_iUnitBaseHealModifier;
 	int m_iWorkerSpeedModifier;

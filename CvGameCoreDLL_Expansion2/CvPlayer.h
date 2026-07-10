@@ -1101,9 +1101,6 @@ public:
 
 	void doUpdateBarbarianCampVisibility();
 
-	int getFeatureProductionModifier() const;
-	void changeFeatureProductionModifier(int iChange);
-
 	int getWorkerSpeedModifier() const;
 	void changeWorkerSpeedModifier(int iChange);
 
@@ -3179,7 +3176,6 @@ protected:
 	int m_iMaxTeamBuildingProductionModifier;
 	int m_iMaxPlayerBuildingProductionModifier;
 	int m_iFreeExperience;
-	int m_iFeatureProductionModifier;
 	int m_iWorkerSpeedModifier;
 	int m_iImprovementCostModifier;
 	int m_iImprovementUpgradeRateModifier;
@@ -3985,7 +3981,6 @@ SYNC_ARCHIVE_VAR(int, m_iMaxGlobalBuildingProductionModifier)
 SYNC_ARCHIVE_VAR(int, m_iMaxTeamBuildingProductionModifier)
 SYNC_ARCHIVE_VAR(int, m_iMaxPlayerBuildingProductionModifier)
 SYNC_ARCHIVE_VAR(int, m_iFreeExperience)
-SYNC_ARCHIVE_VAR(int, m_iFeatureProductionModifier)
 SYNC_ARCHIVE_VAR(int, m_iWorkerSpeedModifier)
 SYNC_ARCHIVE_VAR(int, m_iImprovementCostModifier)
 SYNC_ARCHIVE_VAR(int, m_iImprovementUpgradeRateModifier)

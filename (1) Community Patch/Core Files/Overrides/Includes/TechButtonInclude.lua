@@ -472,12 +472,6 @@ function AddSmallButtonsToTechButton(buttonStack, kTechInfo, iButtonCount, iText
 		end
 	end
 
-	if kTechInfo.FeatureProductionModifier ~= 0 then
-		local iAdjChopYield = math.floor(iBaseChopYield * kTechInfo.FeatureProductionModifier / 100 * iBuildPercent / 100);
-		GenerateNextButtonCustom(GetSignedTooltip("TXT_KEY_TECH_HELP_CHOP_BOOST", iAdjChopYield), "UNIT_ACTION_GOLD_ATLAS", 31, "[ICON_PRODUCTION]");
-		if iButtonIndex > iButtonCount then return iButtonCount end
-	end
-
 	if kTechInfo.EmbarkedMoveChange ~= 0 then
 		GenerateNextButtonCustom(GetSignedTooltip("TXT_KEY_TECH_HELP_FASTER_EMBARKED_MOVEMENT", kTechInfo.EmbarkedMoveChange), "UNIT_ACTION_GOLD_ATLAS", 14);
 		if iButtonIndex > iButtonCount then return iButtonCount end

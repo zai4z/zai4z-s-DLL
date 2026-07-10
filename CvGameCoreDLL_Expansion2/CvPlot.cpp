@@ -3476,9 +3476,6 @@ int CvPlot::getFeatureProduction(BuildTypes eBuild, PlayerTypes ePlayer, CvCity*
 		iProduction = GC.getBuildInfo(eBuild)->getFeatureProduction(getFeatureType());
 	}
 
-	iProduction *= std::max(0, GET_PLAYER(ePlayer).getFeatureProductionModifier());
-	iProduction /= 100;
-
 	iProduction *= GC.getGame().getGameSpeedInfo().getFeatureProductionPercent();
 	iProduction /= 100;
 

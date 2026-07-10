@@ -220,7 +220,6 @@ CvPlayer::CvPlayer() :
 	, m_iMaxTeamBuildingProductionModifier()
 	, m_iMaxPlayerBuildingProductionModifier()
 	, m_iFreeExperience()
-	, m_iFeatureProductionModifier()
 	, m_iWorkerSpeedModifier()
 	, m_iImprovementCostModifier()
 	, m_iImprovementUpgradeRateModifier()
@@ -1369,7 +1368,6 @@ void CvPlayer::uninit()
 	m_iMaxTeamBuildingProductionModifier = 0;
 	m_iMaxPlayerBuildingProductionModifier = 0;
 	m_iFreeExperience = 0;
-	m_iFeatureProductionModifier = 0;
 	m_iWorkerSpeedModifier = 0;
 	m_iImprovementCostModifier = 0;
 	m_iImprovementUpgradeRateModifier = 0;
@@ -28841,16 +28839,6 @@ void CvPlayer::changeFreeExperience(int iChange)
 	m_iFreeExperience += iChange;
 }
 
-int CvPlayer::getFeatureProductionModifier() const
-{
-	return m_iFeatureProductionModifier;
-}
-
-void CvPlayer::changeFeatureProductionModifier(int iChange)
-{
-	m_iFeatureProductionModifier += iChange;
-}
-
 int CvPlayer::getWorkerSpeedModifier() const
 {
 	return m_iWorkerSpeedModifier;
@@ -43564,7 +43552,6 @@ void CvPlayer::Serialize(Player& player, Visitor& visitor)
 	visitor(player.m_iMaxTeamBuildingProductionModifier);
 	visitor(player.m_iMaxPlayerBuildingProductionModifier);
 	visitor(player.m_iFreeExperience);
-	visitor(player.m_iFeatureProductionModifier);
 	visitor(player.m_iWorkerSpeedModifier);
 	visitor(player.m_iImprovementCostModifier);
 	visitor(player.m_iImprovementUpgradeRateModifier);

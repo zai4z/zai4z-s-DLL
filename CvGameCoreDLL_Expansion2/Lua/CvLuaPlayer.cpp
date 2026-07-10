@@ -609,7 +609,6 @@ void CvLuaPlayer::PushMethods(lua_State* L, int t)
 	Method(GetMaxTeamBuildingProductionModifier);
 	Method(GetMaxPlayerBuildingProductionModifier);
 	Method(GetFreeExperience);
-	Method(GetFeatureProductionModifier);
 	Method(GetWorkerSpeedModifier);
 	Method(GetImprovementBuilderCost);
 	Method(GetImprovementUpgradeRateModifier);
@@ -8158,12 +8157,6 @@ int CvLuaPlayer::lGetMaxPlayerBuildingProductionModifier(lua_State* L)
 int CvLuaPlayer::lGetFreeExperience(lua_State* L)
 {
 	return BasicLuaMethod(L, &CvPlayerAI::getFreeExperience);
-}
-//------------------------------------------------------------------------------
-//int getFeatureProductionModifier();
-int CvLuaPlayer::lGetFeatureProductionModifier(lua_State* L)
-{
-	return BasicLuaMethod(L, &CvPlayerAI::getFeatureProductionModifier);
 }
 //------------------------------------------------------------------------------
 //int getWorkerSpeedModifier();

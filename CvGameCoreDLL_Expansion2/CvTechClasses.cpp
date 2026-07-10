@@ -23,7 +23,6 @@
 CvTechEntry::CvTechEntry(void):
 	m_iResearchCost(0),
 	m_iEra(NO_ERA),
-	m_iFeatureProductionModifier(0),
 	m_iUnitFortificationModifier(0),
 	m_iUnitBaseHealModifier(0),
 	m_iWorkerSpeedModifier(0),
@@ -97,7 +96,6 @@ bool CvTechEntry::CacheResults(Database::Results& kResults, CvDatabaseUtility& k
 
 	//Basic Properties
 	m_iResearchCost = kResults.GetInt("Cost");
-	m_iFeatureProductionModifier = kResults.GetInt("FeatureProductionModifier");
 	m_iUnitFortificationModifier = kResults.GetInt("UnitFortificationModifier");
 	m_iUnitBaseHealModifier = kResults.GetInt("UnitBaseHealModifier");
 	m_iWorkerSpeedModifier = kResults.GetInt("WorkerSpeedModifier");
@@ -250,12 +248,6 @@ int CvTechEntry::GetResearchCost() const
 int CvTechEntry::GetEra() const
 {
 	return m_iEra;
-}
-
-/// Changes builder production
-int CvTechEntry::GetFeatureProductionModifier() const
-{
-	return m_iFeatureProductionModifier;
 }
 
 /// Changes combat bonus from fortification

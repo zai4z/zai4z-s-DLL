@@ -7988,7 +7988,6 @@ void CvTeam::processTech(TechTypes eTech, int iChange, bool bNoBonus)
 		CvPlayer& kPlayer = GET_PLAYER((PlayerTypes)iI);
 		if(kPlayer.getTeam() == GetID() && kPlayer.isEverAlive())
 		{
-			kPlayer.changeFeatureProductionModifier(pTech->GetFeatureProductionModifier() * iChange);
 			kPlayer.changeUnitFortificationModifier(pTech->GetUnitFortificationModifier() * iChange);
 			kPlayer.changeUnitBaseHealModifier(pTech->GetUnitBaseHealModifier() * iChange);
 			kPlayer.changeWorkerSpeedModifier(pTech->GetWorkerSpeedModifier() * iChange);
