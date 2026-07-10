@@ -494,32 +494,32 @@ function AddSmallButtonsToTechButton(buttonStack, kTechInfo, iButtonCount, iText
 	end
 
 	if kTechInfo.AllowsEmbarking then
-		GenerateNextButtonFromInfo(SetupGenericButton, GameInfo.Missions.MISSION_EMBARK, L("TXT_KEY_ALLOWS_EMBARKING"), nil, true);
+		GenerateNextButtonCustom(L("TXT_KEY_ALLOWS_EMBARKING"), "UNIT_ACTION_ATLAS", 14);
 		if iButtonIndex > iButtonCount then return iButtonCount end
 	end
 
 	if kTechInfo.AllowsDefensiveEmbarking then
-		GenerateNextButtonFromInfo(SetupGenericButton, GameInfo.Missions.MISSION_EMBARK, L("TXT_KEY_ABLTY_DEFENSIVE_EMBARK_STRING"), nil, true);
+		GenerateNextButtonCustom(L("TXT_KEY_ABLTY_DEFENSIVE_EMBARK_STRING"), "UNIT_ACTION_ATLAS", 14);
 		if iButtonIndex > iButtonCount then return iButtonCount end
 	end
 
 	if kTechInfo.EmbarkedAllWaterPassage then
-		GenerateNextButtonCustom(L("TXT_KEY_ALLOWS_CROSSING_OCEANS"));
+		GenerateNextButtonCustom(L("TXT_KEY_ALLOWS_CROSSING_OCEANS"), "UNIT_ACTION_ATLAS", 9);
 		if iButtonIndex > iButtonCount then return iButtonCount end
 	end
 
 	if kTechInfo.AllowEmbassyTradingAllowed then
-		GenerateNextButtonCustom(L("TXT_KEY_ALLOWS_EMBASSY"));
+		GenerateNextButtonCustom(L("TXT_KEY_ALLOWS_EMBASSY"), "UNIT_ACTION_ATLAS", 52);
 		if iButtonIndex > iButtonCount then return iButtonCount end
 	end
 
 	if kTechInfo.OpenBordersTradingAllowed then
-		GenerateNextButtonCustom(L("TXT_KEY_ALLOWS_OPEN_BORDERS"));
+		GenerateNextButtonCustom(L("TXT_KEY_ALLOWS_OPEN_BORDERS"), "UNIT_ACTION_ATLAS", 10);
 		if iButtonIndex > iButtonCount then return iButtonCount end
 	end
 
 	if kTechInfo.DefensivePactTradingAllowed then
-		GenerateNextButtonCustom(L("TXT_KEY_ALLOWS_DEFENSIVE_PACTS"));
+		GenerateNextButtonCustom(L("TXT_KEY_ALLOWS_DEFENSIVE_PACTS"), "UNIT_ACTION_ATLAS", 1);
 		if iButtonIndex > iButtonCount then return iButtonCount end
 	end
 
@@ -544,17 +544,17 @@ function AddSmallButtonsToTechButton(buttonStack, kTechInfo, iButtonCount, iText
 	end
 
 	if kTechInfo.BridgeBuilding then
-		GenerateNextButtonCustom(L("TXT_KEY_ALLOWS_BRIDGES"));
+		GenerateNextButtonCustom(L("TXT_KEY_ALLOWS_BRIDGES"), "UNIT_ACTION_ATLAS", 15);
 		if iButtonIndex > iButtonCount then return iButtonCount end
 	end
 
 	if kTechInfo.AllowsWorldCongress then
-		GenerateNextButtonCustom(L("TXT_KEY_ALLOWS_WORLD_CONGRESS"));
+		GenerateNextButtonCustom(L("TXT_KEY_ALLOWS_WORLD_CONGRESS"), "UNIT_ACTION_WRITE_TREATISE", 0);
 		if iButtonIndex > iButtonCount then return iButtonCount end
 	end
 
 	if kTechInfo.MapVisible then
-		GenerateNextButtonCustom(L("TXT_KEY_REVEALS_ENTIRE_MAP"));
+		GenerateNextButtonCustom(L("TXT_KEY_REVEALS_ENTIRE_MAP"), "TREE_ICONS_ATLAS", 3);
 		if iButtonIndex > iButtonCount then return iButtonCount end
 	end
 
@@ -564,12 +564,12 @@ function AddSmallButtonsToTechButton(buttonStack, kTechInfo, iButtonCount, iText
 	end
 
 	if kTechInfo.ExtraBombardRange > 0 then
-		GenerateNextButtonFromInfo(SetupGenericButton, GameInfo.Missions.MISSION_RANGE_ATTACK, L("TXT_KEY_ABLTY_CITY_RANGE_INCREASE"), nil, true);
+		GenerateNextButtonCustom(L("TXT_KEY_ABLTY_CITY_RANGE_INCREASE"), "UNIT_ACTION_ATLAS", 13);
 		if iButtonIndex > iButtonCount then return iButtonCount end
 	end
 
 	if kTechInfo.BombardIndirect then
-		GenerateNextButtonFromInfo(SetupGenericButton, GameInfo.Missions.MISSION_SET_UP_FOR_RANGED_ATTACK, L("TXT_KEY_ABLTY_CITY_INDIRECT_INCREASE"), nil, true);
+		GenerateNextButtonCustom(L("TXT_KEY_ABLTY_CITY_INDIRECT_INCREASE"), "UNIT_ACTION_ATLAS", 12);
 		if iButtonIndex > iButtonCount then return iButtonCount end
 	end
 
@@ -591,12 +591,12 @@ function AddSmallButtonsToTechButton(buttonStack, kTechInfo, iButtonCount, iText
 	end
 
 	if kTechInfo.InfluenceSpreadModifier ~= 0 then
-		GenerateNextButtonCustom(GetSignedTooltip("TXT_KEY_TECH_HELP_TOURISM_MODIFIER", kTechInfo.InfluenceSpreadModifier));
+		GenerateNextButtonCustom(GetSignedTooltip("TXT_KEY_TECH_HELP_TOURISM_MODIFIER", kTechInfo.InfluenceSpreadModifier), "UNIT_ACTION_ATLAS", 53);
 		if iButtonIndex > iButtonCount then return iButtonCount end
 	end
 
 	if kTechInfo.ExtraVotesPerDiplomat ~= 0 then
-		GenerateNextButtonCustom(GetSignedTooltip("TXT_KEY_TECH_HELP_DELEGATES_FROM_DIPLOMATS", kTechInfo.ExtraVotesPerDiplomat));
+		GenerateNextButtonCustom(GetSignedTooltip("TXT_KEY_TECH_HELP_DELEGATES_FROM_DIPLOMATS", kTechInfo.ExtraVotesPerDiplomat), "TREE_ICONS_ATLAS", 2);
 		if iButtonIndex > iButtonCount then return iButtonCount end
 	end
 
@@ -604,10 +604,10 @@ function AddSmallButtonsToTechButton(buttonStack, kTechInfo, iButtonCount, iText
 		if row.Range ~= 0 then
 			local eDomain = GameInfoTypes[row.DomainType];
 			if eDomain == DomainTypes.DOMAIN_LAND then
-				GenerateNextButtonCustom(GetSignedTooltip("TXT_KEY_TECH_HELP_LAND_TRADE_ROUTE_EXTENSION", row.Range));
+				GenerateNextButtonCustom(GetSignedTooltip("TXT_KEY_TECH_HELP_LAND_TRADE_ROUTE_EXTENSION", row.Range), "TREE_ICONS_ATLAS", 0);
 				if iButtonIndex > iButtonCount then return iButtonCount end
 			elseif eDomain == DomainTypes.DOMAIN_SEA then
-				GenerateNextButtonCustom(GetSignedTooltip("TXT_KEY_TECH_HELP_SEA_TRADE_ROUTE_EXTENSION", row.Range));
+				GenerateNextButtonCustom(GetSignedTooltip("TXT_KEY_TECH_HELP_SEA_TRADE_ROUTE_EXTENSION", row.Range), "TREE_ICONS_ATLAS", 1);
 				if iButtonIndex > iButtonCount then return iButtonCount end
 			end
 		end

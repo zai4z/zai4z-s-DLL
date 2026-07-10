@@ -1,5 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <GameData>
+	<IconTextureAtlases>
+		<Row>
+			<Atlas>TREE_ICONS_ATLAS</Atlas>
+			<IconSize>45</IconSize>
+			<Filename>ExtraTechIcons_45.dds</Filename>
+			<IconsPerRow>4</IconsPerRow>
+			<IconsPerColumn>1</IconsPerColumn>
+		</Row>
+	</IconTextureAtlases>
 	<IconFontTextures>
 		<Row>
 			<IconFontTexture>ICON_FONT_TEXTURE_CP</IconFontTexture>

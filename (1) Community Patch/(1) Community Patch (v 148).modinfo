@@ -399,6 +399,7 @@
     <File md5="316984B4370EA1B11E3759F01CE9A36D" import="1">Assets/UI/DC45_Generic.dds</File>
     <File md5="E2B19CBFFF8F783398DF4BD00E5633D1" import="1">Assets/UI/esp_spy_rigginelectioncooldown22.dds</File>
     <File md5="F772E5C5B3C34261AE26BAD47E06B448" import="1">Assets/UI/esp_thief_framedicon45.dds</File>
+    <File md5="F772E5C5B3C34261AE26BAD47E06B448" import="1">Assets/UI/ExtraTechIcons_45.dds</File>
     <File md5="F037A017F539633C0597FCE25DD651A3" import="1">Assets/UI/GreatWorks_Artifact.dds</File>
     <File md5="CBDC1130121DA9DB2179D2C0E547332B" import="1">Assets/UI/locked_artist.dds</File>
     <File md5="1DDC5F0B9E79488B3E542E5D23AFA1D1" import="1">Assets/UI/locked_engineer.dds</File>
