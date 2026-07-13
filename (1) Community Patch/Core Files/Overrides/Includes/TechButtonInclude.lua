@@ -17,6 +17,35 @@ local GetCivsFromTrait = VP.GetCivsFromTrait;
 local IconHookupOrDefault = VP.IconHookupOrDefault;
 local CustomModOptionEnabled = CPK.Misc.CustomModOptionEnabled;
 
+-- Improvements that should use a fixed, hand-picked icon from TREE_ICONS_ATLAS
+local tTreeIconOverrides = {
+	IMPROVEMENT_FARM             = 7,
+	IMPROVEMENT_MINE             = 8,
+	IMPROVEMENT_QUARRY           = 10,
+	IMPROVEMENT_TRADING_POST     = 19,
+	IMPROVEMENT_LUMBERMILL       = 12,
+	IMPROVEMENT_PASTURE          = 13,
+	IMPROVEMENT_FISHING_BOATS    = 18,
+	IMPROVEMENT_PLANTATION       = 11,
+	IMPROVEMENT_CAMP             = 15,
+	IMPROVEMENT_WELL             = 16,
+	IMPROVEMENT_OFFSHORE_PLATFORM = 17,
+	IMPROVEMENT_FORT             = 14,
+	IMPROVEMENT_LANDMARK         = 21,
+	IMPROVEMENT_ACADEMY          = 9,
+	IMPROVEMENT_CUSTOMS_HOUSE    = 23,
+	IMPROVEMENT_MANUFACTORY      = 22,
+	IMPROVEMENT_CITADEL          = 20,
+	IMPROVEMENT_TERRACE_FARM     = 4,
+	IMPROVEMENT_MOAI             = 5,
+	IMPROVEMENT_HOLY_SITE        = 28,
+	IMPROVEMENT_POLDER           = 6,
+	IMPROVEMENT_BRAZILWOOD_CAMP  = 26,
+	IMPROVEMENT_KASBAH           = 24,
+	IMPROVEMENT_FEITORIA         = 25,
+	IMPROVEMENT_CHATEAU          = 27,
+};
+
 -- VP/bal: gamespeed is currently only used to calculate chop yields, possibly can be applied in other places too
 -- Assume forest and jungle have the same base chop production
 local iBuildPercent = GameInfo.GameSpeeds[Game.GetGameSpeedType()].BuildPercent;
@@ -174,7 +203,7 @@ function AddSmallButtonsToTechButton(buttonStack, kTechInfo, iButtonCount, iText
 	local function SetCommonButtonProperties(button, bRClick, iIconIndex, strAtlas, strButtonText)
 		IconHookupOrDefault(iIconIndex, iTextureSize, strAtlas, button);
 		if strButtonText and strButtonText ~= "" then
-			button:GetTextControl():SetOffsetY(iTextureSize / 3);
+			button:GetTextControl():SetOffsetVal(iTextureSize * (8/45), iTextureSize * (8/45));
 			button:GetTextControl():SetAlpha(0.8);
 			button:SetText(strButtonText);
 		else
@@ -285,7 +314,7 @@ function AddSmallButtonsToTechButton(buttonStack, kTechInfo, iButtonCount, iText
 			tPediaSearchStrings[tostring(button)] = GameInfo.Routes[kBuildInfo.RouteType].Description;
 		elseif kBuildInfo.ImprovementType then
 			local kImprovementInfo = GameInfo.Improvements[kBuildInfo.ImprovementType];
-			strTooltip = strCustomTooltip or GetHelpTextForImprovement(kImprovementInfo.ID, false, false);
+			strTooltip = strCustomTooltip or L(kBuildInfo.Description);
 			tPediaSearchStrings[tostring(button)] = kImprovementInfo.Description;
 		else -- we are a choppy thing
 			strTooltip = strCustomTooltip or L(kBuildInfo.Description);
@@ -538,7 +567,7 @@ function AddSmallButtonsToTechButton(buttonStack, kTechInfo, iButtonCount, iText
 	end
 
 	if kTechInfo.BridgeBuilding then
-		GenerateNextButtonCustom(L("TXT_KEY_ALLOWS_BRIDGES"), "UNIT_ACTION_ATLAS", 15);
+		GenerateNextButtonCustom(L("TXT_KEY_ALLOWS_BRIDGES"), "UNIT_ACTION_ATLAS", 58);
 		if iButtonIndex > iButtonCount then return iButtonCount end
 	end
 
@@ -578,9 +607,7 @@ function AddSmallButtonsToTechButton(buttonStack, kTechInfo, iButtonCount, iText
 	end
 
 	if kTechInfo.InternationalTradeRoutesChange ~= 0 then
-		local strTooltip = GetSignedTooltip("TXT_KEY_TECH_HELP_EXTRA_TRADE_ROUTES", kTechInfo.InternationalTradeRoutesChange);
-		local strText = L("TXT_KEY_TECH_HELP_NUMBER_CHANGE", kTechInfo.InternationalTradeRoutesChange);
-		GenerateNextButtonFromInfo(SetupGenericButton, GameInfo.Missions.MISSION_ESTABLISH_TRADE_ROUTE, strTooltip, strText, true);
+		GenerateNextButtonCustom(GetSignedTooltip("TXT_KEY_TECH_HELP_EXTRA_TRADE_ROUTES", kTechInfo.InternationalTradeRoutesChange), "UNIT_ACTION_ATLAS_TRADE", 0);
 		if iButtonIndex > iButtonCount then return iButtonCount end
 	end
 
@@ -677,10 +704,16 @@ function AddSmallButtonsToTechButton(buttonStack, kTechInfo, iButtonCount, iText
 		if CanPlayerEverBuildImprovementCached(eImprovement) then
 			local strButtonText, strYieldBoosts = GetYieldBoostsString(tYieldBoosts);
 			local strTooltip = L("TXT_KEY_TECH_HELP_IMPROVEMENT_BOOST", kImprovementInfo.Description, strYieldBoosts);
-			local kBuildInfo = GameInfo.Builds{ImprovementType = kImprovementInfo.Type}();
-			if kBuildInfo then
-				GenerateNextButtonFromInfo(SetupBuildButton, kBuildInfo, strTooltip, strButtonText);
+			local iTreeIcon = tTreeIconOverrides[kImprovementInfo.Type];
+			if iTreeIcon then
+				GenerateNextButtonCustom(strTooltip, "TREE_ICONS_ATLAS", iTreeIcon, strButtonText);
 				if iButtonIndex > iButtonCount then return iButtonCount end
+			else
+				local kBuildInfo = GameInfo.Builds{ImprovementType = kImprovementInfo.Type}();
+				if kBuildInfo then
+					GenerateNextButtonFromInfo(SetupBuildButton, kBuildInfo, strTooltip, strButtonText);
+					if iButtonIndex > iButtonCount then return iButtonCount end
+				end
 			end
 		end
 	end
@@ -690,10 +723,16 @@ function AddSmallButtonsToTechButton(buttonStack, kTechInfo, iButtonCount, iText
 		if CanPlayerEverBuildImprovementCached(eImprovement) then
 			local strButtonText, strYieldBoosts = GetYieldBoostsString(tYieldBoosts);
 			local strTooltip = L("TXT_KEY_TECH_HELP_IMPROVEMENT_BOOST_FRESH_WATER", kImprovementInfo.Description, strYieldBoosts);
-			local kBuildInfo = GameInfo.Builds{ImprovementType = kImprovementInfo.Type}();
-			if kBuildInfo then
-				GenerateNextButtonFromInfo(SetupBuildButton, kBuildInfo, strTooltip, strButtonText);
+			local iTreeIcon = tTreeIconOverrides[kImprovementInfo.Type];
+			if iTreeIcon then
+				GenerateNextButtonCustom(strTooltip, "TREE_ICONS_ATLAS", iTreeIcon, strButtonText);
 				if iButtonIndex > iButtonCount then return iButtonCount end
+			else
+				local kBuildInfo = GameInfo.Builds{ImprovementType = kImprovementInfo.Type}();
+				if kBuildInfo then
+					GenerateNextButtonFromInfo(SetupBuildButton, kBuildInfo, strTooltip, strButtonText);
+					if iButtonIndex > iButtonCount then return iButtonCount end
+				end
 			end
 		end
 	end
@@ -703,10 +742,16 @@ function AddSmallButtonsToTechButton(buttonStack, kTechInfo, iButtonCount, iText
 		if CanPlayerEverBuildImprovementCached(eImprovement) then
 			local strButtonText, strYieldBoosts = GetYieldBoostsString(tYieldBoosts);
 			local strTooltip = L("TXT_KEY_TECH_HELP_IMPROVEMENT_BOOST_NO_FRESH_WATER", kImprovementInfo.Description, strYieldBoosts);
-			local kBuildInfo = GameInfo.Builds{ImprovementType = kImprovementInfo.Type}();
-			if kBuildInfo then
-				GenerateNextButtonFromInfo(SetupBuildButton, kBuildInfo, strTooltip, strButtonText);
+			local iTreeIcon = tTreeIconOverrides[kImprovementInfo.Type];
+			if iTreeIcon then
+				GenerateNextButtonCustom(strTooltip, "TREE_ICONS_ATLAS", iTreeIcon, strButtonText);
 				if iButtonIndex > iButtonCount then return iButtonCount end
+			else
+				local kBuildInfo = GameInfo.Builds{ImprovementType = kImprovementInfo.Type}();
+				if kBuildInfo then
+					GenerateNextButtonFromInfo(SetupBuildButton, kBuildInfo, strTooltip, strButtonText);
+					if iButtonIndex > iButtonCount then return iButtonCount end
+				end
 			end
 		end
 	end
