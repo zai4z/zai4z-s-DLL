@@ -59,6 +59,10 @@ UPDATE Language_en_US
 SET Text = 'Leads To:'
 WHERE Tag = 'TXT_KEY_TECH_HELP_LEADS_TO';
 
+UPDATE Language_en_US
+SET Text = 'Reveals the entire map & all foreign city plots remain permanently visible'
+WHERE Tag = 'TXT_KEY_REVEALS_ENTIRE_MAP';
+
 ------------------------------------------------
 -- Civilopedia
 ------------------------------------------------

@@ -402,6 +402,9 @@ public:
 	bool HasTechForWorldCongress() const;
 	void SetHasTechForWorldCongress(bool bValue);
 
+	bool HasTechForCityVisibility() const;
+	void SetHasTechForCityVisibility(bool bValue);
+
 	EraTypes GetCurrentEra() const;
 	void SetCurrentEra(EraTypes eNewValue);
 
@@ -537,6 +540,8 @@ protected:
 
 	bool m_bMapCentering;
 	bool m_bHasTechForWorldCongress;
+
+	bool m_bHasTechForCityVisibility;
 
 	bool m_bCanBuildOceanCrossingUnit;
 

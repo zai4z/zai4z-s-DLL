@@ -6,7 +6,7 @@ include("InfoTooltipInclude");
 include("VPUI_core");
 include("CPK.lua");
 
-local bResearchAgreements = Game.IsOption("GAMEOPTION_RESEARCH_AGREEMENTS");
+local bNoResearchAgreements = Game.IsOption("GAMEOPTION_NO_RESEARCH_AGREEMENTS");
 local bNoTechTrading = Game.IsOption("GAMEOPTION_NO_TECH_TRADING");
 local bNoVassalage = Game.IsOption("GAMEOPTION_NO_VASSALAGE");
 
@@ -556,8 +556,8 @@ function AddSmallButtonsToTechButton(buttonStack, kTechInfo, iButtonCount, iText
 		if iButtonIndex > iButtonCount then return iButtonCount end
 	end
 
-	if kTechInfo.ResearchAgreementTradingAllowed and bResearchAgreements then
-		GenerateNextButtonCustom(L("TXT_KEY_ALLOWS_RESEARCH_AGREEMENTS"));
+	if kTechInfo.ResearchAgreementTradingAllowed and not bNoResearchAgreements then
+		GenerateNextButtonCustom(L("TXT_KEY_ALLOWS_RESEARCH_AGREEMENTS"), "UNIT_ACTION_ATLAS", 50);
 		if iButtonIndex > iButtonCount then return iButtonCount end
 	end
 

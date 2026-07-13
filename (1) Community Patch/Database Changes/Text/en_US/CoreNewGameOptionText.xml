@@ -1,6 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <GameData>
 	<Language_en_US>
+		<Row Tag="TXT_KEY_GAME_OPTION_NO_RESEARCH_AGREEMENTS">
+			<Text>No Research Agreements</Text>
+		</Row>
+		<Row Tag="TXT_KEY_GAME_OPTION_NO_RESEARCH_AGREEMENTS_HELP">
+			<Text>If enabled, you can no longer sign Research Agreements with other civilizations.</Text>
+		</Row>
+
 		<Row Tag="TXT_KEY_GAME_OPTION_BARB_GG_GA_POINTS">
 			<Text>Barbarian GG/GA Points</Text>
 		</Row>

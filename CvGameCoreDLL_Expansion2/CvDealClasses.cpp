@@ -827,7 +827,7 @@ bool CvDeal::IsPossibleToTradeItem(PlayerTypes ePlayer, PlayerTypes eToPlayer, T
 				return false;
 
 			// Research agreements aren't enabled
-			if (MOD_BALANCE_VP && !GC.getGame().isOption(GAMEOPTION_RESEARCH_AGREEMENTS))
+			if (GC.getGame().isOption(GAMEOPTION_NO_RESEARCH_AGREEMENTS))
 				return false;
 
 			// Neither of us yet has the Tech for RA
@@ -2051,7 +2051,7 @@ CvString CvDeal::GetReasonsItemUntradeable(PlayerTypes ePlayer, PlayerTypes eToP
 				return strError;
 
 			// Research agreements aren't enabled
-			if (MOD_BALANCE_VP && !GC.getGame().isOption(GAMEOPTION_RESEARCH_AGREEMENTS))
+			if (GC.getGame().isOption(GAMEOPTION_NO_RESEARCH_AGREEMENTS))
 				return strError;
 
 			// We already have a Research Agreement! To-do: Renew Research Agreement deals?

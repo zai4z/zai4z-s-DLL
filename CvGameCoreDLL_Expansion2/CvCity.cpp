@@ -660,6 +660,11 @@ void CvCity::init(int iID, PlayerTypes eOwner, int iX, int iY, bool bBumpUnits, 
 			{
 				setRevealed(((TeamTypes)iI), true);
 			}
+
+			if (GET_TEAM((TeamTypes)iI).HasTechForCityVisibility() && getTeam() != (TeamTypes)iI)
+			{
+				pPlot->changeVisibilityCount((TeamTypes)iI, 1, NO_INVISIBLE, true, false);
+			}
 		}
 	}
 
@@ -2063,6 +2068,14 @@ void CvCity::PreKill()
 		//but also give back any loaned plots to their original city
 		else if (pLoopPlot->isEffectiveOwner(this))
 			pLoopPlot->setOwningCityOverride(NULL);
+	}
+
+	for (int iTeamLoop = 0; iTeamLoop < MAX_TEAMS; iTeamLoop++)
+	{
+		if (GET_TEAM((TeamTypes)iTeamLoop).isAlive() && GET_TEAM((TeamTypes)iTeamLoop).HasTechForCityVisibility() && getTeam() != (TeamTypes)iTeamLoop)
+		{
+			pPlot->changeVisibilityCount((TeamTypes)iTeamLoop, -1, NO_INVISIBLE, false, false);
+		}
 	}
 
 	pPlot->setIsCity(false, m_iID, getWorkPlotDistance());

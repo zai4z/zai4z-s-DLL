@@ -2,6 +2,11 @@
 <GameData>
 	<GameOptions>
 		<Row>
+			<Type>GAMEOPTION_NO_RESEARCH_AGREEMENTS</Type>
+			<Description>TXT_KEY_GAME_OPTION_NO_RESEARCH_AGREEMENTS</Description>
+			<Help>TXT_KEY_GAME_OPTION_NO_RESEARCH_AGREEMENTS_HELP</Help>
+		</Row>
+		<Row>
 			<Type>GAMEOPTION_BARB_GG_GA_POINTS</Type>
 			<Description>TXT_KEY_GAME_OPTION_BARB_GG_GA_POINTS</Description>
 			<Help>TXT_KEY_GAME_OPTION_BARB_GG_GA_POINTS_HELP</Help>

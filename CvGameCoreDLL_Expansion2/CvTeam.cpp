@@ -201,6 +201,7 @@ void CvTeam::uninit()
 
 	m_bMapCentering = false;
 	m_bHasTechForWorldCongress = false;
+	m_bHasTechForCityVisibility = false;
 	m_bCanBuildOceanCrossingUnit = false;
 
 	m_iVassalageTradingAllowedCount = 0;
@@ -6974,6 +6975,8 @@ void CvTeam::setHasTech(TechTypes eIndex, bool bNewValue, PlayerTypes ePlayer, b
 			{
 				GC.getMap().setRevealedPlots(GetID(), true, true);
 				GC.getMap().updateDeferredFog();
+
+				SetHasTechForCityVisibility(true);
 			}
 
 			DoUpdateBestRoute();
@@ -7820,14 +7823,7 @@ void CvTeam::processTech(TechTypes eTech, int iChange, bool bNoBonus)
 	}
 	if(pTech->IsResearchAgreementTradingAllowed())
 	{
-		if (MOD_BALANCE_VP)
-		{
-			if (GC.getGame().isOption(GAMEOPTION_RESEARCH_AGREEMENTS))
-			{
-				ChangeResearchAgreementTradingAllowedCount(iChange);
-			}
-		}
-		else
+		if (!GC.getGame().isOption(GAMEOPTION_NO_RESEARCH_AGREEMENTS))
 		{
 			ChangeResearchAgreementTradingAllowedCount(iChange);
 		}
@@ -8580,6 +8576,36 @@ void CvTeam::SetHasTechForWorldCongress(bool bValue)
 }
 
 //	--------------------------------------------------------------------------------
+bool CvTeam::HasTechForCityVisibility() const
+{
+	return m_bHasTechForCityVisibility;
+}
+
+//	--------------------------------------------------------------------------------
+void CvTeam::SetHasTechForCityVisibility(bool bValue)
+{
+	if (m_bHasTechForCityVisibility == bValue)
+		return;
+
+	m_bHasTechForCityVisibility = bValue;
+
+	// Backfill: grant permanent vision of every city that already exists on the map.
+	// Future cities are handled in CvCity::init(), and losses in CvCity::PreKill().
+	for (int iPlayer = 0; iPlayer < MAX_PLAYERS; iPlayer++)
+	{
+		CvPlayer& kLoopPlayer = GET_PLAYER((PlayerTypes)iPlayer);
+		if (!kLoopPlayer.isAlive() || kLoopPlayer.getTeam() == GetID())
+			continue;
+
+		int iLoopCity = 0;
+		for (CvCity* pLoopCity = kLoopPlayer.firstCity(&iLoopCity); pLoopCity != NULL; pLoopCity = kLoopPlayer.nextCity(&iLoopCity))
+		{
+			pLoopCity->plot()->changeVisibilityCount(GetID(), bValue ? 1 : -1, NO_INVISIBLE, true, false);
+		}
+	}
+}
+
+//	--------------------------------------------------------------------------------
 /// What Era are we in?
 EraTypes CvTeam::GetCurrentEra() const
 {
@@ -9168,6 +9194,7 @@ void CvTeam::Serialize(Team& team, Visitor& visitor)
 
 	visitor(team.m_bMapCentering);
 	visitor(team.m_bHasTechForWorldCongress);
+	visitor(team.m_bHasTechForCityVisibility);
 
 	visitor(team.m_eID);
 

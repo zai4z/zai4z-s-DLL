@@ -6939,7 +6939,7 @@ int CvDealAI::GetTechValue(TechTypes eTech, bool bFromMe, PlayerTypes eOtherPlay
 
 	if(pkTechInfo->IsResearchAgreementTradingAllowed())
 	{
-		if(GC.getGame().isOption(GAMEOPTION_RESEARCH_AGREEMENTS) && !GC.getGame().isOption(GAMEOPTION_NO_SCIENCE))
+		if(!GC.getGame().isOption(GAMEOPTION_NO_RESEARCH_AGREEMENTS) && !GC.getGame().isOption(GAMEOPTION_NO_SCIENCE))
 		{
 			iTechMod += 2;
 		}
