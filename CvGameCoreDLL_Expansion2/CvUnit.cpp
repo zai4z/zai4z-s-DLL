@@ -20137,6 +20137,14 @@ void CvUnit::setXY(int iX, int iY, bool bGroup, bool bUpdate, bool bShow, bool b
 											kPlayer.DoYieldsFromKill(this, pLoopUnit);
 											kPlayer.DoUnitKilledCombat(this, pLoopUnit->getOwner(), pLoopUnit->getUnitType());
 
+											// grant the attacker a promotion
+											if (!isBarbarian())
+											{
+												PromotionTypes eCapturePromotion = pLoopUnit->getUnitInfo().GetCapturePromotion();
+												if (eCapturePromotion != NO_PROMOTION)
+													setHasPromotion(eCapturePromotion, true);
+											}
+
 											// If we're capturing the unit, we want to delay the capture, else as the unit is converted to our side, it will be the first unit on our
 											// side in the plot and can end up taking over a city, rather than the advancing unit
 											CvUnitCaptureDefinition kCaptureDef;

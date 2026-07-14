@@ -152,6 +152,7 @@ CvUnitEntry::CvUnitEntry(void) :
 	m_iGlobalFaithCooldown(0),
 	m_iLocalFaithCooldown(0),
 	m_iFriendlyLandsPromotion(NO_PROMOTION),
+	m_iCapturePromotion(NO_PROMOTION),
 	m_iCostScalerNumBuilt(0),
 	m_piPrereqAndTechs(NULL),
 	m_piResourceQuantityRequirements(NULL),
@@ -364,6 +365,9 @@ bool CvUnitEntry::CacheResults(Database::Results& kResults, CvDatabaseUtility& k
 
 	szTextVal = kResults.GetText("FriendlyLandsPromotion");
 	m_iFriendlyLandsPromotion = (PromotionTypes)GC.getInfoTypeForString(szTextVal, true);
+
+	szTextVal = kResults.GetText("CapturePromotion");
+	m_iCapturePromotion = (PromotionTypes)GC.getInfoTypeForString(szTextVal, true);
 
 	m_bIsMounted = kResults.GetBool("IsMounted");
 
@@ -1689,6 +1693,10 @@ int CvUnitEntry::GetLocalFaithCooldown() const
 PromotionTypes CvUnitEntry::GetFriendlyLandsPromotion() const
 {
 	return (PromotionTypes)m_iFriendlyLandsPromotion;
+}
+PromotionTypes CvUnitEntry::GetCapturePromotion() const
+{
+	return (PromotionTypes)m_iCapturePromotion;
 }
 /// What flag icon to use
 int CvUnitEntry::GetUnitFlagIconOffset() const

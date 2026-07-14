@@ -8,6 +8,9 @@ ALTER TABLE Units ADD ProtectedTrade boolean DEFAULT 0;
 -- Also allows the unit to build the unique improvement of the original owner (if it has a work rate)
 ALTER TABLE Units ADD CaptureOriginal text REFERENCES UnitClasses(Type);
 
+-- Units capturing this civilian unit gain this promotion
+ALTER TABLE Units ADD CapturePromotion text REFERENCES UnitPromotions (Type);
+
 ALTER TABLE Units ADD CargoCombat integer DEFAULT 0;
 
 -- Adds ability for units to have max HP values other than 100 (whoward)
