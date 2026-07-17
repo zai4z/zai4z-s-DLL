@@ -1,6 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <GameData>
 	<Language_en_US>
+		<Row Tag="TXT_KEY_GAME_OPTION_NO_ICE">
+			<Text>No Ice</Text>
+		</Row>
+		<Row Tag="TXT_KEY_GAME_OPTION_NO_ICE_HELP">
+			<Text>Completely removes ice from maps.</Text>
+		</Row>
+
 		<Row Tag="TXT_KEY_GAME_OPTION_NO_RESEARCH_AGREEMENTS">
 			<Text>No Research Agreements</Text>
 		</Row>

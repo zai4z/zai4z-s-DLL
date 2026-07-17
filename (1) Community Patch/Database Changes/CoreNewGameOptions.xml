@@ -2,6 +2,11 @@
 <GameData>
 	<GameOptions>
 		<Row>
+			<Type>GAMEOPTION_NO_ICE</Type>
+			<Description>TXT_KEY_GAME_OPTION_NO_ICE</Description>
+			<Help>TXT_KEY_GAME_OPTION_NO_ICE_HELP</Help>
+		</Row>
+		<Row>
 			<Type>GAMEOPTION_NO_RESEARCH_AGREEMENTS</Type>
 			<Description>TXT_KEY_GAME_OPTION_NO_RESEARCH_AGREEMENTS</Description>
 			<Help>TXT_KEY_GAME_OPTION_NO_RESEARCH_AGREEMENTS_HELP</Help>

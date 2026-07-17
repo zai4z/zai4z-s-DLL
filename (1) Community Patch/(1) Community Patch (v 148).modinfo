@@ -496,6 +496,7 @@
     <File md5="C10F916FF1CD06DB8235408C1AAE097E" import="1">Core Files/Overrides/YieldIconManager.xml</File>
     <File md5="AA9CB9B8678EFAD4FEBB780B24385C24" import="1">Core Files/Overrides/Includes/AssignStartingPlots.lua</File>
     <File md5="C83F24B1D14DA36D5F7E4CFB028A0F9A" import="1">Core Files/Overrides/Includes/Bombardment.lua</File>
+    <File md5="C83F24B1D14DA36D5F7E4CFB028A0F9A" import="1">Core Files/Overrides/Includes/FeatureGenerator.lua</File>
     <File md5="046321E3A421CB0435609E82E0BBFEEA" import="1">Core Files/Overrides/Includes/InfoTooltipInclude.lua</File>
     <File md5="F82D4290936952EACB989B91E36F79C6" import="1">Core Files/Overrides/Includes/MapGenerator.lua</File>
     <File md5="6E5415146E12898C7FF1A4F6D6D036B9" import="1">Core Files/Overrides/Includes/TechButtonInclude.lua</File>
