@@ -123,6 +123,9 @@ function AssignStartingPlots.Create()
 		-- Choose Locations member methods
 		MeasureTerrainInRegions = AssignStartingPlots.MeasureTerrainInRegions,
 		DetermineRegionTypes = AssignStartingPlots.DetermineRegionTypes,
+		DetermineMountainAndSnowRegions = AssignStartingPlots.DetermineMountainAndSnowRegions,
+		AssignSpecialRegionFavorTypes = AssignStartingPlots.AssignSpecialRegionFavorTypes,
+		CountFavoredTerrainNearby = AssignStartingPlots.CountFavoredTerrainNearby,
 		PlaceImpactAndRipples = AssignStartingPlots.PlaceImpactAndRipples,
 		MeasureSinglePlot = AssignStartingPlots.MeasureSinglePlot,
 		EvaluateCandidatePlot = AssignStartingPlots.EvaluateCandidatePlot,
@@ -170,6 +173,7 @@ function AssignStartingPlots.Create()
 		GetLuxuriesSplitCap = AssignStartingPlots.GetLuxuriesSplitCap,		-- New for Expansion, because we have more luxuries now.
 		GetCityStateLuxuriesTargetNumber = AssignStartingPlots.GetCityStateLuxuriesTargetNumber,	-- New for Expansion
 		GetDisabledLuxuriesTargetNumber = AssignStartingPlots.GetDisabledLuxuriesTargetNumber,
+		GetCityStateBonusFromDisabledTargetNumber = AssignStartingPlots.GetCityStateBonusFromDisabledTargetNumber,
 		AssignLuxuryRoles = AssignStartingPlots.AssignLuxuryRoles,
 		GetListOfAllowableLuxuriesAtCitySite = AssignStartingPlots.GetListOfAllowableLuxuriesAtCitySite,
 		GenerateLuxuryPlotListsAtCitySite = AssignStartingPlots.GenerateLuxuryPlotListsAtCitySite, -- Also doubles as Ice Removal.
@@ -201,6 +205,9 @@ function AssignStartingPlots.Create()
 		regionData = {},				-- Stores data returned from regional division algorithm
 		regionTerrainCounts = {},		-- Stores counts of terrain elements for all regions
 		regionTypes = {},				-- Stores region types
+		regionMountainRatio = {},		-- Stores each region's Peaks-tiles-to-land ratio
+		regionSnowRatio = {},			-- Stores each region's Snow-tiles-to-land ratio
+		regionFavorType = {},			-- Stores "mountain"/"snow"/nil per region: reserved to satisfy that start bias
 		distanceData = table.fill(0, iW * iH), -- Stores "impact and ripple" data of start points as each is placed
 		playerCollisionData = table.fill(false, iW * iH), -- Stores "impact" data only, of start points, to avoid player collisions
 		startLocationConditions = {},   -- Stores info regarding conditions at each start location
@@ -1935,6 +1942,169 @@ function AssignStartingPlots:DetermineRegionTypes()
 	end
 end
 ------------------------------------------------------------------------------
+function AssignStartingPlots:DetermineMountainAndSnowRegions()
+	-- Determines, for each region, how mountainous or snowy it is, expressed as
+	-- a ratio of Peaks (or flat Snow) tiles to the region's land area (areaPlots).
+	-- This is a whole-region density measurement, not a check of what is
+	-- adjacent to any one plot, so that a Prefer Mountain / Prefer Snow bias
+	-- reflects starting somewhere in a genuinely mountainous or snowy area,
+	-- not merely next to a single stray peak or patch of snow.
+	--
+	-- No threshold here: AssignSpecialRegionFavorTypes always reserves whichever
+	-- region(s) have the highest ratio, so there is nothing to gate on.
+	self.regionMountainRatio = {};
+	self.regionSnowRatio = {};
+
+	for this_region, terrainCounts in ipairs(self.regionTerrainCounts) do
+		local areaPlots = terrainCounts[2];
+		local flatlandsCount = terrainCounts[4];
+		local hillsCount = terrainCounts[5];
+		local peaksCount = terrainCounts[6];
+		local snowCount = terrainCounts[15];
+		-- With Rectangular regional division (method 3/4), areaPlots as stored
+		-- includes water tiles, same issue DetermineRegionTypes corrects for.
+		-- Recalculate here too, or every ratio below would be diluted by ocean tiles.
+		if self.method == 3 or self.method == 4 then
+			areaPlots = flatlandsCount + hillsCount;
+		end
+		local mountainRatio, snowRatio = 0, 0;
+		if areaPlots > 0 then
+			mountainRatio = peaksCount / areaPlots;
+			snowRatio = snowCount / areaPlots;
+		end
+		self.regionMountainRatio[this_region] = mountainRatio;
+		self.regionSnowRatio[this_region] = snowRatio;
+	end
+end
+------------------------------------------------------------------------------
+function AssignStartingPlots:AssignSpecialRegionFavorTypes()
+	-- If any active civ has an entry in Civilization_Start_Prefer_Snow or
+	-- Civilization_Start_Prefer_Mountain, reserve the region(s) with the highest
+	-- Snow / Mountain ratio for that need now, before any region's exact start
+	-- plot has been chosen. FindStart will use alternate scoring (see
+	-- MeasureSinglePlot) for whichever regions get reserved here. Every other
+	-- region is completely unaffected, and if no civ needs either bias, this
+	-- function does nothing at all.
+	--
+	-- There is no threshold: we always take the region(s) with the highest
+	-- ratio, even if that ratio is low, since a Snow/Mountain-preferring civ
+	-- getting the best available option is strictly better than getting none.
+	-- The only thing that blocks a reservation is a ratio of exactly 0 -- if a
+	-- region has no Snow/Peaks tiles at all, there is nothing to favor it for.
+	self.regionFavorType = {};
+
+	local iNumSnowCivsNeeded, iNumMountainCivsNeeded = 0, 0;
+	for loop = 1, self.iNumCivs do
+		local playerNum = self.player_ID_list[loop];
+		local player = Players[playerNum];
+		local civType = GameInfo.Civilizations[player:GetCivilizationType()].Type;
+		if CivPrefersSnowStart(civType) then
+			iNumSnowCivsNeeded = iNumSnowCivsNeeded + 1;
+		end
+		if CivPrefersMountainStart(civType) then
+			iNumMountainCivsNeeded = iNumMountainCivsNeeded + 1;
+		end
+	end
+
+	if iNumSnowCivsNeeded == 0 and iNumMountainCivsNeeded == 0 then
+		return
+	end
+
+	local iNumRegions = table.maxn(self.regionData);
+
+	-- Reserve the snowiest regions first: Snow outranks Mountain in the start
+	-- bias hierarchy, so it gets first pick of the best terrain.
+	if iNumSnowCivsNeeded > 0 then
+		local candidates = {};
+		for this_region = 1, iNumRegions do
+			if self.regionSnowRatio[this_region] > 0 then
+				table.insert(candidates, this_region);
+			end
+		end
+		table.sort(candidates, function(a, b) return self.regionSnowRatio[a] > self.regionSnowRatio[b] end);
+		for i = 1, math.min(iNumSnowCivsNeeded, table.maxn(candidates)) do
+			self.regionFavorType[candidates[i]] = "snow";
+			print("Start Bias: Region#", candidates[i], "reserved for Snow, ratio:", self.regionSnowRatio[candidates[i]]);
+		end
+		if table.maxn(candidates) < iNumSnowCivsNeeded then
+			print("Start Bias WARNING:", iNumSnowCivsNeeded - table.maxn(candidates), "Civ(s) prefer a Snow start but this map has zero Snow tiles in any available region.");
+		end
+	end
+
+	-- Reserve the most mountainous regions next, from whatever regions the
+	-- Snow reservation above did not already claim.
+	if iNumMountainCivsNeeded > 0 then
+		local candidates = {};
+		for this_region = 1, iNumRegions do
+			if self.regionMountainRatio[this_region] > 0 and self.regionFavorType[this_region] == nil then
+				table.insert(candidates, this_region);
+			end
+		end
+		table.sort(candidates, function(a, b) return self.regionMountainRatio[a] > self.regionMountainRatio[b] end);
+		for i = 1, math.min(iNumMountainCivsNeeded, table.maxn(candidates)) do
+			self.regionFavorType[candidates[i]] = "mountain";
+			print("Start Bias: Region#", candidates[i], "reserved for Mountain, ratio:", self.regionMountainRatio[candidates[i]]);
+		end
+		if table.maxn(candidates) < iNumMountainCivsNeeded then
+			print("Start Bias WARNING:", iNumMountainCivsNeeded - table.maxn(candidates), "Civ(s) prefer a Mountain start but this map has zero Peaks in any available region.");
+		end
+	end
+end
+------------------------------------------------------------------------------
+function AssignStartingPlots:CountFavoredTerrainNearby(x, y, favorType)
+	-- Counts how many tiles within the first two rings around (x,y) are
+	-- actually Snow terrain (favorType == "snow") or Mountain plots
+	-- (favorType == "mountain"). Used as a proximity filter in FindStart's
+	-- flat-pool selection for Snow/Mountain-reserved regions: scoring parity
+	-- alone (see MeasureSinglePlot) is not enough to make the algorithm
+	-- prefer a spot near a modest amount of favored terrain over a spot with
+	-- abundant ordinary good terrain elsewhere in a large region, so this
+	-- filters candidates down to plots genuinely close to the favored terrain
+	-- before that scoring competition happens.
+	local iW, iH = Map.GetGridSize();
+	local wrapX = Map.IsWrapX();
+	local wrapY = Map.IsWrapY();
+	local isEvenY = true;
+	if y / 2 > math.floor(y / 2) then
+		isEvenY = false;
+	end
+	local iCount = 0;
+
+	for ringLoop = 1, 2 do
+		local search_table;
+		if ringLoop == 1 then
+			search_table = isEvenY and self.firstRingYIsEven or self.firstRingYIsOdd;
+		else
+			search_table = isEvenY and self.secondRingYIsEven or self.secondRingYIsOdd;
+		end
+		for loop, plot_adjustments in ipairs(search_table) do
+			local searchX, searchY;
+			if wrapX then
+				searchX = (x + plot_adjustments[1]) % iW;
+			else
+				searchX = x + plot_adjustments[1];
+			end
+			if wrapY then
+				searchY = (y + plot_adjustments[2]) % iH;
+			else
+				searchY = y + plot_adjustments[2];
+			end
+			if searchX >= 0 and searchX < iW and searchY >= 0 and searchY < iH then
+				local searchPlot = Map.GetPlot(searchX, searchY);
+				if searchPlot then
+					if favorType == "snow" and searchPlot:GetTerrainType() == TerrainTypes.TERRAIN_SNOW then
+						iCount = iCount + 1;
+					elseif favorType == "mountain" and searchPlot:GetPlotType() == PlotTypes.PLOT_MOUNTAIN then
+						iCount = iCount + 1;
+					end
+				end
+			end
+		end
+	end
+
+	return iCount
+end
+------------------------------------------------------------------------------
 function AssignStartingPlots:PlaceImpactAndRipples(x, y)
 	-- This function operates upon the "impact and ripple" data overlays. This
 	-- is the core version, which operates on start points. Resources and city 
@@ -2049,7 +2219,7 @@ function AssignStartingPlots:PlaceImpactAndRipples(x, y)
 	end
 end
 ------------------------------------------------------------------------------
-function AssignStartingPlots:MeasureSinglePlot(x, y, region_type)
+function AssignStartingPlots:MeasureSinglePlot(x, y, region_type, favorType)
 	local data = table.fill(false, 4);
 	-- Note that "Food" is not strictly about tile yield.
 	-- Different regions get their food in different ways.
@@ -2061,13 +2231,26 @@ function AssignStartingPlots:MeasureSinglePlot(x, y, region_type)
 	-- [2] "Prod"
 	-- [3] "Good"
 	-- [4] "Junk"
+	--
+	-- favorType is an optional string, "mountain" or "snow", passed down from
+	-- FindStart when this region has been reserved to satisfy a Civilization
+	-- Start Prefer Mountain / Prefer Snow bias. When set, the corresponding
+	-- terrain below is treated as neutral (ignored) instead of Junk, so a
+	-- candidate site deep in a mountainous or snowy region isn't penalized
+	-- just for having that terrain nearby. It is never treated as Food/Good,
+	-- since we don't want to actively steer the exact founding tile onto or
+	-- against that terrain -- only stop punishing proximity to it.
 	local iW, iH = Map.GetGridSize();
 	local plot = Map.GetPlot(x, y);
 	local plotType = plot:GetPlotType()
 	local terrainType = plot:GetTerrainType()
 	local featureType = plot:GetFeatureType()
 	
-	if plotType == PlotTypes.PLOT_MOUNTAIN then -- Mountains are Junk.
+	if plotType == PlotTypes.PLOT_MOUNTAIN then -- Mountains are Junk, unless this region is reserved for Mountain start bias -- then a slight Good.
+		if favorType == "mountain" then
+			data[3] = true;
+			return data
+		end
 		data[4] = true;
 		return data
 	elseif plotType == PlotTypes.PLOT_OCEAN then
@@ -2122,7 +2305,12 @@ function AssignStartingPlots:MeasureSinglePlot(x, y, region_type)
 	end
 	
 	-- If we have reached this point in the process, the plot is flatlands.
-	if terrainType == TerrainTypes.TERRAIN_SNOW then -- Snow are Junk.
+	if terrainType == TerrainTypes.TERRAIN_SNOW then -- Snow are Junk, unless this region is reserved for Snow start bias -- then Food, Good.
+		if favorType == "snow" then
+			data[1] = true;
+			data[3] = true;
+			return data
+		end
 		data[4] = true;
 		return data
 		
@@ -2159,7 +2347,7 @@ function AssignStartingPlots:MeasureSinglePlot(x, y, region_type)
 	return data
 end
 ------------------------------------------------------------------------------
-function AssignStartingPlots:EvaluateCandidatePlot(plotIndex, region_type)
+function AssignStartingPlots:EvaluateCandidatePlot(plotIndex, region_type, favorType)
 	local goodSoFar = true;
 	local iW, iH = Map.GetGridSize();
 	local x = (plotIndex - 1) % iW;
@@ -2204,7 +2392,7 @@ function AssignStartingPlots:EvaluateCandidatePlot(plotIndex, region_type)
 			-- This plot does not exist. It's off the map edge.
 			junkTotal = junkTotal + 1;
 		else
-			local result = self:MeasureSinglePlot(searchX, searchY, region_type)
+			local result = self:MeasureSinglePlot(searchX, searchY, region_type, favorType)
 			if result[4] then
 				junkTotal = junkTotal + 1;
 			else
@@ -2265,7 +2453,7 @@ function AssignStartingPlots:EvaluateCandidatePlot(plotIndex, region_type)
 			-- This plot does not exist. It's off the map edge.
 			junkTotal = junkTotal + 1;
 		else
-			local result = self:MeasureSinglePlot(searchX, searchY, region_type)
+			local result = self:MeasureSinglePlot(searchX, searchY, region_type, favorType)
 			if result[4] then
 				junkTotal = junkTotal + 1;
 			else
@@ -2335,7 +2523,7 @@ function AssignStartingPlots:EvaluateCandidatePlot(plotIndex, region_type)
 			-- This plot does not exist. It's off the map edge.
 			junkTotal = junkTotal + 1;
 		else
-			local result = self:MeasureSinglePlot(searchX, searchY, region_type)
+			local result = self:MeasureSinglePlot(searchX, searchY, region_type, favorType)
 			if result[4] then
 				junkTotal = junkTotal + 1;
 			else
@@ -2371,6 +2559,21 @@ function AssignStartingPlots:EvaluateCandidatePlot(plotIndex, region_type)
 	local outerRingScore = foodTotal + prodTotal + goodTotal + riverTotal - (junkTotal * 2);
 	local finalScore = innerRingScore + middleRingScore + outerRingScore + coastScore;
 
+	-- Overwhelming score bonus for Snow/Mountain-reserved regions. The
+	-- Food/Prod/Good/Junk system above can only bring Snow/Mountain up to
+	-- parity with ordinary good terrain (a tile is just marked Food or not --
+	-- Snow-marked-Food can never outscore Grass-marked-Food), which isn't
+	-- enough to pull the choice toward a small patch of favored terrain when
+	-- richer ordinary terrain exists elsewhere in a large region. This bonus
+	-- is large enough to dominate the score outright, so whichever candidate
+	-- is genuinely surrounded by the most Snow (or Peaks) wins by a wide
+	-- margin; ordinary Food/Prod scoring still breaks ties between
+	-- similarly-favored candidates.
+	if favorType then
+		local favoredCount = self:CountFavoredTerrainNearby(x, y, favorType);
+		finalScore = finalScore + (favoredCount * 200);
+	end
+
 	-- Check Impact and Ripple data to see if candidate is near an already-placed start point.
 	if distance_bias > 0 then
 		-- This candidate is near an already placed start. This invalidates its 
@@ -2390,7 +2593,7 @@ function AssignStartingPlots:EvaluateCandidatePlot(plotIndex, region_type)
 	return finalScore, goodSoFar
 end
 ------------------------------------------------------------------------------
-function AssignStartingPlots:IterateThroughCandidatePlotList(plot_list, region_type)
+function AssignStartingPlots:IterateThroughCandidatePlotList(plot_list, region_type, favorType)
 	-- Iterates through a list of candidate plots.
 	-- Each plot is identified by its global plot index.
 	-- This function assumes all candidate plots can have a city built on them.
@@ -2403,7 +2606,7 @@ function AssignStartingPlots:IterateThroughCandidatePlotList(plot_list, region_t
 	local bestFallbackIndex;
 	-- Process list of candidate plots.
 	for loop, plotIndex in ipairs(plot_list) do
-		local score, meets_minimums = self:EvaluateCandidatePlot(plotIndex, region_type)
+		local score, meets_minimums = self:EvaluateCandidatePlot(plotIndex, region_type, favorType)
 		-- Test current plot against best known plot.
 		if meets_minimums == true then
 			found_eligible = true;
@@ -2424,9 +2627,11 @@ function AssignStartingPlots:IterateThroughCandidatePlotList(plot_list, region_t
 	return election_results
 end
 ------------------------------------------------------------------------------
-function AssignStartingPlots:FindStart(region_number)
+function AssignStartingPlots:FindStart(region_number, favorType)
 	-- This function attempts to choose a start position for a single region.
 	-- This function returns two boolean flags, indicating the success level of the operation.
+	-- favorType is an optional string, "mountain" or "snow", set by ChooseLocations when this
+	-- region has been reserved to satisfy a Civilization Start Prefer Mountain / Prefer Snow bias.
 	local bSuccessFlag = false; -- Returns true when a start is placed, false when process fails.
 	local bForcedPlacementFlag = false; -- Returns true if this region had no eligible starts and one was forced to occur.
 	
@@ -2571,6 +2776,56 @@ function AssignStartingPlots:FindStart(region_number)
 	print("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -");
 	]]--
 	
+	if favorType then
+		-- This region is reserved for Snow or Mountain start bias. The normal
+		-- Center / Middle-donut / Outer tiering below stops at the first tier
+		-- with ANY eligible plot, and even within Outer prefers whichever
+		-- eligible plot sits closest to the region's geometric center -- both
+		-- of which structurally prevent ever reaching terrain sitting toward
+		-- a region's edge, which is exactly where Snow or Peaks are likely to
+		-- be concentrated. So for this region only, skip all of that: treat
+		-- every candidate plot in the region as one flat pool and pick
+		-- strictly by score, so the favorable scoring given to Snow/Mountain
+		-- in MeasureSinglePlot actually gets to decide the outcome.
+		local combined_candidates = {};
+		for _, plotIndex in ipairs(center_candidates) do
+			table.insert(combined_candidates, plotIndex);
+		end
+		for _, plotIndex in ipairs(middle_candidates) do
+			table.insert(combined_candidates, plotIndex);
+		end
+		for _, plotIndex in ipairs(outer_plots) do
+			table.insert(combined_candidates, plotIndex);
+		end
+
+		if table.maxn(combined_candidates) > 0 then
+			local election_returns = self:IterateThroughCandidatePlotList(combined_candidates, region_type, favorType)
+			local found_eligible = election_returns[1];
+			if found_eligible then
+				local bestPlotScore = election_returns[2];
+				local bestPlotIndex = election_returns[3];
+				local x = (bestPlotIndex - 1) % iW;
+				local y = (bestPlotIndex - x - 1) / iW;
+				self.startingPlots[region_number] = {x, y, bestPlotScore};
+				self:PlaceImpactAndRipples(x, y)
+				return true, false
+			end
+			local found_fallback = election_returns[4];
+			if found_fallback then
+				local bestFallbackScore = election_returns[5];
+				local bestFallbackIndex = election_returns[6];
+				local x = (bestFallbackIndex - 1) % iW;
+				local y = (bestFallbackIndex - x - 1) / iW;
+				self.startingPlots[region_number] = {x, y, bestFallbackScore};
+				self:PlaceImpactAndRipples(x, y)
+				return true, false
+			end
+		end
+		-- No candidates at all in the entire region (extremely unlikely):
+		-- fall through to the normal logic below, which will end up at the
+		-- same forced-placement last resort this function already has.
+	end
+
 	-- Process lists of candidate plots.
 	if iNumCenter + iNumMiddle > 0 then
 		local candidate_lists = {};
@@ -2594,7 +2849,7 @@ function AssignStartingPlots:FindStart(region_number)
 		end
 		--
 		for loop, plot_list in ipairs(candidate_lists) do -- Up to six plot lists, processed by priority.
-			local election_returns = self:IterateThroughCandidatePlotList(plot_list, region_type)
+			local election_returns = self:IterateThroughCandidatePlotList(plot_list, region_type, favorType)
 			-- If any candidates are eligible, choose one.
 			local found_eligible = election_returns[1];
 			if found_eligible then
@@ -2628,7 +2883,7 @@ function AssignStartingPlots:FindStart(region_number)
 		local bestFallbackIndex;
 		-- Process list of candidate plots.
 		for loop, plotIndex in ipairs(outer_plots) do
-			local score, meets_minimums = self:EvaluateCandidatePlot(plotIndex, region_type)
+			local score, meets_minimums = self:EvaluateCandidatePlot(plotIndex, region_type, favorType)
 			-- Test current plot against best known plot.
 			if meets_minimums == true then
 				found_eligible = true;
@@ -2681,7 +2936,7 @@ function AssignStartingPlots:FindStart(region_number)
 			local x = (closestPlot - 1) % iW;
 			local y = (closestPlot - x - 1) / iW;
 			-- Re-get plot score for inclusion in start plot data.
-			local score, meets_minimums = self:EvaluateCandidatePlot(closestPlot, region_type)
+			local score, meets_minimums = self:EvaluateCandidatePlot(closestPlot, region_type, favorType)
 			-- Assign this plot as the start for this region.
 			self.startingPlots[region_number] = {x, y, score};
 			self:PlaceImpactAndRipples(x, y)
@@ -3260,6 +3515,16 @@ function AssignStartingPlots:ChooseLocations(args)
 	-- Determine region type.
 	self:DetermineRegionTypes()
 
+	-- Determine, per region, whether it is mountainous or snowy enough to satisfy
+	-- a Civilization Start Prefer Mountain / Prefer Snow bias.
+	self:DetermineMountainAndSnowRegions()
+
+	-- If any active civ needs a Mountain or Snow start bias, reserve the best
+	-- qualifying region(s) for that need now, before any region's start plot is
+	-- chosen. This does nothing (and costs nothing extra) in games where no
+	-- civ has an entry in either table.
+	self:AssignSpecialRegionFavorTypes()
+
 	-- Set up list of regions (to be processed in this order).
 	--
 	-- First, make a list of all average fertility values...
@@ -3296,12 +3561,14 @@ function AssignStartingPlots:ChooseLocations(args)
 		local bSuccessFlag = false;
 		local bForcedPlacementFlag = false;
 		
+		local favorType = self.regionFavorType[currentRegionNumber];
+
 		if self.method == 3 or self.method == 4 then
 			bSuccessFlag, bForcedPlacementFlag = self:FindStartWithoutRegardToAreaID(currentRegionNumber, mustBeCoast)
 		elseif mustBeCoast == true then
 			bSuccessFlag, bForcedPlacementFlag = self:FindCoastalStart(currentRegionNumber)
 		else
-			bSuccessFlag, bForcedPlacementFlag = self:FindStart(currentRegionNumber)
+			bSuccessFlag, bForcedPlacementFlag = self:FindStart(currentRegionNumber, favorType)
 		end
 		
 		--[[ Printout for debug only.
@@ -3747,7 +4014,7 @@ function AssignStartingPlots:NormalizeStartLocation(region_number)
 			local featureType = searchPlot:GetFeatureType()
 			--
 			if plotType == PlotTypes.PLOT_MOUNTAIN then
-				local nearMountain = true;
+				nearMountain = true;
 				innerBadTiles = innerBadTiles + 1;
 			elseif plotType == PlotTypes.PLOT_OCEAN then
 				if searchPlot:IsLake() then
@@ -3891,7 +4158,7 @@ function AssignStartingPlots:NormalizeStartLocation(region_number)
 			local featureType = searchPlot:GetFeatureType()
 			--
 			if plotType == PlotTypes.PLOT_MOUNTAIN then
-				local nearMountain = true;
+				nearMountain = true;
 				outerBadTiles = outerBadTiles + 1;
 			elseif plotType == PlotTypes.PLOT_OCEAN then
 				if searchPlot:IsLake() then
@@ -4482,549 +4749,194 @@ function AssignStartingPlots:BalanceAndAssign()
 	end
 	local regions_still_available = GetShuffledCopyOfTable(all_regions)
 
-	local civs_needing_coastal_start = {};
-	local civs_priority_coastal_start = {};
-	local civs_needing_river_start = {};
-	local civs_needing_region_priority = {};
-	local civs_needing_region_avoid = {};
-	local regions_with_coastal_start = {};
-	local regions_with_lake_start = {};
-	local regions_with_river_start = {};
-	local regions_with_near_river_start = {};
 	local civ_status = table.fill(false, GameDefines.MAX_MAJOR_CIVS); -- Have to account for possible gaps in player ID numbers, for MP.
 	local region_status = table.fill(false, self.iNumCivs);
-	local priority_lists = {};
-	local avoid_lists = {};
-	local iNumCoastalCivs, iNumRiverCivs, iNumPriorityCivs, iNumAvoidCivs = 0, 0, 0, 0;
-	local iNumCoastalCivsRemaining, iNumRiverCivsRemaining, iNumPriorityCivsRemaining, iNumAvoidCivsRemaining = 0, 0, 0, 0;
-	
-	--print("-"); print("-"); print("--- DEBUG READOUT OF PLAYER START ASSIGNMENTS ---"); print("-");
-	
-	-- Generate lists of player needs. Each additional need type is subordinate to those
-	-- that come before. In other words, each Civ can have only one need type.
+
+	-- Start Bias rank, highest to lowest. Each civ's bias needs are evaluated
+	-- in this order: its highest-ranked need is tried first (in combination
+	-- with its second need, if it has one), and civs whose highest-ranked
+	-- need is higher in this list get first pick of the available regions.
+	local BIAS_RANK = {"snow", "mountain", "ocean", "avoid", "river", "priority"};
+
+	-- Build each active civ's ranked list of bias needs. A civ may have 0, 1,
+	-- or 2 needs -- if it somehow has entries in more than two of the six
+	-- tables, only the two highest-ranked are used and the rest are ignored,
+	-- extending the original "pick only one" best-practice rule to "pick at
+	-- most two".
+	local civNeeds = {}; -- civNeeds[playerNum] = { {type=..}, {type=..} } -- already rank-ordered
+	local civsByPrimaryNeed = {}; -- civsByPrimaryNeed["snow"] = { playerNum, playerNum, ... }
+	for _, rank_type in ipairs(BIAS_RANK) do
+		civsByPrimaryNeed[rank_type] = {};
+	end
+
 	for loop = 1, self.iNumCivs do
 		local playerNum = self.player_ID_list[loop]; -- MP games can have gaps between player numbers, so we cannot assume a sequential set of IDs.
 		local player = Players[playerNum];
 		local civType = GameInfo.Civilizations[player:GetCivilizationType()].Type;
-		print("Player", playerNum, "of Civ Type", civType);
-		local bNeedsCoastalStart = CivNeedsCoastalStart(civType)
-		if bNeedsCoastalStart == true then
-			print("- - - - - - - needs Coastal Start!"); print("-");
-			iNumCoastalCivs = iNumCoastalCivs + 1;
-			iNumCoastalCivsRemaining = iNumCoastalCivsRemaining + 1;
-			table.insert(civs_needing_coastal_start, playerNum);
-			local bPlaceFirst = CivNeedsPlaceFirstCoastalStart(civType);
-			if bPlaceFirst then
-				print("- - - - - - - needs to Place First!"); print("-");
-				table.insert(civs_priority_coastal_start, playerNum);
+		local needs = {};
+		if CivPrefersSnowStart(civType) then
+			table.insert(needs, {type = "snow"});
+		end
+		if CivPrefersMountainStart(civType) then
+			table.insert(needs, {type = "mountain"});
+		end
+		if CivNeedsCoastalStart(civType) then
+			table.insert(needs, {type = "ocean", placeFirst = CivNeedsPlaceFirstCoastalStart(civType)});
+		end
+		local iNumRegionAvoid = GetNumStartRegionAvoidForCiv(civType);
+		if iNumRegionAvoid > 0 then
+			table.insert(needs, {type = "avoid", list = GetStartRegionAvoidListForCiv_GetIDs(civType)});
+		end
+		if CivNeedsRiverStart(civType) then
+			table.insert(needs, {type = "river"});
+		end
+		local iNumRegionPriority = GetNumStartRegionPriorityForCiv(civType);
+		if iNumRegionPriority > 0 then
+			table.insert(needs, {type = "priority", list = GetStartRegionPriorityListForCiv_GetIDs(civType)});
+		end
+		-- Trim to at most two needs. The needs table above was already built
+		-- in rank order, so trimming from the end keeps the two highest-ranked.
+		while table.maxn(needs) > 2 do
+			table.remove(needs, table.maxn(needs));
+		end
+		if table.maxn(needs) > 0 then
+			civNeeds[playerNum] = needs;
+			table.insert(civsByPrimaryNeed[needs[1].type], playerNum);
+			print("Player", playerNum, "of Civ Type", civType, "- start bias needs:", needs[1].type, needs[2] and needs[2].type or "(none)");
+		end
+	end
+
+	-- Does this region satisfy a single bias need?
+	local function RegionMatchesNeed(region_number, need)
+		if need.type == "snow" then
+			return self.regionFavorType[region_number] == "snow";
+		elseif need.type == "mountain" then
+			return self.regionFavorType[region_number] == "mountain";
+		elseif need.type == "ocean" then
+			return self.startLocationConditions[region_number][1] == true or self.startLocationConditions[region_number][2] == true;
+		elseif need.type == "avoid" then
+			for _, region_type in ipairs(need.list) do
+				if self.regionTypes[region_number] == region_type then
+					return false;
+				end
+			end
+			return true;
+		elseif need.type == "river" then
+			return self.startLocationConditions[region_number][3] == true or self.startLocationConditions[region_number][4] == true;
+		elseif need.type == "priority" then
+			for _, region_type in ipairs(need.list) do
+				if self.regionTypes[region_number] == region_type then
+					return true;
+				end
+			end
+			return false;
+		end
+		return false;
+	end
+
+	-- Returns a randomly chosen still-available region satisfying need1 (and
+	-- need2 too, if provided), or nil if none exists.
+	local function PickRegionMatchingNeeds(need1, need2)
+		local candidates = {};
+		for _, region_number in ipairs(regions_still_available) do
+			if RegionMatchesNeed(region_number, need1) and (need2 == nil or RegionMatchesNeed(region_number, need2)) then
+				table.insert(candidates, region_number);
+			end
+		end
+		if table.maxn(candidates) == 0 then
+			return nil;
+		end
+		local diceroll = 1 + Map.Rand(table.maxn(candidates), "Choosing region for start bias - LUA");
+		return candidates[diceroll];
+	end
+
+	-- Removes a region from the still-available list.
+	local function RemoveAvailableRegion(region_number)
+		for index, avail_region in ipairs(regions_still_available) do
+			if avail_region == region_number then
+				table.remove(regions_still_available, index);
+				break
+			end
+		end
+	end
+
+	-- Attempts a full cascade for one civ: both needs together, then its
+	-- primary need alone, then (if it has one) its secondary need alone.
+	-- Region Priority gets one further fallback when it ends up being the
+	-- sole surviving condition and lists only a single region type: the
+	-- region with the most tiles of that terrain type, same as originally.
+	local function ChooseRegionForCiv(needs)
+		local need1, need2 = needs[1], needs[2];
+		local choose_this_region = nil;
+		if need2 then
+			choose_this_region = PickRegionMatchingNeeds(need1, need2);
+		end
+		if not choose_this_region then
+			choose_this_region = PickRegionMatchingNeeds(need1, nil);
+		end
+		if not choose_this_region and need1.type == "priority" and table.maxn(need1.list) == 1 then
+			local fallback_region = self:FindFallbackForUnmatchedRegionPriority(need1.list[1], regions_still_available);
+			if fallback_region ~= -1 then
+				choose_this_region = fallback_region;
+			end
+		end
+		if not choose_this_region and need2 then
+			choose_this_region = PickRegionMatchingNeeds(need2, nil);
+			if not choose_this_region and need2.type == "priority" and table.maxn(need2.list) == 1 then
+				local fallback_region = self:FindFallbackForUnmatchedRegionPriority(need2.list[1], regions_still_available);
+				if fallback_region ~= -1 then
+					choose_this_region = fallback_region;
+				end
+			end
+		end
+		return choose_this_region;
+	end
+
+	-- Process civs pass by pass, in bias rank order. Within the Ocean pass,
+	-- civs that need to Place First go before other Ocean civs in that same
+	-- pass (same as originally); otherwise civs within a pass are shuffled.
+	for _, rank_type in ipairs(BIAS_RANK) do
+		local pass_civs = civsByPrimaryNeed[rank_type];
+		local ordered_pass_civs;
+		if rank_type == "ocean" then
+			local placeFirst, others = {}, {};
+			for _, playerNum in ipairs(pass_civs) do
+				if civNeeds[playerNum][1].placeFirst then
+					table.insert(placeFirst, playerNum);
+				else
+					table.insert(others, playerNum);
+				end
+			end
+			ordered_pass_civs = {};
+			for _, playerNum in ipairs(GetShuffledCopyOfTable(placeFirst)) do
+				table.insert(ordered_pass_civs, playerNum);
+			end
+			for _, playerNum in ipairs(GetShuffledCopyOfTable(others)) do
+				table.insert(ordered_pass_civs, playerNum);
 			end
 		else
-			local bNeedsRiverStart = CivNeedsRiverStart(civType)
-			if bNeedsRiverStart == true then
-				--print("- - - - - - - needs River Start!"); print("-");
-				iNumRiverCivs = iNumRiverCivs + 1;
-				iNumRiverCivsRemaining = iNumRiverCivsRemaining + 1;
-				table.insert(civs_needing_river_start, playerNum);
-			else
-				local iNumRegionPriority = GetNumStartRegionPriorityForCiv(civType)
-				if iNumRegionPriority > 0 then
-					--print("- - - - - - - needs Region Priority!"); print("-");
-					local table_of_this_civs_priority_needs = GetStartRegionPriorityListForCiv_GetIDs(civType)
-					iNumPriorityCivs = iNumPriorityCivs + 1;
-					iNumPriorityCivsRemaining = iNumPriorityCivsRemaining + 1;
-					table.insert(civs_needing_region_priority, playerNum);
-					priority_lists[playerNum] = table_of_this_civs_priority_needs;
-				else
-					local iNumRegionAvoid = GetNumStartRegionAvoidForCiv(civType)
-					if iNumRegionAvoid > 0 then
-						--print("- - - - - - - needs Region Avoid!"); print("-");
-						local table_of_this_civs_avoid_needs = GetStartRegionAvoidListForCiv_GetIDs(civType)
-						iNumAvoidCivs = iNumAvoidCivs + 1;
-						iNumAvoidCivsRemaining = iNumAvoidCivsRemaining + 1;
-						table.insert(civs_needing_region_avoid, playerNum);
-						avoid_lists[playerNum] = table_of_this_civs_avoid_needs;
-					end
-				end
-			end
+			ordered_pass_civs = GetShuffledCopyOfTable(pass_civs);
 		end
-	end
-	
-	print("Civs with Coastal Bias:", iNumCoastalCivs);
-	print("Civs with River Bias:", iNumRiverCivs);
-	print("Civs with Region Priority:", iNumPriorityCivs);
-	print("Civs with Region Avoid:", iNumAvoidCivs); print("-");
-	
-	-- Handle Coastal Start Bias
-	if iNumCoastalCivs > 0 then
-		-- Generate lists of regions eligible to support a coastal start.
-		local iNumRegionsWithCoastalStart, iNumRegionsWithLakeStart, iNumUnassignableCoastStarts = 0, 0, 0;
-		for region_number, bAlreadyAssigned in ipairs(region_status) do
-			if bAlreadyAssigned == false then
-				if self.startLocationConditions[region_number][1] == true then
-					print("Region#", region_number, "has a Coastal Start.");
-					iNumRegionsWithCoastalStart = iNumRegionsWithCoastalStart + 1;
-					table.insert(regions_with_coastal_start, region_number);
-				end
-			end
-		end
-		if iNumRegionsWithCoastalStart < iNumCoastalCivs then
-			for region_number, bAlreadyAssigned in ipairs(region_status) do
-				if bAlreadyAssigned == false then
-					if self.startLocationConditions[region_number][2] == true and
-					   self.startLocationConditions[region_number][1] == false then
-						print("Region#", region_number, "has a Lake Start.");
-						iNumRegionsWithLakeStart = iNumRegionsWithLakeStart + 1;
-						table.insert(regions_with_lake_start, region_number);
-					end
-				end
-			end
-		end
-		if iNumRegionsWithCoastalStart + iNumRegionsWithLakeStart < iNumCoastalCivs then
-			iNumUnassignableCoastStarts = iNumCoastalCivs - (iNumRegionsWithCoastalStart + iNumRegionsWithLakeStart);
-		end
-		-- Now assign those with coastal bias to start locations, where possible.
-		print("iNumCoastalCivs: " .. iNumCoastalCivs);
-		print("iNumUnassignableCoastStarts: " .. iNumUnassignableCoastStarts);
-		if iNumCoastalCivs - iNumUnassignableCoastStarts > 0 then
-			-- create non-priority coastal start list
-			local non_priority_coastal_start = {};
-			for loop1, iPlayerNum1 in ipairs(civs_needing_coastal_start) do
-				local bAdd = true;
-				for loop2, iPlayerNum2 in ipairs(civs_priority_coastal_start) do
-					if (iPlayerNum1 == iPlayerNum2) then
-						bAdd = false;
-					end
-				end
-				if bAdd then
-					table.insert(non_priority_coastal_start, iPlayerNum1);
-				end
-			end
-			
-			local shuffled_priority_coastal_start = GetShuffledCopyOfTable(civs_priority_coastal_start);
-			local shuffled_non_priority_coastal_start = GetShuffledCopyOfTable(non_priority_coastal_start);
-			local shuffled_coastal_civs = {};
-			
-			-- insert priority coastal starts first
-			for loop, iPlayerNum in ipairs(shuffled_priority_coastal_start) do
-				table.insert(shuffled_coastal_civs, iPlayerNum);
-			end
-			
-			-- insert non-priority coastal starts second
-			for loop, iPlayerNum in ipairs(shuffled_non_priority_coastal_start) do
-				table.insert(shuffled_coastal_civs, iPlayerNum);
-			end			
-			
-			for loop, iPlayerNum in ipairs(shuffled_coastal_civs) do
-				print("shuffled_coastal_civs[" .. loop .. "]: " .. iPlayerNum);
-			end
-			
-			local shuffled_coastal_regions, shuffled_lake_regions;
-			local current_lake_index = 1;
-			if iNumRegionsWithCoastalStart > 0 then
-				shuffled_coastal_regions = GetShuffledCopyOfTable(regions_with_coastal_start);
-			end
-			if iNumRegionsWithLakeStart > 0 then
-				shuffled_lake_regions = GetShuffledCopyOfTable(regions_with_lake_start);
-			end
-			for loop, playerNum in ipairs(shuffled_coastal_civs) do
-				if loop > iNumCoastalCivs - iNumUnassignableCoastStarts then
-					--print("Ran out of Coastal and Lake start locations to assign to Coastal Bias.");
-					break
-				end
-				-- Assign next randomly chosen civ in line to next randomly chosen eligible region.
-				if loop <= iNumRegionsWithCoastalStart then
-					-- Assign this civ to a region with coastal start.
-					local choose_this_region = shuffled_coastal_regions[loop];
-					local x = self.startingPlots[choose_this_region][1];
-					local y = self.startingPlots[choose_this_region][2];
-					local plot = Map.GetPlot(x, y);
-					local player = Players[playerNum];
-					player:SetStartingPlot(plot);
-					--print("Player Number", playerNum, "assigned a COASTAL START BIAS location in Region#", choose_this_region, "at Plot", x, y);
-					region_status[choose_this_region] = true;
-					civ_status[playerNum + 1] = true;
-					iNumCoastalCivsRemaining = iNumCoastalCivsRemaining - 1;
-					local a, b, c = IdentifyTableIndex(civs_needing_coastal_start, playerNum)
-					if a then
-						table.remove(civs_needing_coastal_start, c[1]);
-					end
-					local a, b, c = IdentifyTableIndex(regions_still_available, choose_this_region)
-					if a then
-						table.remove(regions_still_available, c[1]);
-					end
-				else
-					-- Out of coastal starts, assign this civ to region with lake start.
-					local choose_this_region = shuffled_lake_regions[current_lake_index];
-					local x = self.startingPlots[choose_this_region][1];
-					local y = self.startingPlots[choose_this_region][2];
-					local plot = Map.GetPlot(x, y);
-					local player = Players[playerNum];
-					player:SetStartingPlot(plot);
-					--print("Player Number", playerNum, "with Coastal Bias assigned a fallback Lake location in Region#", choose_this_region, "at Plot", x, y);
-					region_status[choose_this_region] = true;
-					civ_status[playerNum + 1] = true;
-					iNumCoastalCivsRemaining = iNumCoastalCivsRemaining - 1;
-					local a, b, c = IdentifyTableIndex(civs_needing_coastal_start, playerNum)
-					if a then
-						table.remove(civs_needing_coastal_start, c[1]);
-					end
-					local a, b, c = IdentifyTableIndex(regions_still_available, choose_this_region)
-					if a then
-						table.remove(regions_still_available, c[1]);
-					end
-					current_lake_index = current_lake_index + 1;
-				end
-			end
-		--else
-			--print("Either no civs required a Coastal Start, or no Coastal Starts were available.");
-		end
-	end
-	
-	-- Handle River bias
-	if iNumRiverCivs > 0 or iNumCoastalCivsRemaining > 0 then
-		-- Generate lists of regions eligible to support a river start.
-		local iNumRegionsWithRiverStart, iNumRegionsNearRiverStart, iNumUnassignableRiverStarts = 0, 0, 0;
-		for region_number, bAlreadyAssigned in ipairs(region_status) do
-			if bAlreadyAssigned == false then
-				if self.startLocationConditions[region_number][3] == true then
-					iNumRegionsWithRiverStart = iNumRegionsWithRiverStart + 1;
-					table.insert(regions_with_river_start, region_number);
-				end
-			end
-		end
-		for region_number, bAlreadyAssigned in ipairs(region_status) do
-			if bAlreadyAssigned == false then
-				if self.startLocationConditions[region_number][4] == true and
-				   self.startLocationConditions[region_number][3] == false then
-					iNumRegionsNearRiverStart = iNumRegionsNearRiverStart + 1;
-					table.insert(regions_with_near_river_start, region_number);
-				end
-			end
-		end
-		if iNumRegionsWithRiverStart + iNumRegionsNearRiverStart < iNumRiverCivs then
-			iNumUnassignableRiverStarts = iNumRiverCivs - (iNumRegionsWithRiverStart + iNumRegionsNearRiverStart);
-		end
-		-- Now assign those with river bias to start locations, where possible.
-		-- Also handle fallback placement for coastal bias that failed to find a match.
-		if iNumRiverCivs - iNumUnassignableRiverStarts > 0 then
-			local shuffled_river_civs = GetShuffledCopyOfTable(civs_needing_river_start);
-			local shuffled_river_regions, shuffled_near_river_regions;
-			if iNumRegionsWithRiverStart > 0 then
-				shuffled_river_regions = GetShuffledCopyOfTable(regions_with_river_start);
-			end
-			if iNumRegionsNearRiverStart > 0 then
-				shuffled_near_river_regions = GetShuffledCopyOfTable(regions_with_near_river_start);
-			end
-			for loop, playerNum in ipairs(shuffled_river_civs) do
-				if loop > iNumRiverCivs - iNumUnassignableRiverStarts then
-					--print("Ran out of River and Near-River start locations to assign to River Bias.");
-					break
-				end
-				-- Assign next randomly chosen civ in line to next randomly chosen eligible region.
-				if loop <= iNumRegionsWithRiverStart then
-					-- Assign this civ to a region with river start.
-					local choose_this_region = shuffled_river_regions[loop];
-					local x = self.startingPlots[choose_this_region][1];
-					local y = self.startingPlots[choose_this_region][2];
-					local plot = Map.GetPlot(x, y);
-					local player = Players[playerNum];
-					player:SetStartingPlot(plot);
-					--print("Player Number", playerNum, "assigned a RIVER START BIAS location in Region#", choose_this_region, "at Plot", x, y);
-					region_status[choose_this_region] = true;
-					civ_status[playerNum + 1] = true;
-					local a, b, c = IdentifyTableIndex(regions_still_available, choose_this_region)
-					if a then
-						table.remove(regions_still_available, c[1]);
-					end
-				else
-					-- Assign this civ to a region where a river is near the start.
-					local choose_this_region = shuffled_near_river_regions[loop - iNumRegionsWithRiverStart];
-					local x = self.startingPlots[choose_this_region][1];
-					local y = self.startingPlots[choose_this_region][2];
-					local plot = Map.GetPlot(x, y);
-					local player = Players[playerNum];
-					player:SetStartingPlot(plot);
-					--print("Player Number", playerNum, "with River Bias assigned a fallback 'near river' location in Region#", choose_this_region, "at Plot", x, y);
-					region_status[choose_this_region] = true;
-					civ_status[playerNum + 1] = true;
-					local a, b, c = IdentifyTableIndex(regions_still_available, choose_this_region)
-					if a then
-						table.remove(regions_still_available, c[1]);
-					end
-				end
-			end
-		end
-		-- Now handle any fallbacks for unassigned coastal bias.
-		if iNumCoastalCivsRemaining > 0 and iNumRiverCivs < iNumRegionsWithRiverStart + iNumRegionsNearRiverStart then
-			local iNumFallbacksWithRiverStart, iNumFallbacksNearRiverStart = 0, 0;
-			local fallbacks_with_river_start, fallbacks_with_near_river_start = {}, {};
-			for region_number, bAlreadyAssigned in ipairs(region_status) do
-				if bAlreadyAssigned == false then
-					if self.startLocationConditions[region_number][3] == true then
-						iNumFallbacksWithRiverStart = iNumFallbacksWithRiverStart + 1;
-						table.insert(fallbacks_with_river_start, region_number);
-					end
-				end
-			end
-			for region_number, bAlreadyAssigned in ipairs(region_status) do
-				if bAlreadyAssigned == false then
-					if self.startLocationConditions[region_number][4] == true and
-					   self.startLocationConditions[region_number][3] == false then
-						iNumFallbacksNearRiverStart = iNumFallbacksNearRiverStart + 1;
-						table.insert(fallbacks_with_near_river_start, region_number);
-					end
-				end
-			end
-			if iNumFallbacksWithRiverStart + iNumFallbacksNearRiverStart > 0 then
-			
-				local shuffled_coastal_fallback_civs = GetShuffledCopyOfTable(civs_needing_coastal_start);
-				local shuffled_river_fallbacks, shuffled_near_river_fallbacks;
-				if iNumFallbacksWithRiverStart > 0 then
-					shuffled_river_fallbacks = GetShuffledCopyOfTable(fallbacks_with_river_start);
-				end
-				if iNumFallbacksNearRiverStart > 0 then
-					shuffled_near_river_fallbacks = GetShuffledCopyOfTable(fallbacks_with_near_river_start);
-				end
-				for loop, playerNum in ipairs(shuffled_coastal_fallback_civs) do
-					if loop > iNumFallbacksWithRiverStart + iNumFallbacksNearRiverStart then
-						--print("Ran out of River and Near-River start locations to assign as fallbacks for Coastal Bias.");
-						break
-					end
-					-- Assign next randomly chosen civ in line to next randomly chosen eligible region.
-					if loop <= iNumFallbacksWithRiverStart then
-						-- Assign this civ to a region with river start.
-						local choose_this_region = shuffled_river_fallbacks[loop];
-						local x = self.startingPlots[choose_this_region][1];
-						local y = self.startingPlots[choose_this_region][2];
-						local plot = Map.GetPlot(x, y);
-						local player = Players[playerNum];
-						player:SetStartingPlot(plot);
-						--print("Player Number", playerNum, "with Coastal Bias assigned a fallback river location in Region#", choose_this_region, "at Plot", x, y);
-						region_status[choose_this_region] = true;
-						civ_status[playerNum + 1] = true;
-						local a, b, c = IdentifyTableIndex(regions_still_available, choose_this_region)
-						if a then
-							table.remove(regions_still_available, c[1]);
-						end
-					else
-						-- Assign this civ to a region where a river is near the start.
-						local choose_this_region = shuffled_near_river_fallbacks[loop - iNumRegionsWithRiverStart];
-						local x = self.startingPlots[choose_this_region][1];
-						local y = self.startingPlots[choose_this_region][2];
-						local plot = Map.GetPlot(x, y);
-						local player = Players[playerNum];
-						player:SetStartingPlot(plot);
-						--print("Player Number", playerNum, "with Coastal Bias assigned a fallback 'near river' location in Region#", choose_this_region, "at Plot", x, y);
-						region_status[choose_this_region] = true;
-						civ_status[playerNum + 1] = true;
-						local a, b, c = IdentifyTableIndex(regions_still_available, choose_this_region)
-						if a then
-							table.remove(regions_still_available, c[1]);
-						end
-					end
-				end
-			end
-		end
-	end
-	
-	-- Handle Region Priority
-	if iNumPriorityCivs > 0 then
-		--print("-"); print("-"); print("--- REGION PRIORITY READOUT ---"); print("-");
-		local iNumSinglePriority, iNumMultiPriority, iNumNeedFallbackPriority = 0, 0, 0;
-		local single_priority, multi_priority, fallback_priority = {}, {}, {};
-		local single_sorted, multi_sorted = {}, {};
-		-- Separate priority civs in to two categories: single priority, multiple priority.
-		for playerNum, priority_needs in pairs(priority_lists) do
-			local len = table.maxn(priority_needs)
-			if len == 1 then
-				--print("Player#", playerNum, "has a single Region Priority of type", priority_needs[1]);
-				local priority_data = {playerNum, priority_needs[1]};
-				table.insert(single_priority, priority_data)
-				iNumSinglePriority = iNumSinglePriority + 1;
-			else
-				--print("Player#", playerNum, "has multiple Region Priority, this many types:", len);
-				local priority_data = {playerNum, len};
-				table.insert(multi_priority, priority_data)
-				iNumMultiPriority = iNumMultiPriority + 1;
-			end
-		end
-		-- Single priority civs go first, and will engage fallback methods if no match found.
-		if iNumSinglePriority > 0 then
-			-- Sort the list so that proper order of execution occurs. (Going to use a blunt method for easy coding.)
-			for region_type = 1, 8 do							-- Must expand if new region types are added.
-				for loop, data in ipairs(single_priority) do
-					if data[2] == region_type then
-						--print("Adding Player#", data[1], "to sorted list of single Region Priority.");
-						table.insert(single_sorted, data);
-					end
-				end
-			end
-			-- Match civs who have a single Region Priority to the region type they need, if possible.
-			for loop, data in ipairs(single_sorted) do
-				local iPlayerNum = data[1];
-				local iPriorityType = data[2];
-				--print("* Attempting to assign Player#", iPlayerNum, "to a region of Type#", iPriorityType);
-				local bFoundCandidate, candidate_regions = false, {};
-				for test_loop, region_number in ipairs(regions_still_available) do
-					if self.regionTypes[region_number] == iPriorityType then
-						table.insert(candidate_regions, region_number);
-						bFoundCandidate = true;
-						--print("- - Found candidate: Region#", region_number);
-					end
-				end
-				if bFoundCandidate then
-					local diceroll = 1 + Map.Rand(table.maxn(candidate_regions), "Choosing from among Candidate Regions for start bias - LUA");
-					local choose_this_region = candidate_regions[diceroll];
-					local x = self.startingPlots[choose_this_region][1];
-					local y = self.startingPlots[choose_this_region][2];
-					local plot = Map.GetPlot(x, y);
-					local player = Players[iPlayerNum];
-					player:SetStartingPlot(plot);
-					--print("Player Number", iPlayerNum, "with single Region Priority assigned to Region#", choose_this_region, "at Plot", x, y);
-					region_status[choose_this_region] = true;
-					civ_status[iPlayerNum + 1] = true;
-					local a, b, c = IdentifyTableIndex(regions_still_available, choose_this_region)
-					if a then
-						table.remove(regions_still_available, c[1]);
-					end
-				else
-					table.insert(fallback_priority, data)
-					iNumNeedFallbackPriority = iNumNeedFallbackPriority + 1;
-					--print("Player Number", iPlayerNum, "with single Region Priority was UNABLE to be matched to its type. Added to fallback list.");
-				end
-			end
-		end
-		-- Multiple priority civs go next, with fewest regions of priority going first.
-		if iNumMultiPriority > 0 then
-			for iNumPriorities = 2, 8 do						-- Must expand if new region types are added.
-				for loop, data in ipairs(multi_priority) do
-					if data[2] == iNumPriorities then
-						--print("Adding Player#", data[1], "to sorted list of multi Region Priority.");
-						table.insert(multi_sorted, data);
-					end
-				end
-			end
-			-- Match civs who have mulitple Region Priority to one of the region types they need, if possible.
-			for loop, data in ipairs(multi_sorted) do
-				local iPlayerNum = data[1];
-				local iNumPriorityTypes = data[2];
-				--print("* Attempting to assign Player#", iPlayerNum, "to one of its Priority Region Types.");
-				local bFoundCandidate, candidate_regions = false, {};
-				for test_loop, region_number in ipairs(regions_still_available) do
-					for inner_loop = 1, iNumPriorityTypes do
-						local region_type_to_test = priority_lists[iPlayerNum][inner_loop];
-						if self.regionTypes[region_number] == region_type_to_test then
-							table.insert(candidate_regions, region_number);
-							bFoundCandidate = true;
-							--print("- - Found candidate: Region#", region_number);
-						end
-					end
-				end
-				if bFoundCandidate then
-					local diceroll = 1 + Map.Rand(table.maxn(candidate_regions), "Choosing from among Candidate Regions for start bias - LUA");
-					local choose_this_region = candidate_regions[diceroll];
-					local x = self.startingPlots[choose_this_region][1];
-					local y = self.startingPlots[choose_this_region][2];
-					local plot = Map.GetPlot(x, y);
-					local player = Players[iPlayerNum];
-					player:SetStartingPlot(plot);
-					--print("Player Number", iPlayerNum, "with multiple Region Priority assigned to Region#", choose_this_region, "at Plot", x, y);
-					region_status[choose_this_region] = true;
-					civ_status[iPlayerNum + 1] = true;
-					local a, b, c = IdentifyTableIndex(regions_still_available, choose_this_region)
-					if a then
-						table.remove(regions_still_available, c[1]);
-					end
-				--else
-					--print("Player Number", iPlayerNum, "with multiple Region Priority was unable to be matched.");
-				end
-			end
-		end
-		-- Fallbacks are done (if needed) after multiple-region priority is handled. The list is pre-sorted.
-		if iNumNeedFallbackPriority > 0 then
-			for loop, data in ipairs(fallback_priority) do
-				local iPlayerNum = data[1];
-				local iPriorityType = data[2];
-				--print("* Attempting to assign Player#", iPlayerNum, "to a fallback region as similar as possible to Region Type#", iPriorityType);
-				local choose_this_region = self:FindFallbackForUnmatchedRegionPriority(iPriorityType, regions_still_available)
-				if choose_this_region == -1 then
-					--print("FAILED to find fallback region bias for player#", iPlayerNum);
-				else
-					local x = self.startingPlots[choose_this_region][1];
-					local y = self.startingPlots[choose_this_region][2];
-					local plot = Map.GetPlot(x, y);
-					local player = Players[iPlayerNum];
-					player:SetStartingPlot(plot);
-					--print("Player Number", iPlayerNum, "with single Region Priority assigned to FALLBACK Region#", choose_this_region, "at Plot", x, y);
-					region_status[choose_this_region] = true;
-					civ_status[iPlayerNum + 1] = true;
-					local a, b, c = IdentifyTableIndex(regions_still_available, choose_this_region)
-					if a then
-						table.remove(regions_still_available, c[1]);
-					end
-				end
-			end
-		end
-	end
-	
-	-- Handle Region Avoid
-	if iNumAvoidCivs > 0 then
-		--print("-"); print("-"); print("--- REGION AVOID READOUT ---"); print("-");
-		local avoid_sorted, avoid_unsorted, avoid_counts = {}, {}, {};
-		-- Sort list of civs with Avoid needs, then process in reverse order, so most needs goes first.
-		for playerNum, avoid_needs in pairs(avoid_lists) do
-			local len = table.maxn(avoid_needs)
-			--print("- Player#", playerNum, "has this number of Region Avoid needs:", len);
-			local avoid_data = {playerNum, len};
-			table.insert(avoid_unsorted, avoid_data)
-			table.insert(avoid_counts, len)
-		end
-		table.sort(avoid_counts)
-		for loop, avoid_count in ipairs(avoid_counts) do
-			for test_loop, avoid_data in ipairs(avoid_unsorted) do
-				if avoid_count == avoid_data[2] then
-					table.insert(avoid_sorted, avoid_data[1])
-					table.remove(avoid_unsorted, test_loop)
-				end
-			end
-		end
-		-- Process the Region Avoid needs.
-		for loop = iNumAvoidCivs, 1, -1 do
-			local iPlayerNum = avoid_sorted[loop];
-			local candidate_regions = {};
-			for test_loop, region_number in ipairs(regions_still_available) do
-				local bFoundCandidate = true;
-				for inner_loop, region_type_to_avoid in ipairs(avoid_lists[iPlayerNum]) do
-					if self.regionTypes[region_number] == region_type_to_avoid then
-						bFoundCandidate = false;
-					end
-				end
-				if bFoundCandidate == true then
-					table.insert(candidate_regions, region_number);
-					--print("- - Found candidate: Region#", region_number)
-				end
-			end
-			if table.maxn(candidate_regions) > 0 then
-				local diceroll = 1 + Map.Rand(table.maxn(candidate_regions), "Choosing from among Candidate Regions for start bias - LUA");
-				local choose_this_region = candidate_regions[diceroll];
+
+		for _, playerNum in ipairs(ordered_pass_civs) do
+			local needs = civNeeds[playerNum];
+			local choose_this_region = ChooseRegionForCiv(needs);
+			if choose_this_region then
 				local x = self.startingPlots[choose_this_region][1];
 				local y = self.startingPlots[choose_this_region][2];
-				local plot = Map.GetPlot(x, y);
-				local player = Players[iPlayerNum];
-				player:SetStartingPlot(plot);
-				--print("Player Number", iPlayerNum, "with Region Avoid assigned to allowed region type in Region#", choose_this_region, "at Plot", x, y);
+				local start_plot = Map.GetPlot(x, y);
+				local player = Players[playerNum];
+				player:SetStartingPlot(start_plot);
+				print("Player", playerNum, "assigned to Region#", choose_this_region, "via start bias:", needs[1].type, needs[2] and ("+ " .. needs[2].type) or "(single)");
+				civ_status[playerNum + 1] = true;
 				region_status[choose_this_region] = true;
-				civ_status[iPlayerNum + 1] = true;
-				local a, b, c = IdentifyTableIndex(regions_still_available, choose_this_region)
-				if a then
-					table.remove(regions_still_available, c[1]);
-				end
-			--else
-				--print("Player Number", iPlayerNum, "with Region Avoid was unable to avoid the undesired region types.");
+				RemoveAvailableRegion(choose_this_region);
+			else
+				print("Player", playerNum, "could not be matched to any region satisfying its start bias needs.");
 			end
 		end
 	end
-				
+
 	-- Assign remaining civs to start plots.
 	local playerList, regionList = {}, {};
 	for loop = 1, self.iNumCivs do
@@ -5841,9 +5753,10 @@ function AssignStartingPlots:AttemptToPlaceNaturalWonder(wonder_number, row_numb
 			local plot = Map.GetPlot(x, y);
 			-- If called for, force the local terrain to conform to what the wonder needs.
 			local method_number = GameInfo.Natural_Wonder_Placement[row_number].TileChangesMethodNumber;
+			local secondX, secondY;	-- MOD: some custom placements (e.g. the Reef) occupy a second tile.
 			if method_number ~= -1 then
 				-- Custom method for tile changes needed by this wonder.
-				NWCustomPlacement(x, y, row_number, method_number)
+				secondX, secondY = NWCustomPlacement(x, y, row_number, method_number)
 			else
 				-- Check the XML data for any standard type tile changes, execute any that are indicated.
 				if GameInfo.Natural_Wonder_Placement[row_number].ChangeCoreTileToMountain == true then
@@ -5884,6 +5797,17 @@ function AssignStartingPlots:AttemptToPlaceNaturalWonder(wonder_number, row_numb
 			self:PlaceResourceImpact(x, y, 7, 1)					-- Marble layer
 			local plotIndex = y * iW + x + 1;
 			self.playerCollisionData[plotIndex] = true;				-- Record exact plot of wonder in the collision list.
+			-- MOD: If this wonder occupies a second tile (e.g. the Reef's extension tile), protect it
+			-- too, or resources/other wonders/city states can spawn on top of it.
+			if secondX ~= nil and secondY ~= nil then
+				self:PlaceResourceImpact(secondX, secondY, 1, 1)					-- Strategic layer
+				self:PlaceResourceImpact(secondX, secondY, 2, 1)					-- Luxury layer
+				self:PlaceResourceImpact(secondX, secondY, 3, 1)					-- Bonus layer
+				self:PlaceResourceImpact(secondX, secondY, 5, 1)					-- City State layer
+				self:PlaceResourceImpact(secondX, secondY, 7, 1)					-- Marble layer
+				local secondPlotIndex = secondY * iW + secondX + 1;
+				self.playerCollisionData[secondPlotIndex] = true;
+			end
 			--
 			--print("- Placed ".. self.wonder_list[wonder_number].. " in Plot", x, y);
 			--
@@ -7788,6 +7712,25 @@ function AssignStartingPlots:GetDisabledLuxuriesTargetNumber()
 	return maxToDisable
 end
 ------------------------------------------------------------------------------
+-- Target number of Disabled luxury types to reclaim as extra City State exclusives.
+-- Scales with the number of City States in play. This is a target, not a guarantee --
+-- the actual number reclaimed is also capped by how many types are actually sitting
+-- in the Disabled pool once the normal disable/random split has finished.
+function AssignStartingPlots:GetCityStateBonusFromDisabledTargetNumber()
+	local iNumCS = self.iNumCityStates;
+	if iNumCS >= 41 then
+		return 4;
+	elseif iNumCS >= 31 then
+		return 3;
+	elseif iNumCS >= 21 then
+		return 2;
+	elseif iNumCS >= 10 then
+		return 1;
+	else
+		return 0;
+	end
+end
+------------------------------------------------------------------------------
 function AssignStartingPlots:AssignLuxuryRoles()
 	-- Each region gets an individual Luxury type assigned to it.
 	-- Each Luxury type can be assigned to no more than three regions.
@@ -7906,6 +7849,21 @@ function AssignStartingPlots:AssignLuxuryRoles()
 		else
 			table.insert(self.resourceIDs_assigned_to_random, resID);
 		end
+	end
+
+	-- Reclaim some Disabled types as extra City State exclusives.
+	-- Draws only from what's left in resourceIDs_not_being_used AFTER the normal
+	-- disable/random split above, so this never reduces resourceIDs_assigned_to_random
+	-- (civ-territory variety is untouched). Types reclaimed here would otherwise have
+	-- appeared nowhere on the map at all.
+	local iNumBonusCSTarget = self:GetCityStateBonusFromDisabledTargetNumber();
+	local iNumBonusCS = math.min(iNumBonusCSTarget, #self.resourceIDs_not_being_used);
+	print("- iCsBonusFromDisabled target:", iNumBonusCSTarget, " actually available:", #self.resourceIDs_not_being_used, " granted:", iNumBonusCS);
+	for i = 1, iNumBonusCS do
+		local res_ID = table.remove(self.resourceIDs_not_being_used, 1);
+		table.insert(self.resourceIDs_assigned_to_cs, res_ID);
+		self.iNumCityStateLuxuries = self.iNumCityStateLuxuries + 1;
+		print("granted", res_ID)
 	end
 	
 	-- Debug printout of luxury assignments.
@@ -8531,6 +8489,11 @@ function AssignStartingPlots:PlaceLuxuries()
 	
 	-- Place Luxuries at City States.
 	-- Candidates include luxuries exclusive to CS, the lux assigned to this CS's region (if in a region), and the randoms.
+	local iMaxSameCSLux = 3;
+	local iCSLuxAssignedCount = {};
+	-- Hard cap: no single luxury type (exclusive OR regional-fallback) may be assigned
+	-- to more than this many City States. Once a type hits the cap, it's dropped from
+	-- candidacy for any remaining CS, falling back to whatever else is eligible.
 	for city_state = 1, self.iNumCityStates do
 		-- First check to see if this city state number received a valid start plot.
 		if self.city_state_validity_table[city_state] == false then
@@ -8546,7 +8509,7 @@ function AssignStartingPlots:PlaceLuxuries()
 			-- If any CS-Only types are eligible, then all combined will have a weighting of 75%
 			local cs_only_types = {};
 			for loop, res_ID in ipairs(self.resourceIDs_assigned_to_cs) do
-				if allowed_luxuries[res_ID] == true then
+				if allowed_luxuries[res_ID] == true and (iCSLuxAssignedCount[res_ID] or 0) < iMaxSameCSLux then
 					table.insert(cs_only_types, res_ID);
 				end
 			end
@@ -8574,7 +8537,7 @@ function AssignStartingPlots:PlaceLuxuries()
 				if region_number > 0 then
 					iNumAllowed = iNumAllowed + 1; -- Adding the region type in to the mix with the random types.
 					local res_ID = self.region_luxury_assignment[region_number];
-					if allowed_luxuries[res_ID] == true then
+					if allowed_luxuries[res_ID] == true and (iCSLuxAssignedCount[res_ID] or 0) < iMaxSameCSLux then
 						lux_possible_for_cs[res_ID] = 25 / iNumAllowed;
 					end
 				end
@@ -8610,6 +8573,9 @@ function AssignStartingPlots:PlaceLuxuries()
 						break
 					end
 				end
+
+				iCSLuxAssignedCount[use_this_ID] = (iCSLuxAssignedCount[use_this_ID] or 0) + 1;
+
 				print("-Assigned Luxury Type", use_this_ID, "to City State#", city_state);
 				-- Place luxury.
 				local primary, secondary, tertiary, quaternary, luxury_plot_lists, shuf_list;
