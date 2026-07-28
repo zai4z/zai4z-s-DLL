@@ -11942,8 +11942,9 @@ bool CvPlot::setRevealed(TeamTypes eTeam, bool bNewValue, CvUnit* pUnit, bool bT
 		{
 			if(getFeatureType() != NO_FEATURE)
 			{
-				if(GC.getFeatureInfo(getFeatureType())->IsNaturalWonder(true))
+				if(GC.getFeatureInfo(getFeatureType())->IsNaturalWonder(true) && !GET_TEAM(eTeam).IsNaturalWonderDiscovered(getFeatureType()))
 				{
+					GET_TEAM(eTeam).SetNaturalWonderDiscovered(getFeatureType());
 					GET_TEAM(eTeam).ChangeNumNaturalWondersDiscovered(1);
 
 					int iNumNaturalWondersLeft = GC.getMap().GetNumNaturalWonders() - GET_TEAM(eTeam).GetNumNaturalWondersDiscovered();

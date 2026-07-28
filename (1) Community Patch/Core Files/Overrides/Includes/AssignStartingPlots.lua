@@ -5753,10 +5753,10 @@ function AssignStartingPlots:AttemptToPlaceNaturalWonder(wonder_number, row_numb
 			local plot = Map.GetPlot(x, y);
 			-- If called for, force the local terrain to conform to what the wonder needs.
 			local method_number = GameInfo.Natural_Wonder_Placement[row_number].TileChangesMethodNumber;
-			local secondX, secondY;	-- MOD: some custom placements (e.g. the Reef) occupy a second tile.
+			local sx, sy;
 			if method_number ~= -1 then
 				-- Custom method for tile changes needed by this wonder.
-				secondX, secondY = NWCustomPlacement(x, y, row_number, method_number)
+				sx, sy = NWCustomPlacement(x, y, row_number, method_number)
 			else
 				-- Check the XML data for any standard type tile changes, execute any that are indicated.
 				if GameInfo.Natural_Wonder_Placement[row_number].ChangeCoreTileToMountain == true then
@@ -5797,15 +5797,15 @@ function AssignStartingPlots:AttemptToPlaceNaturalWonder(wonder_number, row_numb
 			self:PlaceResourceImpact(x, y, 7, 1)					-- Marble layer
 			local plotIndex = y * iW + x + 1;
 			self.playerCollisionData[plotIndex] = true;				-- Record exact plot of wonder in the collision list.
-			-- MOD: If this wonder occupies a second tile (e.g. the Reef's extension tile), protect it
-			-- too, or resources/other wonders/city states can spawn on top of it.
-			if secondX ~= nil and secondY ~= nil then
-				self:PlaceResourceImpact(secondX, secondY, 1, 1)					-- Strategic layer
-				self:PlaceResourceImpact(secondX, secondY, 2, 1)					-- Luxury layer
-				self:PlaceResourceImpact(secondX, secondY, 3, 1)					-- Bonus layer
-				self:PlaceResourceImpact(secondX, secondY, 5, 1)					-- City State layer
-				self:PlaceResourceImpact(secondX, secondY, 7, 1)					-- Marble layer
-				local secondPlotIndex = secondY * iW + secondX + 1;
+			-- If this wonder occupies a second tile (e.g. the Reef's extension tile), protect it too
+			if sx ~= nil and sy ~= nil then
+				self:PlaceResourceImpact(sx, sy, 6, math.floor(iH / 5))
+				self:PlaceResourceImpact(sx, sy, 1, 1)
+				self:PlaceResourceImpact(sx, sy, 2, 1)
+				self:PlaceResourceImpact(sx, sy, 3, 1)
+				self:PlaceResourceImpact(sx, sy, 5, 1)
+				self:PlaceResourceImpact(sx, sy, 7, 1)
+				local secondPlotIndex = sy * iW + sx + 1;
 				self.playerCollisionData[secondPlotIndex] = true;
 			end
 			--

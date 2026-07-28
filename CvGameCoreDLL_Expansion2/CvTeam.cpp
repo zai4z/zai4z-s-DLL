@@ -413,6 +413,7 @@ void CvTeam::reset(TeamTypes eID, bool bConstructorCall)
 		m_pTeamTechs->Init(GC.GetGameTechs(), this);
 		m_pavProjectArtTypes.init();
 		m_aeRevealedResources.clear();
+		m_aeDiscoveredNaturalWonders.clear();
 	}
 }
 
@@ -4038,6 +4039,41 @@ void CvTeam::ChangeNumNaturalWondersDiscovered(int iChange)
 		m_iNumNaturalWondersDiscovered += iChange;
 	}
 	ASSERT(GetNumNaturalWondersDiscovered() >= 0);
+}
+
+//	--------------------------------------------------------------------------------
+bool CvTeam::IsNaturalWonderDiscovered(FeatureTypes eFeature) const
+{
+	ASSERT(eFeature >= 0, "eFeature is expected to be non-negative (invalid Index)");
+	if (eFeature < 0)
+	{
+		return false;
+	}
+
+	for (std::vector<FeatureTypes>::const_iterator it = m_aeDiscoveredNaturalWonders.begin(); it != m_aeDiscoveredNaturalWonders.end(); ++it)
+	{
+		if (*it == eFeature)
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
+//	--------------------------------------------------------------------------------
+void CvTeam::SetNaturalWonderDiscovered(FeatureTypes eFeature)
+{
+	ASSERT(eFeature >= 0, "eFeature is expected to be non-negative (invalid Index)");
+	if (eFeature < 0)
+	{
+		return;
+	}
+
+	if (!IsNaturalWonderDiscovered(eFeature))
+	{
+		m_aeDiscoveredNaturalWonders.push_back(eFeature);
+	}
 }
 
 //	--------------------------------------------------------------------------------
@@ -9268,6 +9304,7 @@ void CvTeam::Serialize(Team& team, Visitor& visitor)
 	}
 
 	visitor(team.m_aeRevealedResources);
+	visitor(team.m_aeDiscoveredNaturalWonders);
 
 	visitor(team.m_iVassalageTradingAllowedCount);
 	visitor(team.m_iBombardIndirectCount);

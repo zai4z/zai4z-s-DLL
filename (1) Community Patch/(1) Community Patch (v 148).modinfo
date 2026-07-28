@@ -500,6 +500,7 @@
     <File md5="046321E3A421CB0435609E82E0BBFEEA" import="1">Core Files/Overrides/Includes/InfoTooltipInclude.lua</File>
     <File md5="F82D4290936952EACB989B91E36F79C6" import="1">Core Files/Overrides/Includes/MapGenerator.lua</File>
     <File md5="F82D4290936952EACB989B91E36F79C6" import="1">Core Files/Overrides/Includes/MapmakerUtilities.lua</File>
+    <File md5="F82D4290936952EACB989B91E36F79C6" import="1">Core Files/Overrides/Includes/NaturalWondersCustomMethods.lua</File>
     <File md5="6E5415146E12898C7FF1A4F6D6D036B9" import="1">Core Files/Overrides/Includes/TechButtonInclude.lua</File>
     <File md5="26FEF5BB17225CFD769717234B1DC468" import="1">Core Files/Overrides/Includes/TechHelpInclude.lua</File>
     <File md5="1D6FBE79C3778843EA7DDCE693BDD499" import="1">Core Files/Overrides/Includes/TradeRouteHelpers.lua</File>

@@ -242,6 +242,9 @@ public:
 	int GetNumNaturalWondersDiscovered() const;
 	void ChangeNumNaturalWondersDiscovered(int iChange);
 
+	bool IsNaturalWonderDiscovered(FeatureTypes eFeature) const;
+	void SetNaturalWonderDiscovered(FeatureTypes eFeature);
+
 	int GetNumLandmarksBuilt() const;
 	void ChangeNumLandmarksBuilt(int iChange);
 
@@ -643,6 +646,7 @@ protected:
 
 	CvEnumMap<ProjectTypes, std::vector<int> > m_pavProjectArtTypes;
 	std::vector<ResourceTypes> m_aeRevealedResources;
+	std::vector<FeatureTypes> m_aeDiscoveredNaturalWonders;
 
 	CvTeamTechs* m_pTeamTechs;
 
