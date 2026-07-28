@@ -2,8 +2,6 @@
 -- NaturalWonderCustomMethods.lua written by zai4z
 --------------------------------------------------------------------------------------------
 
-include("MapmakerUtilities")
-
 local AdjReef
 local Coast = TerrainTypes.TERRAIN_COAST
 local Mountain = PlotTypes.PLOT_MOUNTAIN
