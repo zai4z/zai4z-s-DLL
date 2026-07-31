@@ -70,6 +70,7 @@ void CvLuaPlot::PushMethods(lua_State* L, int t)
 	Method(IsFreshWater);
 
 	Method(IsRiverSide);
+	Method(IsLakeSide);
 	Method(IsRiverConnection);
 	Method(IsRiverCrossingFlowClockwise);
 	Method(GetRiverID);
@@ -615,6 +616,12 @@ int CvLuaPlot::lIsFreshWater(lua_State* L)
 int CvLuaPlot::lIsRiverSide(lua_State* L)
 {
 	return BasicLuaMethod(L, &CvPlot::isRiverSide);
+}
+//------------------------------------------------------------------------------
+//bool isLakeSide();
+int CvLuaPlot::lIsLakeSide(lua_State* L)
+{
+	return BasicLuaMethod(L, &CvPlot::isLakeSide);
 }
 //------------------------------------------------------------------------------
 //bool isRiverConnection(DirectionTypes eDirection);

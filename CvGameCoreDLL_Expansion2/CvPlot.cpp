@@ -1360,6 +1360,28 @@ bool CvPlot::isRiverSide() const
 }
 
 //	--------------------------------------------------------------------------------
+bool CvPlot::isLakeSide() const
+{
+	CvPlot* pLoopPlot = NULL;
+	int iI = 0;
+
+	for(iI = 0; iI < NUM_DIRECTION_TYPES; ++iI)
+	{
+		pLoopPlot = plotDirection(getX(), getY(), ((DirectionTypes)iI));
+
+		if(pLoopPlot != NULL)
+		{
+			if(pLoopPlot->isLake())
+			{
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+
+//	--------------------------------------------------------------------------------
 bool CvPlot::isRiverConnection(DirectionTypes eDirection) const
 {
 	switch(eDirection)
@@ -10057,15 +10079,8 @@ int CvPlot::calculateNatureYield(YieldTypes eYield, PlayerTypes ePlayer, Feature
 		{
 			iYield = std::max(iYield, pkYieldInfo->getMinCity());
 
-			for (int iI = 0; iI < NUM_DIRECTION_TYPES; iI++)
-			{
-				CvPlot* pAdjacentPlot = plotDirection(getX(), getY(), (DirectionTypes)iI);
-				if (pAdjacentPlot && pAdjacentPlot->isLake())
-				{
-					iYield += pkYieldInfo->getMinCityLake();
-					break;
-				}
-			}
+			if (isLakeSide())
+				iYield += pkYieldInfo->getMinCityLake();
 		}
 
 		// Yields from garrison

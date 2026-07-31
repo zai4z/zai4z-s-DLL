@@ -146,6 +146,7 @@ public:
 
 	bool isRiverCrossingFlowClockwise(DirectionTypes eDirection) const;
 	bool isRiverSide() const;
+	bool isLakeSide() const;
 	bool isRiverConnection(DirectionTypes eDirection) const;
 
 	bool IsRiverSide(DirectionTypes eDirection) const;

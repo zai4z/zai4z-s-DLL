@@ -80,6 +80,7 @@ protected:
 	static int lIsFreshWater(lua_State* L);
 
 	static int lIsRiverSide(lua_State* L);
+	static int lIsLakeSide(lua_State* L);
 	static int lIsRiverConnection(lua_State* L);
 	static int lIsRiverCrossingFlowClockwise(lua_State* L);
 	static int lGetRiverID(lua_State* L);
