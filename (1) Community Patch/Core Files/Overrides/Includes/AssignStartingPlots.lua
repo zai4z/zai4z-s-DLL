@@ -247,6 +247,8 @@ function AssignStartingPlots.Create()
 		city_state_region_assignments = table.fill(-1, MAX_MINOR_CIVS), -- Stores region number of each city state (-1 if not in a region)
 		uninhabited_areas_coastal_plots = {}, -- For use in placing city states outside of Regions
 		uninhabited_areas_inland_plots = {},
+		uninhabited_areas_coastal_freshwater = {},
+		uninhabited_areas_inland_freshwater = {},
 		iNumCityStatesDiscarded = 0,	-- If a city state cannot be placed without being too close to another start, it will be discarded
 		city_state_validity_table = table.fill(false, MAX_MINOR_CIVS), -- Value set to true when a given city state is successfully assigned a start plot
 		
@@ -5999,10 +6001,19 @@ function AssignStartingPlots:AssignCityStatesToRegionsOrToUninhabited(args)
 							iNumCivLandmassPlots = iNumCivLandmassPlots + 1;
 						else
 							iNumUninhabitedLandmassPlots = iNumUninhabitedLandmassPlots + 1;
-							if self.plotDataIsCoastal[i] == true then
-								table.insert(self.uninhabited_areas_coastal_plots, i);
+							local bFreshwater = plot:IsRiverSide() or plot:IsLakeSide();
+							if self.plotDataIsCoastal[plotIndex] == true then
+								if bFreshwater then
+									table.insert(self.uninhabited_areas_coastal_freshwater, plotIndex);
+								else
+									table.insert(self.uninhabited_areas_coastal_plots, plotIndex);
+								end
 							else
-								table.insert(self.uninhabited_areas_inland_plots, i);
+								if bFreshwater then
+									table.insert(self.uninhabited_areas_inland_freshwater, plotIndex);
+								else
+									table.insert(self.uninhabited_areas_inland_plots, plotIndex);
+								end
 							end
 						end
 					else -- AreaID-based method must be applied, which cannot all be done in this loop
@@ -6043,10 +6054,19 @@ function AssignStartingPlots:AssignCityStatesToRegionsOrToUninhabited(args)
 						local plot = Map.GetPlot(x, y);
 						local terrainType = plot:GetTerrainType();
 						if terrainType ~= TerrainTypes.TERRAIN_SNOW then
+							local bFreshwater = plot:IsRiverSide() or plot:IsLakeSide();
 							if self.plotDataIsCoastal[plotIndex] == true then
-								table.insert(self.uninhabited_areas_coastal_plots, plotIndex);
+								if bFreshwater then
+									table.insert(self.uninhabited_areas_coastal_freshwater, plotIndex);
+								else
+									table.insert(self.uninhabited_areas_coastal_plots, plotIndex);
+								end
 							else
-								table.insert(self.uninhabited_areas_inland_plots, plotIndex);
+								if bFreshwater then
+									table.insert(self.uninhabited_areas_inland_freshwater, plotIndex);
+								else
+									table.insert(self.uninhabited_areas_inland_plots, plotIndex);
+								end
 							end
 						end
 					end
@@ -6182,7 +6202,7 @@ function AssignStartingPlots:ObtainNextSectionInRegion(incoming_west_x, incoming
 	                         incoming_width, incoming_height, iAreaID, force_it, ignore_collisions)
 	--print("ObtainNextSectionInRegion called, for AreaID", iAreaID, "with SW plot at ", incoming_west_x, incoming_south_y, " Width/Height at", incoming_width, incoming_height);
 	--[[ This function carves off the outermost plots in a region, checks them for City
-	     State Placement eligibility, and returns 7 variables: two plot lists, the 
+	     State Placement eligibility, and returns 9 variables: four plot lists, the 
 	     coordinates of the inner portion of the area that was not processed on this 
 	     round, and a boolean indicating whether the middle of the region was reached. ]]--
 	--[[ If this round does not produce a suitable placement site, another round can be 
@@ -6194,7 +6214,7 @@ function AssignStartingPlots:ObtainNextSectionInRegion(incoming_west_x, incoming
 	local iW, iH = Map.GetGridSize();
 	local reached_middle = false;
 	if incoming_width <= 0 or incoming_height <= 0 then -- Nothing to process
-		return {}, {}, -1, -1, -1, -1, true;
+		return {}, {}, {}, {}, -1, -1, -1, -1, true;
 	end
 	if incoming_width < 4 or incoming_height < 4 then
 		reached_middle = true;
@@ -6206,46 +6226,51 @@ function AssignStartingPlots:ObtainNextSectionInRegion(incoming_west_x, incoming
 		rows_to_check = math.ceil(0.167 * incoming_height);
 	end
 	-- Main loop
-	local coastal_plots, inland_plots = {}, {};
+	local coastal_freshwater, coastal_plain, inland_freshwater, inland_plain = {}, {}, {}, {};
+
+	-- Adds (x,y) to the correct candidate list if it's a legal City State
+	-- site. River/Lake plots go into their own list, separate from plain
+	-- Coastal/Inland, so they can be given strict priority (always chosen
+	-- if available) without touching the plain random draw for anything else.
+	local function AddCityStateCandidate(x, y)
+		if self:CanPlaceCityStateAt(x, y, iAreaID, force_it, ignore_collisions) == true then
+			local i = y * iW + x + 1;
+			local plot = Map.GetPlot(x, y);
+			local bFreshwater = plot:IsRiverSide() or plot:IsLakeSide();
+			if self.plotDataIsCoastal[i] == true then
+				if bFreshwater then
+					table.insert(coastal_freshwater, i);
+				else
+					table.insert(coastal_plain, i);
+				end
+			else
+				if bFreshwater then
+					table.insert(inland_freshwater, i);
+				else
+					table.insert(inland_plain, i);
+				end
+			end
+		end
+	end
+
 	for section_y = incoming_south_y, incoming_south_y + incoming_height - 1 do
 		for section_x = incoming_west_x, incoming_west_x + incoming_width - 1 do
 			if reached_middle then -- Process all plots.
 				local x = section_x % iW;
 				local y = section_y % iH;
-				if self:CanPlaceCityStateAt(x, y, iAreaID, force_it, ignore_collisions) == true then
-					local i = y * iW + x + 1;
-					if self.plotDataIsCoastal[i] == true then
-						table.insert(coastal_plots, i);
-					else
-						table.insert(inland_plots, i);
-					end
-				end
+				AddCityStateCandidate(x, y);
 			else -- Process only plots near enough to the region edge.
 				if bTaller == false then -- Processing leftmost and rightmost columns.
 					if section_x < incoming_west_x + rows_to_check or section_x >= incoming_west_x + incoming_width - rows_to_check then
 						local x = section_x % iW;
 						local y = section_y % iH;
-						if self:CanPlaceCityStateAt(x, y, iAreaID, force_it, ignore_collisions) == true then
-							local i = y * iW + x + 1;
-							if self.plotDataIsCoastal[i] == true then
-								table.insert(coastal_plots, i);
-							else
-								table.insert(inland_plots, i);
-							end
-						end
+						AddCityStateCandidate(x, y);
 					end
 				else -- Processing top and bottom rows.
 					if section_y < incoming_south_y + rows_to_check or section_y >= incoming_south_y + incoming_height - rows_to_check then
 						local x = section_x % iW;
 						local y = section_y % iH;
-						if self:CanPlaceCityStateAt(x, y, iAreaID, force_it, ignore_collisions) == true then
-							local i = y * iW + x + 1;
-							if self.plotDataIsCoastal[i] == true then
-								table.insert(coastal_plots, i);
-							else
-								table.insert(inland_plots, i);
-							end
-						end
+						AddCityStateCandidate(x, y);
 					end
 				end
 			end
@@ -6264,7 +6289,7 @@ function AssignStartingPlots:ObtainNextSectionInRegion(incoming_west_x, incoming
 		new_height = incoming_height - (2 * rows_to_check);
 	end		
 
-	return coastal_plots, inland_plots, new_west_x, new_south_y, new_width, new_height, reached_middle;
+	return coastal_freshwater, coastal_plain, inland_freshwater, inland_plain, new_west_x, new_south_y, new_width, new_height, reached_middle;
 end
 ------------------------------------------------------------------------------
 function AssignStartingPlots:PlaceCityState(coastal_plot_list, inland_plot_list, check_proximity, check_collision)
@@ -6342,11 +6367,23 @@ function AssignStartingPlots:PlaceCityStateInRegion(city_state_number, region_nu
 	while placed_city_state == false and reached_middle == false do
 		-- Send the remaining unprocessed portion of the region to be processed.
 		local nextWX, nextSY, nextWid, nextHei;
-		eligible_coastal, eligible_inland, nextWX, nextSY, nextWid, nextHei, 
+		local coastal_freshwater, coastal_plain, inland_freshwater, inland_plain;
+		coastal_freshwater, coastal_plain, inland_freshwater, inland_plain, nextWX, nextSY, nextWid, nextHei, 
 		  reached_middle = self:ObtainNextSectionInRegion(curWX, curSY, curWid, curHei, iAreaID, false, false) -- Don't force it. Yet.
 		curWX, curSY, curWid, curHei = nextWX, nextSY, nextWid, nextHei;
-		-- Attempt to place city state using the two plot lists received from the last call.
-		x, y, placed_city_state = self:PlaceCityState(eligible_coastal, eligible_inland, false, false) -- Don't need to re-check collisions.
+		-- Attempt to place city state using this strip's lists. Coastal still
+		-- always beats Inland (unchanged); within each, River/Lake is always
+		-- chosen over plain when this strip has any available.
+		x, y, placed_city_state = self:PlaceCityState(coastal_freshwater, {}, false, false)
+		if placed_city_state == false then
+			x, y, placed_city_state = self:PlaceCityState(coastal_plain, {}, false, false)
+		end
+		if placed_city_state == false then
+			x, y, placed_city_state = self:PlaceCityState({}, inland_freshwater, false, false)
+		end
+		if placed_city_state == false then
+			x, y, placed_city_state = self:PlaceCityState({}, inland_plain, false, false)
+		end
 	end
 	
 	-- Disabling all fallback methods of city state placement. Jon has decided that, rather than
@@ -6484,7 +6521,7 @@ function AssignStartingPlots:PlaceCityStates()
 	--print("-"); print("--- City State Placement Results ---");
 
 	local iW, iH = Map.GetGridSize();
-	local iUninhabitedCandidatePlots = table.maxn(self.uninhabited_areas_coastal_plots) + table.maxn(self.uninhabited_areas_inland_plots);
+	local iUninhabitedCandidatePlots = table.maxn(self.uninhabited_areas_coastal_plots) + table.maxn(self.uninhabited_areas_inland_plots) + table.maxn(self.uninhabited_areas_coastal_freshwater) + table.maxn(self.uninhabited_areas_inland_freshwater);
 	--print("-"); print("."); print(". NUMBER OF UNINHABITED CS CANDIDATE PLOTS: ", iUninhabitedCandidatePlots); print(".");
 	for cs_number, region_number in ipairs(self.city_state_region_assignments) do
 		if cs_number <= self.iNumCityStates then -- Make sure it's an active city state before processing.
@@ -6492,7 +6529,16 @@ function AssignStartingPlots:PlaceCityStates()
 				--print("Place City States, place in uninhabited called for City State", cs_number);
 				iUninhabitedCandidatePlots = iUninhabitedCandidatePlots - 1;
 				local cs_x, cs_y, success;
-				cs_x, cs_y, success = self:PlaceCityState(self.uninhabited_areas_coastal_plots, self.uninhabited_areas_inland_plots, true, true)
+				cs_x, cs_y, success = self:PlaceCityState(self.uninhabited_areas_coastal_freshwater, {}, true, true)
+				if not success then
+					cs_x, cs_y, success = self:PlaceCityState(self.uninhabited_areas_coastal_plots, {}, true, true)
+				end
+				if not success then
+					cs_x, cs_y, success = self:PlaceCityState({}, self.uninhabited_areas_inland_freshwater, true, true)
+				end
+				if not success then
+					cs_x, cs_y, success = self:PlaceCityState({}, self.uninhabited_areas_inland_plots, true, true)
+				end
 				--
 				-- Disabling fallback methods that remove proximity and collision checks. Jon has decided
 				-- that city states that do not fit on the map will simply not be placed, but instead discarded.
@@ -6540,21 +6586,27 @@ function AssignStartingPlots:PlaceCityStates()
 	-- Last chance method to place city states that didn't fit where they were supposed to go.
 	if self.iNumCityStatesDiscarded > 0 then
 		-- Assemble a global plot list of eligible City State sites that remain.
-		local cs_last_chance_plot_list = {};
+		local cs_last_chance_freshwater, cs_last_chance_plain = {}, {};
 		for y = 0, iH - 1 do
 			for x = 0, iW - 1 do
 				if self:CanPlaceCityStateAt(x, y, -1, false, false) == true then
 					local i = y * iW + x + 1;
-					table.insert(cs_last_chance_plot_list, i);
+					local plot = Map.GetPlot(x, y);
+					if plot:IsRiverSide() or plot:IsLakeSide() then
+						table.insert(cs_last_chance_freshwater, i);
+					else
+						table.insert(cs_last_chance_plain, i);
+					end
 				end
 			end
 		end
-		local iNumLastChanceCandidates = table.maxn(cs_last_chance_plot_list);
+		local iNumLastChanceCandidates = table.maxn(cs_last_chance_freshwater) + table.maxn(cs_last_chance_plain);
 		-- If any eligible sites were found anywhere on the map, place as many of the remaining CS as possible.
 		if iNumLastChanceCandidates > 0 then
 			--print("-"); print("-"); print("ALERT: Some City States failed to be placed due to overcrowding. Attempting 'last chance' placement method.");
 			--print("Total number of remaining eligible candidate plots:", iNumLastChanceCandidates);
-			local last_chance_shuffled = GetShuffledCopyOfTable(cs_last_chance_plot_list)
+			local last_chance_freshwater_shuffled = GetShuffledCopyOfTable(cs_last_chance_freshwater)
+			local last_chance_plain_shuffled = GetShuffledCopyOfTable(cs_last_chance_plain)
 			local cs_list = {};
 			for cs_num = 1, self.iNumCityStates do
 				if self.city_state_validity_table[cs_num] == false then
@@ -6564,7 +6616,10 @@ function AssignStartingPlots:PlaceCityStates()
 			end
 			for loop, cs_number in ipairs(cs_list) do
 				local cs_x, cs_y, success;
-				cs_x, cs_y, success = self:PlaceCityState(last_chance_shuffled, {}, true, true)
+				cs_x, cs_y, success = self:PlaceCityState(last_chance_freshwater_shuffled, {}, true, true)
+				if not success then
+					cs_x, cs_y, success = self:PlaceCityState(last_chance_plain_shuffled, {}, true, true)
+				end
 				if success == true then
 					self.cityStatePlots[cs_number] = {cs_x, cs_y, -1};
 					self.city_state_validity_table[cs_number] = true; -- This is the line that marks a city state as valid to be processed by the rest of the system.

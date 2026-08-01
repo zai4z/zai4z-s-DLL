@@ -3,11 +3,6 @@
 --------------------------------------------------------------------------------------------
 
 local AdjReef
-local Coast = TerrainTypes.TERRAIN_COAST
-local Mountain = PlotTypes.PLOT_MOUNTAIN
-local Grass = TerrainTypes.TERRAIN_GRASS
-local Ocean = TerrainTypes.TERRAIN_OCEAN
-local Reef = FeatureTypes.FEATURE_REEF
 
 -------------------------------------------------------------------------------------------
 -- Check if plot is valid
@@ -95,7 +90,7 @@ function NWCustomEligibility(x, y, method_number)
 			end
 		end
 
-		if (TerrainType ~= Coast) or not AdjacentToLand or (ResourceType ~= -1) or (FeatureType ~= -1) then
+		if (TerrainType ~= TerrainTypes.TERRAIN_COAST) or not AdjacentToLand or (ResourceType ~= -1) or (FeatureType ~= -1) then
 			return false
 		end
 
@@ -186,22 +181,22 @@ function NWCustomPlacement(x, y, row_number, method_number)
 	-- Great Barrier Reef
 	if method_number == 1 then
 		
-		plot:SetTerrainType(Coast)
+		plot:SetTerrainType(TerrainTypes.TERRAIN_COAST)
 
 		local secondplot = Map.PlotDirection(x, y, AdjReef)
 		secondplot:SetResourceType(-1)
-		secondplot:SetFeatureType(Reef)
+		secondplot:SetFeatureType(FeatureTypes.FEATURE_REEF)
 		sx, sy = secondplot:GetX(), secondplot:GetY()
 
 		for direction = 0, 5 do
 			local adjplot = Map.PlotDirection(x, y, direction)
-			adjplot:SetTerrainType(Coast)
+			adjplot:SetTerrainType(TerrainTypes.TERRAIN_COAST)
 		end
 
 		for direction = 0, 5 do
 			local adjplot = Map.PlotDirection(sx, sy, direction)
 			if adjplot then
-				adjplot:SetTerrainType(Coast)
+				adjplot:SetTerrainType(TerrainTypes.TERRAIN_COAST)
 			end
 		end
 
@@ -209,24 +204,24 @@ function NWCustomPlacement(x, y, row_number, method_number)
 
 	-- Rock of Gibraltar.
 	elseif method_number == 2 then
-		plot:SetPlotType(Mountain)
-		plot:SetTerrainType(Grass)
+		plot:SetPlotType(PlotTypes.PLOT_MOUNTAIN)
+		plot:SetTerrainType(TerrainTypes.TERRAIN_GRASS)
 
 		for direction = 0, 5 do
 			local adjplot = Map.PlotDirection(x, y, direction)
-			if (adjplot:GetTerrainType() == Ocean) then
-				adjplot:SetTerrainType(Coast)
+			if (adjplot:GetTerrainType() == TerrainTypes.TERRAIN_OCEAN) then
+				adjplot:SetTerrainType(TerrainTypes.TERRAIN_COAST)
 			end
 		end
 
 	-- Krakatoa
 	elseif method_number == 3 then
-		plot:SetPlotType(Mountain)
-		plot:SetTerrainType(Grass)
+		plot:SetPlotType(PlotTypes.PLOT_MOUNTAIN)
+		plot:SetTerrainType(TerrainTypes.TERRAIN_GRASS)
 
 		for direction = 0, 5 do
 			local adjplot = Map.PlotDirection(x, y, direction)
-			adjplot:SetTerrainType(Coast)
+			adjplot:SetTerrainType(TerrainTypes.TERRAIN_COAST)
 		end
 	end
 end
