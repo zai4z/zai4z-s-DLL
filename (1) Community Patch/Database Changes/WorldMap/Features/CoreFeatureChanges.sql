@@ -12,6 +12,11 @@ WHERE Type IN (
 	'FEATURE_FOUNTAIN_YOUTH'
 );
 
+-- These are permanent features that shouldn't be removed
+UPDATE Features
+SET NukeImmune = 1
+WHERE (Type IN ('FEATURE_OASIS', 'FEATURE_ATOLL', 'FEATURE_FLOOD_PLAINS', 'FEATURE_ICE') OR NaturalWonder = 1);
+
 UPDATE Features SET SeeThrough = 1 WHERE Type = 'FEATURE_GEYSER';
 
 -- Natural Wonder placement criteria/post-placement effects
