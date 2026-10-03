@@ -624,7 +624,7 @@ void CvCity::init(int iID, PlayerTypes eOwner, int iX, int iY, bool bBumpUnits, 
 	FeatureTypes eFeature = pPlot->getFeatureType();
 
 	//SCRIPT call ' bool citiesDestroyFeatures(iX, iY);'
-	if (pPlot->getFeatureType() != NO_FEATURE)
+	if (eFeature != NO_FEATURE && eFeature != FEATURE_FLOOD_PLAINS)
 	{
 		// Only for major civs building on a forest
 		if (MOD_GLOBAL_CITY_FOREST_BONUS && eFeature == FEATURE_FOREST && eBuildRemoveForest != -1 && kOwner.isMajorCiv())
