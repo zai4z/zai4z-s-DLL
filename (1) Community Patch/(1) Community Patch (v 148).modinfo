@@ -38,6 +38,7 @@
     <Mod id="781d81cf-49e1-4acb-ae5f-b9e3713f98d3" minversion="0" maxversion="999" title="(1a) Civ IV Diplomatic Features - CP" />
     <Mod id="857405dd-7394-471e-8910-a875db36374f" minversion="0" maxversion="999" title="Bridges and Canals" />
     <Mod id="59c70c09-d8ec-4856-b012-33b43b4f98fc" minversion="0" maxversion="999" title="Squads for VP" />
+	<Dlc id="3F49DF54-68B6-44d1-A930-A168628FAA59" minversion="0" maxversion="999" title="Explorers Map Pack (Readded in these files)" />
   </Blocks>
   <Files>
     <File md5="FD9F7C980781B0D6951E5575A8C52A1C" import="1">Assets/DoMImages/dom_catherine.dds</File>
@@ -765,6 +766,19 @@
     <File md5="3EEC34EC93897595AABD4367C8B4B1A9" import="1">Mapscripts/Boreal.lua</File>
     <File md5="C94DD0DDF8E82E5B09B728BD7FCD951A" import="1">Mapscripts/Highlands.lua</File>
     <File md5="F10C5FF7AE8A7276B99B01F1A1066C65" import="1">Mapscripts/Terra.lua</File>
+    <File md5="01E57106E3DF3EB96388222C9BA34D1A" import="1">Core Files/Overrides/GameSetupScreen.lua</File>
+    <File md5="CE555893401AF1CC1F326424DEF97DDA" import="1">Core Files/Overrides/GameSetupScreen.xml</File>
+    <File md5="3EA96D6AE1C5E44DC08DA1059DD175FC" import="1">Core Files/Overrides/LoadScreen.lua</File>
+    <File md5="D74A2D4F38BCFD0DA5D97B3960CF7835" import="1">Core Files/Overrides/LoadScreen.xml</File>
+    <File md5="843D7699FF75E54BD4DDB3C5FA02851F" import="1">Core Files/Overrides/SelectCivilization.lua</File>
+    <File md5="352496DB8FAFE591D7DF1A9A50221180" import="1">Core Files/Overrides/SelectCivilization.xml</File>
+    <File md5="186C0728471859ADE6A105BAC8B08BE3" import="1">Core Files/Overrides/UniqueBonuses.lua</File>
+    <File md5="410809A384298F8335B1E4F1C5FC22F3" import="1">DLC_SP_Maps/Amazon.lua</File>
+    <File md5="410809A384298F8335B1E4F1C5FC22F3" import="1">DLC_SP_Maps/ContinentsPlus.lua</File>
+    <File md5="5629667BEDC8304DB0F6D6D8FCB84588" import="1">DLC_SP_Maps/Donut.lua</File>
+    <File md5="C9837AE28C480828B49045BDA4547DFF" import="1">DLC_SP_Maps/PangaeaPlus.lua</File>
+    <File md5="2702A67600180AC22EDA582CBBDDEFCC" import="1">DLC_SP_Maps/Sandstorm.lua</File>
+    <File md5="D831E87B71B26B079C8E50318F70FC6B" import="0">DLC_SP_Maps/Civ5Maps_DLC_SP_Maps.xml</File>
   </Files>
   <Actions>
     <OnGetDLLPath>
@@ -931,6 +945,7 @@
       <UpdateDatabase>Database Changes\CoreTriggers.sql</UpdateDatabase>
       <UpdateDatabase>Database Changes\Remapper.sql</UpdateDatabase>
       <UpdateDatabase>Database Changes/Misc/NotificationsChanges.sql</UpdateDatabase>
+      <UpdateDatabase>DLC_SP_Maps/Civ5Maps_DLC_SP_Maps.xml</UpdateDatabase>
     </OnModActivated>
   </Actions>
   <EntryPoints>
@@ -957,6 +972,26 @@
     <EntryPoint type="InGameUIAddin" file="Core Files/New UI/EspionageChoicePopup.lua">
       <Name>EspionageChoice</Name>
       <Description>EspionageChoice</Description>
+    </EntryPoint>
+    <EntryPoint type="MapScript" file="DLC_SP_Maps/Amazon.lua">
+      <Name>Amazon</Name>
+      <Description></Description>
+    </EntryPoint>
+    <EntryPoint type="MapScript" file="DLC_SP_Maps/ContinentsPlus.lua">
+      <Name>ContinentsPlus</Name>
+      <Description></Description>
+    </EntryPoint>
+    <EntryPoint type="MapScript" file="DLC_SP_Maps/Donut.lua">
+      <Name>Donut</Name>
+      <Description></Description>
+    </EntryPoint>
+    <EntryPoint type="MapScript" file="DLC_SP_Maps/PangaeaPlus.lua">
+      <Name>PangaeaPlus</Name>
+      <Description></Description>
+    </EntryPoint>
+    <EntryPoint type="MapScript" file="DLC_SP_Maps/Sandstorm.lua">
+      <Name>Sandstorm</Name>
+      <Description></Description>
     </EntryPoint>
   </EntryPoints>
 </Mod>
