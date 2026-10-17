@@ -1,6 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <GameData>
 	<Language_en_US>
+		<Row Tag="TXT_KEY_GAME_OPTION_DISABLE_START_NORMALIZATION">
+			<Text>Disable Start Normalization</Text>
+		</Row>
+		<Row Tag="TXT_KEY_GAME_OPTION_DISABLE_START_NORMALIZATION_HELP">
+			<Text>Prevents changing of terrain/adding of resources that balances start locations for major civs</Text>
+		</Row>
+		
 		<Row Tag="TXT_KEY_GAME_OPTION_NO_ICE">
 			<Text>No Ice</Text>
 		</Row>

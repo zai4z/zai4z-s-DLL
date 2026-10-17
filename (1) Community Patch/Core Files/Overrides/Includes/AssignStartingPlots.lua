@@ -3964,8 +3964,13 @@ function AssignStartingPlots:NormalizeStartLocation(region_number)
 	local iNumNativeTwoFoodFirstRing, iNumNativeTwoFoodSecondRing = 0, 0; -- Cities must begin the game with at least three native 2F tiles, one in first ring.
 	local search_table = {};
 	
+	-- Check Game Option for disabling civ start normalization.
+	local bSkipNormalization = (Game.GetCustomOption("GAMEOPTION_DISABLE_START_NORMALIZATION") == 1);
+
 	-- Remove any feature Ice from the first ring.
-	self:GenerateLuxuryPlotListsAtCitySite(x, y, 1, true)
+	if not bSkipNormalization then
+		self:GenerateLuxuryPlotListsAtCitySite(x, y, 1, true)
+	end
 	
 	-- Set up Conditions checks.
 	local alongOcean = false;
@@ -4280,309 +4285,311 @@ function AssignStartingPlots:NormalizeStartLocation(region_number)
 			end
 		end
 	end
-	
-	-- Adjust the hammer situation, if needed.
-	local innerHammerScore = (4 * innerHills) + (2 * innerForest) + innerOneHammer;
-	local outerHammerScore = (2 * outerHills) + outerForest + outerOneHammer;
-	local earlyHammerScore = (2 * innerForest) + outerForest + innerOneHammer + outerOneHammer;
-	-- If drastic shortage, attempt to add a hill to first ring.
-	if (outerHammerScore < 8 and innerHammerScore < 2) or innerHammerScore == 0 then -- Change a first ring plot to Hills.
-		if isEvenY then
-			randomized_first_ring_adjustments = GetShuffledCopyOfTable(self.firstRingYIsEven);
-		else
-			randomized_first_ring_adjustments = GetShuffledCopyOfTable(self.firstRingYIsOdd);
-		end
-		for attempt = 1, 6 do
-			local plot_adjustments = randomized_first_ring_adjustments[attempt];
-			local searchX, searchY = self:ApplyHexAdjustment(x, y, plot_adjustments)
-			-- Attempt to place a Hill at the currently chosen plot.
-			local placedHill = self:AttemptToPlaceHillsAtPlot(searchX, searchY);
-			if placedHill == true then
-				innerHammerScore = innerHammerScore + 4;
-				--print("Added hills next to hammer-poor start plot at ", x, y);
-				break
-			elseif attempt == 6 then
-				--print("FAILED to add hills next to hammer-poor start plot at ", x, y);
-			end
-		end
-	end
-	
-	-- Add mandatory Iron, Horse, Oil to every start if Strategic Balance option is enabled.
-	if self.resource_setting == 5 then
-		self:AddStrategicBalanceResources(region_number)
-	end
-	
-	-- If early hammers will be too short, attempt to add a small Horse or Iron to second ring.
-	if innerHammerScore < 3 and earlyHammerScore < 6 then -- Add a small Horse or Iron to second ring.
-		if isEvenY then
-			randomized_second_ring_adjustments = GetShuffledCopyOfTable(self.secondRingYIsEven);
-		else
-			randomized_second_ring_adjustments = GetShuffledCopyOfTable(self.secondRingYIsOdd);
-		end
-		for attempt = 1, 12 do
-			local plot_adjustments = randomized_second_ring_adjustments[attempt];
-			local searchX, searchY = self:ApplyHexAdjustment(x, y, plot_adjustments)
-			-- Attempt to place a Hill at the currently chosen plot.
-			local placedStrategic = self:AttemptToPlaceSmallStrategicAtPlot(searchX, searchY);
-			if placedStrategic == true then
-				break
-			elseif attempt == 12 then
-				--print("FAILED to add small strategic resource near hammer-poor start plot at ", x, y);
-			end
-		end
-	end
-	
-	-- Rate the food situation.
-	local innerFoodScore = (4 * innerFourFood) + (2 * innerThreeFood) + innerTwoFood;
-	local outerFoodScore = (4 * outerFourFood) + (2 * outerThreeFood) + outerTwoFood;
-	local totalFoodScore = innerFoodScore + outerFoodScore;
-	local nativeTwoFoodTiles = iNumNativeTwoFoodFirstRing + iNumNativeTwoFoodSecondRing;
 
-	--[[ Debug printout of food scores.
-	print("-");
-	print("-- - Start Point in Region #", region_number, " has Food Score of ", totalFoodScore, " with rings of ", innerFoodScore, outerFoodScore);
-	]]--	
-	
-	-- Six levels for Bonus Resource support, from zero to five.
-	if totalFoodScore < 4 and innerFoodScore == 0 then
-		iNumFoodBonusNeeded = 5;
-	elseif totalFoodScore < 6 then
-		iNumFoodBonusNeeded = 4;
-	elseif totalFoodScore < 8 then
-		iNumFoodBonusNeeded = 3;
-	elseif totalFoodScore < 12 and innerFoodScore < 5 then
-		iNumFoodBonusNeeded = 3;
-	elseif totalFoodScore < 17 and innerFoodScore < 9 then
-		iNumFoodBonusNeeded = 2;
-	elseif nativeTwoFoodTiles <= 1 then
-		iNumFoodBonusNeeded = 2;
-	elseif totalFoodScore < 24 and innerFoodScore < 11 then
-		iNumFoodBonusNeeded = 1;
-	elseif nativeTwoFoodTiles == 2 or iNumNativeTwoFoodFirstRing == 0 then
-		iNumFoodBonusNeeded = 1;
-	elseif totalFoodScore < 20 then
-		iNumFoodBonusNeeded = 1;
-	end
-	
-	-- Check for Legendary Start resource option.
-	if self.resource_setting == 4 then
-		iNumFoodBonusNeeded = iNumFoodBonusNeeded + 2;
-	end
-	
-	-- Check to see if a Grass tile needs to be added at an all-plains site with zero native 2-food tiles in first two rings.
-	if nativeTwoFoodTiles == 0 and iNumFoodBonusNeeded < 3 then
-		local odd = self.firstRingYIsOdd;
-		local even = self.firstRingYIsEven;
-		local plot_list = {};
-		-- For notes on how the hex-iteration works, refer to PlaceResourceImpact()
-		local ripple_radius = 2;
-		local currentX = x - ripple_radius;
-		local currentY = y;
-		for direction_index = 1, 6 do
-			for plot_to_handle = 1, ripple_radius do
-			 	if currentY / 2 > math.floor(currentY / 2) then
-					plot_adjustments = odd[direction_index];
-				else
-					plot_adjustments = even[direction_index];
+	if not bSkipNormalization then
+		-- Adjust the hammer situation, if needed.
+		local innerHammerScore = (4 * innerHills) + (2 * innerForest) + innerOneHammer;
+		local outerHammerScore = (2 * outerHills) + outerForest + outerOneHammer;
+		local earlyHammerScore = (2 * innerForest) + outerForest + innerOneHammer + outerOneHammer;
+		-- If drastic shortage, attempt to add a hill to first ring.
+		if (outerHammerScore < 8 and innerHammerScore < 2) or innerHammerScore == 0 then -- Change a first ring plot to Hills.
+			if isEvenY then
+				randomized_first_ring_adjustments = GetShuffledCopyOfTable(self.firstRingYIsEven);
+			else
+				randomized_first_ring_adjustments = GetShuffledCopyOfTable(self.firstRingYIsOdd);
+			end
+			for attempt = 1, 6 do
+				local plot_adjustments = randomized_first_ring_adjustments[attempt];
+				local searchX, searchY = self:ApplyHexAdjustment(x, y, plot_adjustments)
+				-- Attempt to place a Hill at the currently chosen plot.
+				local placedHill = self:AttemptToPlaceHillsAtPlot(searchX, searchY);
+				if placedHill == true then
+					innerHammerScore = innerHammerScore + 4;
+					--print("Added hills next to hammer-poor start plot at ", x, y);
+					break
+				elseif attempt == 6 then
+					--print("FAILED to add hills next to hammer-poor start plot at ", x, y);
 				end
-				nextX = currentX + plot_adjustments[1];
-				nextY = currentY + plot_adjustments[2];
-				if wrapX == false and (nextX < 0 or nextX >= iW) then
-					-- X is out of bounds.
-				elseif wrapY == false and (nextY < 0 or nextY >= iH) then
-					-- Y is out of bounds.
-				else
-					local realX = nextX;
-					local realY = nextY;
-					if wrapX then
-						realX = realX % iW;
+			end
+		end
+		
+		-- Add mandatory Iron, Horse, Oil to every start if Strategic Balance option is enabled.
+		if self.resource_setting == 5 then
+			self:AddStrategicBalanceResources(region_number)
+		end
+		
+		-- If early hammers will be too short, attempt to add a small Horse or Iron to second ring.
+		if innerHammerScore < 3 and earlyHammerScore < 6 then -- Add a small Horse or Iron to second ring.
+			if isEvenY then
+				randomized_second_ring_adjustments = GetShuffledCopyOfTable(self.secondRingYIsEven);
+			else
+				randomized_second_ring_adjustments = GetShuffledCopyOfTable(self.secondRingYIsOdd);
+			end
+			for attempt = 1, 12 do
+				local plot_adjustments = randomized_second_ring_adjustments[attempt];
+				local searchX, searchY = self:ApplyHexAdjustment(x, y, plot_adjustments)
+				-- Attempt to place a Hill at the currently chosen plot.
+				local placedStrategic = self:AttemptToPlaceSmallStrategicAtPlot(searchX, searchY);
+				if placedStrategic == true then
+					break
+				elseif attempt == 12 then
+					--print("FAILED to add small strategic resource near hammer-poor start plot at ", x, y);
+				end
+			end
+		end
+		
+		-- Rate the food situation.
+		local innerFoodScore = (4 * innerFourFood) + (2 * innerThreeFood) + innerTwoFood;
+		local outerFoodScore = (4 * outerFourFood) + (2 * outerThreeFood) + outerTwoFood;
+		local totalFoodScore = innerFoodScore + outerFoodScore;
+		local nativeTwoFoodTiles = iNumNativeTwoFoodFirstRing + iNumNativeTwoFoodSecondRing;
+
+		--[[ Debug printout of food scores.
+		print("-");
+		print("-- - Start Point in Region #", region_number, " has Food Score of ", totalFoodScore, " with rings of ", innerFoodScore, outerFoodScore);
+		]]--	
+		
+		-- Six levels for Bonus Resource support, from zero to five.
+		if totalFoodScore < 4 and innerFoodScore == 0 then
+			iNumFoodBonusNeeded = 5;
+		elseif totalFoodScore < 6 then
+			iNumFoodBonusNeeded = 4;
+		elseif totalFoodScore < 8 then
+			iNumFoodBonusNeeded = 3;
+		elseif totalFoodScore < 12 and innerFoodScore < 5 then
+			iNumFoodBonusNeeded = 3;
+		elseif totalFoodScore < 17 and innerFoodScore < 9 then
+			iNumFoodBonusNeeded = 2;
+		elseif nativeTwoFoodTiles <= 1 then
+			iNumFoodBonusNeeded = 2;
+		elseif totalFoodScore < 24 and innerFoodScore < 11 then
+			iNumFoodBonusNeeded = 1;
+		elseif nativeTwoFoodTiles == 2 or iNumNativeTwoFoodFirstRing == 0 then
+			iNumFoodBonusNeeded = 1;
+		elseif totalFoodScore < 20 then
+			iNumFoodBonusNeeded = 1;
+		end
+		
+		-- Check for Legendary Start resource option.
+		if self.resource_setting == 4 then
+			iNumFoodBonusNeeded = iNumFoodBonusNeeded + 2;
+		end
+		
+		-- Check to see if a Grass tile needs to be added at an all-plains site with zero native 2-food tiles in first two rings.
+		if nativeTwoFoodTiles == 0 and iNumFoodBonusNeeded < 3 then
+			local odd = self.firstRingYIsOdd;
+			local even = self.firstRingYIsEven;
+			local plot_list = {};
+			-- For notes on how the hex-iteration works, refer to PlaceResourceImpact()
+			local ripple_radius = 2;
+			local currentX = x - ripple_radius;
+			local currentY = y;
+			for direction_index = 1, 6 do
+				for plot_to_handle = 1, ripple_radius do
+					if currentY / 2 > math.floor(currentY / 2) then
+						plot_adjustments = odd[direction_index];
+					else
+						plot_adjustments = even[direction_index];
 					end
-					if wrapY then
-						realY = realY % iH;
-					end
-					-- We've arrived at the correct x and y for the current plot.
-					local plot = Map.GetPlot(realX, realY);
-					if plot:GetResourceType(-1) == -1 then -- No resource here, safe to proceed.
-						local plotType = plot:GetPlotType()
-						local terrainType = plot:GetTerrainType()
-						local featureType = plot:GetFeatureType()
-						local plotIndex = realY * iW + realX + 1;
-						-- Now check this plot for eligibility to be converted to flat open grassland.
-						if plotType == PlotTypes.PLOT_LAND then
-							if terrainType == TerrainTypes.TERRAIN_PLAINS then
-								if featureType == FeatureTypes.NO_FEATURE then
-									table.insert(plot_list, plotIndex);
+					nextX = currentX + plot_adjustments[1];
+					nextY = currentY + plot_adjustments[2];
+					if wrapX == false and (nextX < 0 or nextX >= iW) then
+						-- X is out of bounds.
+					elseif wrapY == false and (nextY < 0 or nextY >= iH) then
+						-- Y is out of bounds.
+					else
+						local realX = nextX;
+						local realY = nextY;
+						if wrapX then
+							realX = realX % iW;
+						end
+						if wrapY then
+							realY = realY % iH;
+						end
+						-- We've arrived at the correct x and y for the current plot.
+						local plot = Map.GetPlot(realX, realY);
+						if plot:GetResourceType(-1) == -1 then -- No resource here, safe to proceed.
+							local plotType = plot:GetPlotType()
+							local terrainType = plot:GetTerrainType()
+							local featureType = plot:GetFeatureType()
+							local plotIndex = realY * iW + realX + 1;
+							-- Now check this plot for eligibility to be converted to flat open grassland.
+							if plotType == PlotTypes.PLOT_LAND then
+								if terrainType == TerrainTypes.TERRAIN_PLAINS then
+									if featureType == FeatureTypes.NO_FEATURE then
+										table.insert(plot_list, plotIndex);
+									end
 								end
 							end
 						end
 					end
+					currentX, currentY = nextX, nextY;
 				end
-				currentX, currentY = nextX, nextY;
+			end
+			local iNumConversionCandidates = table.maxn(plot_list);
+			if iNumConversionCandidates == 0 then
+				iNumFoodBonusNeeded = 3;
+			else
+				--print("-"); print("*** START HAD NO 2-FOOD TILES, YET ONLY QUALIFIED FOR 2 BONUS; CONVERTING A PLAINS TO GRASS! ***"); print("-");
+				local diceroll = 1 + Map.Rand(iNumConversionCandidates, "Choosing plot to convert to Grass near food-poor Plains start - LUA");
+				local conversionPlotIndex = plot_list[diceroll];
+				local conv_x = (conversionPlotIndex - 1) % iW;
+				local conv_y = (conversionPlotIndex - conv_x - 1) / iW;
+				local plot = Map.GetPlot(conv_x, conv_y);
+				plot:SetTerrainType(TerrainTypes.TERRAIN_GRASS, false, false)
+				self:PlaceResourceImpact(conv_x, conv_y, 1, 0) -- Disallow strategic resources at this plot, to keep it a farm plot.
 			end
 		end
-		local iNumConversionCandidates = table.maxn(plot_list);
-		if iNumConversionCandidates == 0 then
-			iNumFoodBonusNeeded = 3;
-		else
-			--print("-"); print("*** START HAD NO 2-FOOD TILES, YET ONLY QUALIFIED FOR 2 BONUS; CONVERTING A PLAINS TO GRASS! ***"); print("-");
-			local diceroll = 1 + Map.Rand(iNumConversionCandidates, "Choosing plot to convert to Grass near food-poor Plains start - LUA");
-			local conversionPlotIndex = plot_list[diceroll];
-			local conv_x = (conversionPlotIndex - 1) % iW;
-			local conv_y = (conversionPlotIndex - conv_x - 1) / iW;
-			local plot = Map.GetPlot(conv_x, conv_y);
-			plot:SetTerrainType(TerrainTypes.TERRAIN_GRASS, false, false)
-			self:PlaceResourceImpact(conv_x, conv_y, 1, 0) -- Disallow strategic resources at this plot, to keep it a farm plot.
-		end
-	end
-	-- Add Bonus Resources to food-poor start positions.
-	if iNumFoodBonusNeeded > 0 then
-		local maxBonusesPossible = innerCanHaveBonus + outerCanHaveBonus;
+		-- Add Bonus Resources to food-poor start positions.
+		if iNumFoodBonusNeeded > 0 then
+			local maxBonusesPossible = innerCanHaveBonus + outerCanHaveBonus;
 
-		--print("-");
-		--print("Food-Poor start ", x, y, " needs ", iNumFoodBonusNeeded, " Bonus, with ", maxBonusesPossible, " eligible plots.");
-		--print("-");
+			--print("-");
+			--print("Food-Poor start ", x, y, " needs ", iNumFoodBonusNeeded, " Bonus, with ", maxBonusesPossible, " eligible plots.");
+			--print("-");
 
-		local innerPlaced, outerPlaced = 0, 0;
-		local randomized_first_ring_adjustments, randomized_second_ring_adjustments, randomized_third_ring_adjustments;
-		if isEvenY then
-			randomized_first_ring_adjustments = GetShuffledCopyOfTable(self.firstRingYIsEven);
-			randomized_second_ring_adjustments = GetShuffledCopyOfTable(self.secondRingYIsEven);
-			randomized_third_ring_adjustments = GetShuffledCopyOfTable(self.thirdRingYIsEven);
-		else
-			randomized_first_ring_adjustments = GetShuffledCopyOfTable(self.firstRingYIsOdd);
-			randomized_second_ring_adjustments = GetShuffledCopyOfTable(self.secondRingYIsOdd);
-			randomized_third_ring_adjustments = GetShuffledCopyOfTable(self.thirdRingYIsOdd);
-		end
-		local tried_all_first_ring = false;
-		local tried_all_second_ring = false;
-		local tried_all_third_ring = false;
-		local allow_oasis = true; -- Permanent flag. (We don't want to place more than one Oasis per location).
-		local placedOasis; -- Records returning result from each attempt.
-		while iNumFoodBonusNeeded > 0 do
-			if ((innerPlaced < 2 and innerCanHaveBonus > 0) or (self.resource_setting == 4 and innerPlaced < 3 and innerCanHaveBonus > 0))
-			  and tried_all_first_ring == false then
-				-- Add bonus to inner ring.
-				for attempt = 1, 6 do
-					local plot_adjustments = randomized_first_ring_adjustments[attempt];
-					local searchX, searchY = self:ApplyHexAdjustment(x, y, plot_adjustments)
-					-- Attempt to place a Bonus at the currently chosen plot.
-					local placedBonus, placedOasis = self:AttemptToPlaceBonusResourceAtPlot(searchX, searchY, allow_oasis);
-					if placedBonus == true then
-						if allow_oasis == true and placedOasis == true then -- First oasis was placed on this pass, so change permission.
-							allow_oasis = false;
+			local innerPlaced, outerPlaced = 0, 0;
+			local randomized_first_ring_adjustments, randomized_second_ring_adjustments, randomized_third_ring_adjustments;
+			if isEvenY then
+				randomized_first_ring_adjustments = GetShuffledCopyOfTable(self.firstRingYIsEven);
+				randomized_second_ring_adjustments = GetShuffledCopyOfTable(self.secondRingYIsEven);
+				randomized_third_ring_adjustments = GetShuffledCopyOfTable(self.thirdRingYIsEven);
+			else
+				randomized_first_ring_adjustments = GetShuffledCopyOfTable(self.firstRingYIsOdd);
+				randomized_second_ring_adjustments = GetShuffledCopyOfTable(self.secondRingYIsOdd);
+				randomized_third_ring_adjustments = GetShuffledCopyOfTable(self.thirdRingYIsOdd);
+			end
+			local tried_all_first_ring = false;
+			local tried_all_second_ring = false;
+			local tried_all_third_ring = false;
+			local allow_oasis = true; -- Permanent flag. (We don't want to place more than one Oasis per location).
+			local placedOasis; -- Records returning result from each attempt.
+			while iNumFoodBonusNeeded > 0 do
+				if ((innerPlaced < 2 and innerCanHaveBonus > 0) or (self.resource_setting == 4 and innerPlaced < 3 and innerCanHaveBonus > 0))
+				and tried_all_first_ring == false then
+					-- Add bonus to inner ring.
+					for attempt = 1, 6 do
+						local plot_adjustments = randomized_first_ring_adjustments[attempt];
+						local searchX, searchY = self:ApplyHexAdjustment(x, y, plot_adjustments)
+						-- Attempt to place a Bonus at the currently chosen plot.
+						local placedBonus, placedOasis = self:AttemptToPlaceBonusResourceAtPlot(searchX, searchY, allow_oasis);
+						if placedBonus == true then
+							if allow_oasis == true and placedOasis == true then -- First oasis was placed on this pass, so change permission.
+								allow_oasis = false;
+							end
+							--print("Placed a Bonus in first ring at ", searchX, searchY);
+							innerPlaced = innerPlaced + 1;
+							innerCanHaveBonus = innerCanHaveBonus - 1;
+							iNumFoodBonusNeeded = iNumFoodBonusNeeded - 1;
+							break
+						elseif attempt == 6 then
+							tried_all_first_ring = true;
 						end
-						--print("Placed a Bonus in first ring at ", searchX, searchY);
-						innerPlaced = innerPlaced + 1;
-						innerCanHaveBonus = innerCanHaveBonus - 1;
-						iNumFoodBonusNeeded = iNumFoodBonusNeeded - 1;
-						break
-					elseif attempt == 6 then
-						tried_all_first_ring = true;
 					end
-				end
 
-			elseif ((innerPlaced + outerPlaced < 5 and outerCanHaveBonus > 0) or (self.resource_setting == 4 and innerPlaced + outerPlaced < 4 and outerCanHaveBonus > 0))
-			  and tried_all_second_ring == false then
-				-- Add bonus to second ring.
-				for attempt = 1, 12 do
-					local plot_adjustments = randomized_second_ring_adjustments[attempt];
-					local searchX, searchY = self:ApplyHexAdjustment(x, y, plot_adjustments)
-					-- Attempt to place a Bonus at the currently chosen plot.
-					local placedBonus, placedOasis = self:AttemptToPlaceBonusResourceAtPlot(searchX, searchY, allow_oasis);
-					if placedBonus == true then
-						if allow_oasis == true and placedOasis == true then -- First oasis was placed on this pass, so change permission.
-							allow_oasis = false;
+				elseif ((innerPlaced + outerPlaced < 5 and outerCanHaveBonus > 0) or (self.resource_setting == 4 and innerPlaced + outerPlaced < 4 and outerCanHaveBonus > 0))
+				and tried_all_second_ring == false then
+					-- Add bonus to second ring.
+					for attempt = 1, 12 do
+						local plot_adjustments = randomized_second_ring_adjustments[attempt];
+						local searchX, searchY = self:ApplyHexAdjustment(x, y, plot_adjustments)
+						-- Attempt to place a Bonus at the currently chosen plot.
+						local placedBonus, placedOasis = self:AttemptToPlaceBonusResourceAtPlot(searchX, searchY, allow_oasis);
+						if placedBonus == true then
+							if allow_oasis == true and placedOasis == true then -- First oasis was placed on this pass, so change permission.
+								allow_oasis = false;
+							end
+							--print("Placed a Bonus in second ring at ", searchX, searchY);
+							outerPlaced = outerPlaced + 1;
+							outerCanHaveBonus = outerCanHaveBonus - 1;
+							iNumFoodBonusNeeded = iNumFoodBonusNeeded - 1;
+							break
+						elseif attempt == 12 then
+							tried_all_second_ring = true;
 						end
-						--print("Placed a Bonus in second ring at ", searchX, searchY);
-						outerPlaced = outerPlaced + 1;
-						outerCanHaveBonus = outerCanHaveBonus - 1;
-						iNumFoodBonusNeeded = iNumFoodBonusNeeded - 1;
-						break
-					elseif attempt == 12 then
-						tried_all_second_ring = true;
 					end
-				end
 
-			elseif tried_all_third_ring == false then
-				-- Add bonus to third ring.
-				for attempt = 1, 18 do
-					local plot_adjustments = randomized_third_ring_adjustments[attempt];
-					local searchX, searchY = self:ApplyHexAdjustment(x, y, plot_adjustments)
-					-- Attempt to place a Bonus at the currently chosen plot.
-					local placedBonus, placedOasis = self:AttemptToPlaceBonusResourceAtPlot(searchX, searchY, allow_oasis);
-					if placedBonus == true then
-						if allow_oasis == true and placedOasis == true then -- First oasis was placed on this pass, so change permission.
-							allow_oasis = false;
+				elseif tried_all_third_ring == false then
+					-- Add bonus to third ring.
+					for attempt = 1, 18 do
+						local plot_adjustments = randomized_third_ring_adjustments[attempt];
+						local searchX, searchY = self:ApplyHexAdjustment(x, y, plot_adjustments)
+						-- Attempt to place a Bonus at the currently chosen plot.
+						local placedBonus, placedOasis = self:AttemptToPlaceBonusResourceAtPlot(searchX, searchY, allow_oasis);
+						if placedBonus == true then
+							if allow_oasis == true and placedOasis == true then -- First oasis was placed on this pass, so change permission.
+								allow_oasis = false;
+							end
+							--print("Placed a Bonus in third ring at ", searchX, searchY);
+							iNumFoodBonusNeeded = iNumFoodBonusNeeded - 1;
+							break
+						elseif attempt == 18 then
+							tried_all_third_ring = true;
 						end
-						--print("Placed a Bonus in third ring at ", searchX, searchY);
-						iNumFoodBonusNeeded = iNumFoodBonusNeeded - 1;
-						break
-					elseif attempt == 18 then
-						tried_all_third_ring = true;
 					end
+					
+				else -- Tried everywhere, have to give up.
+					break				
 				end
-				
-			else -- Tried everywhere, have to give up.
-				break				
 			end
 		end
-	end
 
-	-- Check for heavy grass and light plains. Adding Stone if grass count is high and plains count is low. - May 2011, BT
-	local iNumStoneNeeded = 0;
-	if iNumGrass >= 9 and iNumPlains == 0 then
-		iNumStoneNeeded = 2;
-	elseif iNumGrass >= 6 and iNumPlains <= 4 then
-		iNumStoneNeeded = 1;
-	end
-	if iNumStoneNeeded > 0 then -- Add Stone to this grass start.
-		local stonePlaced, innerPlaced = 0, 0;
-		local randomized_first_ring_adjustments, randomized_second_ring_adjustments;
-		if isEvenY then
-			randomized_first_ring_adjustments = GetShuffledCopyOfTable(self.firstRingYIsEven);
-			randomized_second_ring_adjustments = GetShuffledCopyOfTable(self.secondRingYIsEven);
-		else
-			randomized_first_ring_adjustments = GetShuffledCopyOfTable(self.firstRingYIsOdd);
-			randomized_second_ring_adjustments = GetShuffledCopyOfTable(self.secondRingYIsOdd);
+		-- Check for heavy grass and light plains. Adding Stone if grass count is high and plains count is low. - May 2011, BT
+		local iNumStoneNeeded = 0;
+		if iNumGrass >= 9 and iNumPlains == 0 then
+			iNumStoneNeeded = 2;
+		elseif iNumGrass >= 6 and iNumPlains <= 4 then
+			iNumStoneNeeded = 1;
 		end
-		local tried_all_first_ring = false;
-		local tried_all_second_ring = false;
-		while iNumStoneNeeded > 0 do
-			if innerPlaced < 1 and tried_all_first_ring == false then
-				-- Add bonus to inner ring.
-				for attempt = 1, 6 do
-					local plot_adjustments = randomized_first_ring_adjustments[attempt];
-					local searchX, searchY = self:ApplyHexAdjustment(x, y, plot_adjustments)
-					-- Attempt to place Cows at the currently chosen plot.
-					local placedBonus = self:AttemptToPlaceStoneAtGrassPlot(searchX, searchY);
-					if placedBonus == true then
-						--print("Placed Stone in first ring at ", searchX, searchY);
-						innerPlaced = innerPlaced + 1;
-						iNumStoneNeeded = iNumStoneNeeded - 1;
-						break
-					elseif attempt == 6 then
-						tried_all_first_ring = true;
+		if iNumStoneNeeded > 0 then -- Add Stone to this grass start.
+			local stonePlaced, innerPlaced = 0, 0;
+			local randomized_first_ring_adjustments, randomized_second_ring_adjustments;
+			if isEvenY then
+				randomized_first_ring_adjustments = GetShuffledCopyOfTable(self.firstRingYIsEven);
+				randomized_second_ring_adjustments = GetShuffledCopyOfTable(self.secondRingYIsEven);
+			else
+				randomized_first_ring_adjustments = GetShuffledCopyOfTable(self.firstRingYIsOdd);
+				randomized_second_ring_adjustments = GetShuffledCopyOfTable(self.secondRingYIsOdd);
+			end
+			local tried_all_first_ring = false;
+			local tried_all_second_ring = false;
+			while iNumStoneNeeded > 0 do
+				if innerPlaced < 1 and tried_all_first_ring == false then
+					-- Add bonus to inner ring.
+					for attempt = 1, 6 do
+						local plot_adjustments = randomized_first_ring_adjustments[attempt];
+						local searchX, searchY = self:ApplyHexAdjustment(x, y, plot_adjustments)
+						-- Attempt to place Cows at the currently chosen plot.
+						local placedBonus = self:AttemptToPlaceStoneAtGrassPlot(searchX, searchY);
+						if placedBonus == true then
+							--print("Placed Stone in first ring at ", searchX, searchY);
+							innerPlaced = innerPlaced + 1;
+							iNumStoneNeeded = iNumStoneNeeded - 1;
+							break
+						elseif attempt == 6 then
+							tried_all_first_ring = true;
+						end
 					end
-				end
 
-			elseif tried_all_second_ring == false then
-				-- Add bonus to second ring.
-				for attempt = 1, 12 do
-					local plot_adjustments = randomized_second_ring_adjustments[attempt];
-					local searchX, searchY = self:ApplyHexAdjustment(x, y, plot_adjustments)
-					-- Attempt to place Stone at the currently chosen plot.
-					local placedBonus = self:AttemptToPlaceStoneAtGrassPlot(searchX, searchY);
-					if placedBonus == true then
-						--print("Placed Stone in second ring at ", searchX, searchY);
-						iNumStoneNeeded = iNumStoneNeeded - 1;
-						break
-					elseif attempt == 12 then
-						tried_all_second_ring = true;
+				elseif tried_all_second_ring == false then
+					-- Add bonus to second ring.
+					for attempt = 1, 12 do
+						local plot_adjustments = randomized_second_ring_adjustments[attempt];
+						local searchX, searchY = self:ApplyHexAdjustment(x, y, plot_adjustments)
+						-- Attempt to place Stone at the currently chosen plot.
+						local placedBonus = self:AttemptToPlaceStoneAtGrassPlot(searchX, searchY);
+						if placedBonus == true then
+							--print("Placed Stone in second ring at ", searchX, searchY);
+							iNumStoneNeeded = iNumStoneNeeded - 1;
+							break
+						elseif attempt == 12 then
+							tried_all_second_ring = true;
+						end
 					end
-				end
 
-			else -- Tried everywhere, have to give up.
-				break				
+				else -- Tried everywhere, have to give up.
+					break				
+				end
 			end
 		end
 	end

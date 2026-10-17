@@ -2,6 +2,11 @@
 <GameData>
 	<GameOptions>
 		<Row>
+			<Type>GAMEOPTION_DISABLE_START_NORMALIZATION</Type>
+			<Description>TXT_KEY_GAME_OPTION_DISABLE_START_NORMALIZATION</Description>
+			<Help>TXT_KEY_GAME_OPTION_DISABLE_START_NORMALIZATION_HELP</Help>
+		</Row>
+		<Row>
 			<Type>GAMEOPTION_NO_ICE</Type>
 			<Description>TXT_KEY_GAME_OPTION_NO_ICE</Description>
 			<Help>TXT_KEY_GAME_OPTION_NO_ICE_HELP</Help>
