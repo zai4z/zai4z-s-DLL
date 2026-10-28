@@ -173,7 +173,6 @@ function AssignStartingPlots.Create()
 		GetLuxuriesSplitCap = AssignStartingPlots.GetLuxuriesSplitCap,		-- New for Expansion, because we have more luxuries now.
 		GetCityStateLuxuriesTargetNumber = AssignStartingPlots.GetCityStateLuxuriesTargetNumber,	-- New for Expansion
 		GetDisabledLuxuriesTargetNumber = AssignStartingPlots.GetDisabledLuxuriesTargetNumber,
-		GetCityStateBonusFromDisabledTargetNumber = AssignStartingPlots.GetCityStateBonusFromDisabledTargetNumber,
 		AssignLuxuryRoles = AssignStartingPlots.AssignLuxuryRoles,
 		GetListOfAllowableLuxuriesAtCitySite = AssignStartingPlots.GetListOfAllowableLuxuriesAtCitySite,
 		GenerateLuxuryPlotListsAtCitySite = AssignStartingPlots.GenerateLuxuryPlotListsAtCitySite, -- Also doubles as Ice Removal.
@@ -7774,25 +7773,6 @@ function AssignStartingPlots:GetDisabledLuxuriesTargetNumber()
 	return maxToDisable
 end
 ------------------------------------------------------------------------------
--- Target number of Disabled luxury types to reclaim as extra City State exclusives.
--- Scales with the number of City States in play. This is a target, not a guarantee --
--- the actual number reclaimed is also capped by how many types are actually sitting
--- in the Disabled pool once the normal disable/random split has finished.
-function AssignStartingPlots:GetCityStateBonusFromDisabledTargetNumber()
-	local iNumCS = self.iNumCityStates;
-	if iNumCS >= 41 then
-		return 4;
-	elseif iNumCS >= 31 then
-		return 3;
-	elseif iNumCS >= 21 then
-		return 2;
-	elseif iNumCS >= 10 then
-		return 1;
-	else
-		return 0;
-	end
-end
-------------------------------------------------------------------------------
 function AssignStartingPlots:AssignLuxuryRoles()
 	-- Each region gets an individual Luxury type assigned to it.
 	-- Each Luxury type can be assigned to no more than three regions.
@@ -7911,21 +7891,6 @@ function AssignStartingPlots:AssignLuxuryRoles()
 		else
 			table.insert(self.resourceIDs_assigned_to_random, resID);
 		end
-	end
-
-	-- Reclaim some Disabled types as extra City State exclusives.
-	-- Draws only from what's left in resourceIDs_not_being_used AFTER the normal
-	-- disable/random split above, so this never reduces resourceIDs_assigned_to_random
-	-- (civ-territory variety is untouched). Types reclaimed here would otherwise have
-	-- appeared nowhere on the map at all.
-	local iNumBonusCSTarget = self:GetCityStateBonusFromDisabledTargetNumber();
-	local iNumBonusCS = math.min(iNumBonusCSTarget, #self.resourceIDs_not_being_used);
-	print("- iCsBonusFromDisabled target:", iNumBonusCSTarget, " actually available:", #self.resourceIDs_not_being_used, " granted:", iNumBonusCS);
-	for i = 1, iNumBonusCS do
-		local res_ID = table.remove(self.resourceIDs_not_being_used, 1);
-		table.insert(self.resourceIDs_assigned_to_cs, res_ID);
-		self.iNumCityStateLuxuries = self.iNumCityStateLuxuries + 1;
-		print("granted", res_ID)
 	end
 	
 	-- Debug printout of luxury assignments.
@@ -8551,11 +8516,6 @@ function AssignStartingPlots:PlaceLuxuries()
 	
 	-- Place Luxuries at City States.
 	-- Candidates include luxuries exclusive to CS, the lux assigned to this CS's region (if in a region), and the randoms.
-	local iMaxSameCSLux = 3;
-	local iCSLuxAssignedCount = {};
-	-- Hard cap: no single luxury type (exclusive OR regional-fallback) may be assigned
-	-- to more than this many City States. Once a type hits the cap, it's dropped from
-	-- candidacy for any remaining CS, falling back to whatever else is eligible.
 	for city_state = 1, self.iNumCityStates do
 		-- First check to see if this city state number received a valid start plot.
 		if self.city_state_validity_table[city_state] == false then
@@ -8571,7 +8531,7 @@ function AssignStartingPlots:PlaceLuxuries()
 			-- If any CS-Only types are eligible, then all combined will have a weighting of 75%
 			local cs_only_types = {};
 			for loop, res_ID in ipairs(self.resourceIDs_assigned_to_cs) do
-				if allowed_luxuries[res_ID] == true and (iCSLuxAssignedCount[res_ID] or 0) < iMaxSameCSLux then
+				if allowed_luxuries[res_ID] == true then
 					table.insert(cs_only_types, res_ID);
 				end
 			end
@@ -8599,7 +8559,7 @@ function AssignStartingPlots:PlaceLuxuries()
 				if region_number > 0 then
 					iNumAllowed = iNumAllowed + 1; -- Adding the region type in to the mix with the random types.
 					local res_ID = self.region_luxury_assignment[region_number];
-					if allowed_luxuries[res_ID] == true and (iCSLuxAssignedCount[res_ID] or 0) < iMaxSameCSLux then
+					if allowed_luxuries[res_ID] == true then
 						lux_possible_for_cs[res_ID] = 25 / iNumAllowed;
 					end
 				end
@@ -8635,8 +8595,6 @@ function AssignStartingPlots:PlaceLuxuries()
 						break
 					end
 				end
-
-				iCSLuxAssignedCount[use_this_ID] = (iCSLuxAssignedCount[use_this_ID] or 0) + 1;
 
 				print("-Assigned Luxury Type", use_this_ID, "to City State#", city_state);
 				-- Place luxury.
