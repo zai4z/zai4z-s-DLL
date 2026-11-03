@@ -12764,6 +12764,10 @@ bool CvPlot::changeBuildProgress(BuildTypes eBuild, int iChange, PlayerTypes ePl
 						}
 					}
 
+					if(getFeatureType() == (FeatureTypes)GC.getInfoTypeForString("FEATURE_MANGROVES"))
+						{
+							setFeatureType(FEATURE_OASIS);
+						}
 					setFeatureType(NO_FEATURE);
 				}
 			}
