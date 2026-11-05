@@ -9983,21 +9983,25 @@ int CvPlot::calculateNatureYield(YieldTypes eYield, PlayerTypes ePlayer, Feature
 		if (isRiver())
 		{
 			iYield += pkFeatureInfo->getRiverYieldChange(eYield);
+			iYield += pkTerrainInfo->getRiverYieldChange(eYield);
 		}
 
 		if (isHills())
 		{
 			iYield += pkFeatureInfo->getHillsYieldChange(eYield);
+			iYield += pkTerrainInfo->getHillsYieldChange(eYield);
 		}
 
 		if (isFreshWater())
 		{
 			iYield += pkFeatureInfo->getFreshWaterYieldChange(eYield);
+			iYield += pkTerrainInfo->getFreshWaterYieldChange(eYield);
 		}
 
 		if (isCoastalLand())
 		{
 			iYield += pkFeatureInfo->getCoastalLandYieldChange(eYield);
+			iYield += pkTerrainInfo->getCoastalLandYieldChange(eYield);
 		}
 	}
 	else
