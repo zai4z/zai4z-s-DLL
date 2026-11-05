@@ -3893,6 +3893,20 @@ bool CvPlot::IsAllowsWalkWater() const
 	return false;
 }
 
+bool CvPlot::IsNoEmbark() const
+{
+	FeatureTypes eFeature = getFeatureType();
+
+	if (eFeature != NO_FEATURE)
+	{
+		CvFeatureInfo* pFeatureInfo = GC.getFeatureInfo(eFeature);
+		if (pFeatureInfo && pFeatureInfo->isNoEmbark())
+			return true;
+	}
+
+	return false;
+}
+
 bool CvPlot::needsEmbarkation(const CvUnit* pUnit) const
 {
     // embarkation only on water plots

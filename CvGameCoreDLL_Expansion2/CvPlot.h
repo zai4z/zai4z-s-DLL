@@ -473,6 +473,7 @@ public:
 	bool isImpassable(TeamTypes eTeam = NO_TEAM) const;
 	bool IsUnderground() const;
 	bool IsAllowsWalkWater() const;
+	bool IsNoEmbark() const;
 	bool needsEmbarkation(const CvUnit* pUnit) const;
 
 	bool isRoughGround() const

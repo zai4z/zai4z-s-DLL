@@ -6783,6 +6783,7 @@ CvFeatureInfo::CvFeatureInfo() :
 	m_bNoRiver(false),
 	m_bNoAdjacent(false),
 	m_bRequiresFlatlands(false),
+	m_bNoEmbark(false),
 	m_bRequiresRiver(false),
 	m_bAddsFreshWater(false),
 	m_bImpassable(false),
@@ -6932,6 +6933,11 @@ bool CvFeatureInfo::isNoAdjacent() const
 bool CvFeatureInfo::isRequiresFlatlands() const
 {
 	return m_bRequiresFlatlands;
+}
+//------------------------------------------------------------------------------
+bool CvFeatureInfo::isNoEmbark() const
+{
+	return m_bNoEmbark;
 }
 //------------------------------------------------------------------------------
 bool CvFeatureInfo::isRequiresRiver() const
@@ -7150,6 +7156,7 @@ bool CvFeatureInfo::CacheResults(Database::Results& kResults, CvDatabaseUtility&
 	m_bNoRiver = kResults.GetBool("NoRiver");
 	m_bNoAdjacent = kResults.GetBool("NoAdjacent");
 	m_bRequiresFlatlands = kResults.GetBool("RequiresFlatlands");
+	m_bNoEmbark = kResults.GetBool("NoEmbark");
 	m_bRequiresRiver = kResults.GetBool("RequiresRiver");
 	m_bAddsFreshWater = kResults.GetBool("AddsFreshWater");
 	m_bImpassable = kResults.GetBool("Impassable");

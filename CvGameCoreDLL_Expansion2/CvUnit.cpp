@@ -7094,6 +7094,11 @@ bool CvUnit::canEmbarkOnto(const CvPlot& originPlot, const CvPlot& targetPlot, b
 		return false;
 	}
 
+	if(originPlot.IsNoEmbark())
+	{
+		return false;
+	}
+
 	return canMoveInto(targetPlot, iMoveFlags);
 }
 
@@ -7123,6 +7128,11 @@ bool CvUnit::canDisembarkOnto(const CvPlot& originPlot, const CvPlot& targetPlot
 	}
 
 	if(!originPlot.needsEmbarkation(this))
+	{
+		return false;
+	}
+
+	if(targetPlot.IsNoEmbark())
 	{
 		return false;
 	}

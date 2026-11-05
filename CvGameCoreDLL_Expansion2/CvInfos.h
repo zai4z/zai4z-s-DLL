@@ -1966,6 +1966,7 @@ public:
 	bool isNoRiver() const;
 	bool isNoAdjacent() const;
 	bool isRequiresFlatlands() const;
+	bool isNoEmbark() const;
 	bool isRequiresRiver() const;
 	bool isAddsFreshWater() const;
 	bool isImpassable() const;
@@ -2032,6 +2033,7 @@ protected:
 	bool m_bNoRiver;
 	bool m_bNoAdjacent;
 	bool m_bRequiresFlatlands;
+	bool m_bNoEmbark;
 	bool m_bRequiresRiver;
 	bool m_bAddsFreshWater;
 	bool m_bImpassable;

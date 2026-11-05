@@ -18,3 +18,6 @@ ALTER TABLE Features ADD AdjacentSpawnLocationUnitFreePromotion text REFERENCES 
 
 -- Features with NaturalWonder = true have hardcoded graphics. This column exists to allow additional NWs with working graphics.
 ALTER TABLE Features ADD PseudoNaturalWonder boolean DEFAULT 0;
+
+-- Prevents embarking from this tile and disembarking onto this tile
+ALTER TABLE Features ADD NoEmbark boolean DEFAULT 0;
