@@ -7094,7 +7094,7 @@ bool CvUnit::canEmbarkOnto(const CvPlot& originPlot, const CvPlot& targetPlot, b
 		return false;
 	}
 
-	if(originPlot.IsNoEmbark())
+	if(originPlot.IsNoEmbark() && !isHasPromotion((PromotionTypes)GC.getInfoTypeForString("PROMOTION_ABSEILING")))
 	{
 		return false;
 	}
@@ -7132,7 +7132,7 @@ bool CvUnit::canDisembarkOnto(const CvPlot& originPlot, const CvPlot& targetPlot
 		return false;
 	}
 
-	if(targetPlot.IsNoEmbark())
+	if(targetPlot.IsNoEmbark() && !isHasPromotion((PromotionTypes)GC.getInfoTypeForString("PROMOTION_ABSEILING")))
 	{
 		return false;
 	}
