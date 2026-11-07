@@ -6791,6 +6791,7 @@ CvFeatureInfo::CvFeatureInfo() :
 	m_bNoImprovement(false),
 	m_bVisibleAlways(false),
 	m_bNukeImmune(false),
+	m_bPermanent(false),
 	m_bRough(false),
 	m_bNaturalWonder(false),
 	m_bPseudoNaturalWonder(false),
@@ -6980,6 +6981,11 @@ bool CvFeatureInfo::isNukeImmune() const
 	return m_bNukeImmune;
 }
 //------------------------------------------------------------------------------
+bool CvFeatureInfo::isPermanent() const
+{
+	return m_bPermanent;
+}
+//------------------------------------------------------------------------------
 bool CvFeatureInfo::IsRough() const
 {
 	return m_bRough;
@@ -7164,6 +7170,7 @@ bool CvFeatureInfo::CacheResults(Database::Results& kResults, CvDatabaseUtility&
 	m_bNoImprovement = kResults.GetBool("NoImprovement");
 	m_bVisibleAlways = kResults.GetBool("VisibleAlways");
 	m_bNukeImmune = kResults.GetBool("NukeImmune");
+	m_bPermanent = kResults.GetBool("Permanent");
 	m_bRough = kResults.GetBool("Rough");
 	m_bNaturalWonder = kResults.GetBool("NaturalWonder");
 	m_bPseudoNaturalWonder = kResults.GetBool("PseudoNaturalWonder");

@@ -1975,6 +1975,7 @@ public:
 	bool isNoImprovement() const;
 	bool isVisibleAlways() const;
 	bool isNukeImmune() const;
+	bool isPermanent() const;
 	bool IsRough() const;
 
 	bool IsNaturalWonder(bool orPseudoNatural = false) const;
@@ -2042,6 +2043,7 @@ protected:
 	bool m_bNoImprovement;
 	bool m_bVisibleAlways;
 	bool m_bNukeImmune;
+	bool m_bPermanent;
 	bool m_bRough;
 	bool m_bNaturalWonder;
 	bool m_bPseudoNaturalWonder;

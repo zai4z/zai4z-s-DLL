@@ -21,3 +21,6 @@ ALTER TABLE Features ADD PseudoNaturalWonder boolean DEFAULT 0;
 
 -- Prevents embarking from this tile and disembarking onto this tile
 ALTER TABLE Features ADD NoEmbark boolean DEFAULT 0;
+
+-- Founding a city won't remove this feature on this tile
+ALTER TABLE Features ADD Permanent boolean DEFAULT 0;
