@@ -128,6 +128,7 @@ function AssignStartingPlots.Create()
 		CountFavoredTerrainNearby = AssignStartingPlots.CountFavoredTerrainNearby,
 		PlaceImpactAndRipples = AssignStartingPlots.PlaceImpactAndRipples,
 		MeasureSinglePlot = AssignStartingPlots.MeasureSinglePlot,
+		PlotAllowsCity = AssignStartingPlots.PlotAllowsCity,
 		EvaluateCandidatePlot = AssignStartingPlots.EvaluateCandidatePlot,
 		IterateThroughCandidatePlotList = AssignStartingPlots.IterateThroughCandidatePlotList,
 		FindStart = AssignStartingPlots.FindStart,
@@ -2220,6 +2221,20 @@ function AssignStartingPlots:PlaceImpactAndRipples(x, y)
 	end
 end
 ------------------------------------------------------------------------------
+local noCityFeatures = nil;
+function AssignStartingPlots:PlotAllowsCity(plot)
+	-- Cache the Features table's NoCity flags on first use.
+	if noCityFeatures == nil then
+		noCityFeatures = {};
+		for row in GameInfo.Features() do
+			if row.NoCity then
+				noCityFeatures[row.ID] = true;
+			end
+		end
+	end
+	return not noCityFeatures[plot:GetFeatureType()]; -- NO_FEATURE (-1) is never in the table, so it passes
+end
+------------------------------------------------------------------------------
 function AssignStartingPlots:MeasureSinglePlot(x, y, region_type, favorType)
 	local data = table.fill(false, 4);
 	-- Note that "Food" is not strictly about tile yield.
@@ -2704,7 +2719,7 @@ function AssignStartingPlots:FindStart(region_number, favorType)
 			local plotIndex = y * iW + x + 1;
 			local plot = Map.GetPlot(x, y);
 			local plotType = plot:GetPlotType()
-			if plotType == PlotTypes.PLOT_HILLS or plotType == PlotTypes.PLOT_LAND then -- Could host a city.
+			if plotType == PlotTypes.PLOT_HILLS or plotType == PlotTypes.PLOT_LAND and self:PlotAllowsCity(plot) then -- Could host a city.
 				-- Check if plot is two away from salt water.
 				if self.plotDataIsNextToCoast[plotIndex] == true then
 					table.insert(two_plots_from_ocean, plotIndex);
@@ -3082,7 +3097,7 @@ function AssignStartingPlots:FindCoastalStart(region_number)
 			if self.plotDataIsCoastal[plotIndex] == true then -- This plot is a land plot next to an ocean.
 				local plot = Map.GetPlot(x, y);
 				local plotType = plot:GetPlotType()
-				if plotType ~= PlotTypes.PLOT_MOUNTAIN then -- Not a mountain plot.
+				if plotType ~= PlotTypes.PLOT_MOUNTAIN and self:PlotAllowsCity(plot) then -- Not a mountain plot.
 					local area_of_plot = plot:GetArea();
 					if area_of_plot == iAreaID or iAreaID == -1 then -- This plot is a member, so it goes on at least one candidate list.
 						--
@@ -3380,7 +3395,7 @@ function AssignStartingPlots:FindStartWithoutRegardToAreaID(region_number, bMust
 			local i = y * iW + x + 1;
 			local plot = Map.GetPlot(x, y);
 			local plotType = plot:GetPlotType()
-			if plotType == PlotTypes.PLOT_HILLS or plotType == PlotTypes.PLOT_LAND then -- Land plot, process it.
+			if plotType == PlotTypes.PLOT_HILLS or plotType == PlotTypes.PLOT_LAND and self:PlotAllowsCity(plot) then -- Land plot, process it.
 				local iArea = plot:GetArea();
 				if self.plotDataIsCoastal[i] == true then
 					table.insert(land_area_plot_lists[iArea], i);
@@ -5999,7 +6014,7 @@ function AssignStartingPlots:AssignCityStatesToRegionsOrToUninhabited(args)
 				local plot = Map.GetPlot(x, y);
 				local plotType = plot:GetPlotType()
 				local terrainType = plot:GetTerrainType()
-				if (plotType == PlotTypes.PLOT_LAND or plotType == PlotTypes.PLOT_HILLS) and terrainType ~= TerrainTypes.TERRAIN_SNOW then -- Habitable land plot, process it.
+				if (plotType == PlotTypes.PLOT_LAND or plotType == PlotTypes.PLOT_HILLS) and terrainType ~= TerrainTypes.TERRAIN_SNOW and self:PlotAllowsCity(plot) then -- Habitable land plot, process it.
 					local iArea = plot:GetArea();
 					if self.method == 4 then -- Determine if plot is inside or outside the regional rectangle
 						if (x >= self.inhabited_WestX and x <= self.inhabited_WestX + self.inhabited_Width - 1) and
@@ -6190,6 +6205,9 @@ function AssignStartingPlots:CanPlaceCityStateAt(x, y, area_ID, force_it, ignore
 	end
 	local terrainType = plot:GetTerrainType()
 	if terrainType == TerrainTypes.TERRAIN_SNOW then
+		return false
+	end
+	if not self:PlotAllowsCity(plot) then
 		return false
 	end
 	local plotIndex = y * iW + x + 1;

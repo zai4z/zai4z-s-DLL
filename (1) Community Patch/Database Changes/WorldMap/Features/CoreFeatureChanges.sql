@@ -17,6 +17,8 @@ UPDATE Features
 SET NukeImmune = 1
 WHERE (Type IN ('FEATURE_OASIS', 'FEATURE_ATOLL', 'FEATURE_FLOOD_PLAINS', 'FEATURE_ICE') OR NaturalWonder = 1);
 
+UPDATE Features SET NoCity = 1 WHERE Type = 'FEATURE_OASIS';
+
 UPDATE Features SET Permanent = 1 WHERE Type = 'FEATURE_FLOOD_PLAINS';
 
 UPDATE Features SET SeeThrough = 1 WHERE Type = 'FEATURE_GEYSER';
