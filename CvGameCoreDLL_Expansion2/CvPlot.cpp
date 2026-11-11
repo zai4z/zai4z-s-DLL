@@ -9976,32 +9976,56 @@ int CvPlot::calculateNatureYield(YieldTypes eYield, PlayerTypes ePlayer, Feature
 
 		// Some Features REPLACE the Yield of the Plot instead of adding to it
 		if (pkFeatureInfo->isYieldNotAdditive())
+		{
 			iYield = iYieldChange;
+
+			if (isRiver())
+			{
+				iYield += pkFeatureInfo->getRiverYieldChange(eYield);
+			}
+
+			if (isHills())
+			{
+				iYield += pkFeatureInfo->getHillsYieldChange(eYield);
+			}
+
+			if (isFreshWater())
+			{
+				iYield += pkFeatureInfo->getFreshWaterYieldChange(eYield);
+			}
+
+			if (isCoastalLand())
+			{
+				iYield += pkFeatureInfo->getCoastalLandYieldChange(eYield);
+			}
+		}
 		else
+		{	
 			iYield += iYieldChange;
 
-		if (isRiver())
-		{
-			iYield += pkFeatureInfo->getRiverYieldChange(eYield);
-			iYield += pkTerrainInfo->getRiverYieldChange(eYield);
-		}
+			if (isRiver())
+			{
+				iYield += pkFeatureInfo->getRiverYieldChange(eYield);
+				iYield += pkTerrainInfo->getRiverYieldChange(eYield);
+			}
 
-		if (isHills())
-		{
-			iYield += pkFeatureInfo->getHillsYieldChange(eYield);
-			iYield += pkTerrainInfo->getHillsYieldChange(eYield);
-		}
+			if (isHills())
+			{
+				iYield += pkFeatureInfo->getHillsYieldChange(eYield);
+				iYield += pkTerrainInfo->getHillsYieldChange(eYield);
+			}
 
-		if (isFreshWater())
-		{
-			iYield += pkFeatureInfo->getFreshWaterYieldChange(eYield);
-			iYield += pkTerrainInfo->getFreshWaterYieldChange(eYield);
-		}
+			if (isFreshWater())
+			{
+				iYield += pkFeatureInfo->getFreshWaterYieldChange(eYield);
+				iYield += pkTerrainInfo->getFreshWaterYieldChange(eYield);
+			}
 
-		if (isCoastalLand())
-		{
-			iYield += pkFeatureInfo->getCoastalLandYieldChange(eYield);
-			iYield += pkTerrainInfo->getCoastalLandYieldChange(eYield);
+			if (isCoastalLand())
+			{
+				iYield += pkFeatureInfo->getCoastalLandYieldChange(eYield);
+				iYield += pkTerrainInfo->getCoastalLandYieldChange(eYield);
+			}
 		}
 	}
 	else
