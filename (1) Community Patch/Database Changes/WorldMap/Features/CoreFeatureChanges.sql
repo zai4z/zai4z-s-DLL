@@ -23,6 +23,23 @@ UPDATE Features SET Permanent = 1 WHERE Type = 'FEATURE_FLOOD_PLAINS';
 
 UPDATE Features SET SeeThrough = 1 WHERE Type = 'FEATURE_GEYSER';
 
+UPDATE Features SET YieldNotAdditive = 1 
+WHERE Type IN (
+	'FEATURE_JUNGLE',
+	'FEATURE_FALLOUT'
+);
+
+DELETE FROM Feature_YieldChanges
+WHERE Type IN (
+	'FEATURE_JUNGLE',
+	'FEATURE_FALLOUT'
+);
+
+INSERT INTO Feature_YieldChanges
+	(FeatureType, YieldType, Yield)
+VALUES
+	('FEATURE_JUNGLE', 'YIELD_FOOD', '2');
+
 -- Natural Wonder placement criteria/post-placement effects
 UPDATE Natural_Wonder_Placement
 SET
