@@ -12806,7 +12806,7 @@ bool CvPlot::changeBuildProgress(BuildTypes eBuild, int iChange, PlayerTypes ePl
 						}
 					}
 
-					if(getFeatureType() == (FeatureTypes)GC.getInfoTypeForString("FEATURE_MANGROVES"))
+					if(getFeatureType() == (FeatureTypes)GC.getInfoTypeForString("FEATURE_MANGROVES", true))
 						{
 							setFeatureType(FEATURE_OASIS);
 						}
