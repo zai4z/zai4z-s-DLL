@@ -2719,7 +2719,7 @@ function AssignStartingPlots:FindStart(region_number, favorType)
 			local plotIndex = y * iW + x + 1;
 			local plot = Map.GetPlot(x, y);
 			local plotType = plot:GetPlotType()
-			if plotType == PlotTypes.PLOT_HILLS or plotType == PlotTypes.PLOT_LAND and self:PlotAllowsCity(plot) then -- Could host a city.
+			if (plotType == PlotTypes.PLOT_HILLS or plotType == PlotTypes.PLOT_LAND) and self:PlotAllowsCity(plot) then -- Could host a city.
 				-- Check if plot is two away from salt water.
 				if self.plotDataIsNextToCoast[plotIndex] == true then
 					table.insert(two_plots_from_ocean, plotIndex);
@@ -3395,7 +3395,7 @@ function AssignStartingPlots:FindStartWithoutRegardToAreaID(region_number, bMust
 			local i = y * iW + x + 1;
 			local plot = Map.GetPlot(x, y);
 			local plotType = plot:GetPlotType()
-			if plotType == PlotTypes.PLOT_HILLS or plotType == PlotTypes.PLOT_LAND and self:PlotAllowsCity(plot) then -- Land plot, process it.
+			if (plotType == PlotTypes.PLOT_HILLS or plotType == PlotTypes.PLOT_LAND) and self:PlotAllowsCity(plot) then -- Land plot, process it.
 				local iArea = plot:GetArea();
 				if self.plotDataIsCoastal[i] == true then
 					table.insert(land_area_plot_lists[iArea], i);
