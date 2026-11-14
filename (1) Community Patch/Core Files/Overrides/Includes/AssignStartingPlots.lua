@@ -7851,12 +7851,7 @@ function AssignStartingPlots:AssignLuxuryRoles()
 		print("---------------------------------------------------------------------------------------");
 	end
 	-- Choose luxuries.
--- MOD START
-	self.iNumCityStateLuxuries = math.max(3, math.min(math.floor(self.iNumCityStates/4 + 0.5), math.min(7, iNumAvailableTypes)))
-	print("- iCsLuxLimit:", self.iNumCityStateLuxuries)
-	for cs_lux = 1, self.iNumCityStateLuxuries do
---	for cs_lux = 1, 3 do
--- MOD END
+	for cs_lux = 1, 3 do
 		local totalWeight = 0;
 		local res_threshold = {};
 		for i, this_weight in ipairs(resource_weights) do
@@ -8555,13 +8550,9 @@ function AssignStartingPlots:PlaceLuxuries()
 			end
 			local iNumCSAllowed = table.maxn(cs_only_types);
 			if iNumCSAllowed > 0 then
--- MOD START
-				local iWeightLimit = 25 + ((iNumCSAllowed-1) / (self.iNumCityStateLuxuries-1)) * (75-25)
-				local iWeight = iWeightLimit / iNumCSAllowed
 				for loop, res_ID in ipairs(cs_only_types) do
-					lux_possible_for_cs[res_ID] = iWeight;
+					lux_possible_for_cs[res_ID] = 75 / iNumCSAllowed;
 				end
--- MOD END
 			end
 			-- Identify Allowable Random Luxuries and the Regional Luxury if any.
 			-- If any random types are eligible (plus the regional type if in a region) these combined carry a 25% weighting.
