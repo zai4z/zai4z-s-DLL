@@ -413,6 +413,9 @@
 		<Row Tag="TXT_KEY_PRODUCTION_UNIT_FREE_PROMOTIONS_FRIENDLY">
 			<Text>Free Promotion in Friendly Territory: {1_Promotion:textkey}</Text>
 		</Row>
+		<Row Tag="TXT_KEY_PRODUCTION_UNIT_CAPTURE_PROMOTION">
+			<Text>Promotion granted to units that capture this unit: {1_Promotion:textkey}</Text>
+		</Row>
 		<Row Tag="TXT_KEY_PRODUCTION_UNIT_MOVE_AFTER_PURCHASE">
 			<Text>Gains full XP and can Move after Purchase</Text>
 		</Row>
@@ -421,6 +424,15 @@
 		</Row>
 		<Row Tag="TXT_KEY_PRODUCTION_UNIT_MOVE_AFTER_UPGRADE">
 			<Text>Can Move after Upgrade (into this Unit)</Text>
+		</Row>
+		<Row Tag="TXT_KEY_PRODUCTION_UNIT_PROTECTED_TRADE">
+			<Text>Immune to automatic plundering from enemy units. Additionally, chance to avoid being plundered, scaling with Era and attack strength of plunderer</Text>
+		</Row>
+		<Row Tag="TXT_KEY_PRODUCTION_UNIT_TRADE_CONNECTION">
+			<Text>Forms a [ICON_CONNECTED] City Connection between owned Cities</Text>
+		</Row>
+		<Row Tag="TXT_KEY_PRODUCTION_UNIT_REFUGEE">
+			<Text>+1 [ICON_CITIZEN] Population after entering an owned City and is disbanded</Text>
 		</Row>
 		<Row Tag="TXT_KEY_PRODUCTION_UNIT_RIVAL_TERRITORY">
 			<Text>Can Enter Rival Territory</Text>
@@ -833,6 +845,9 @@
 		</Row>
 		<Row Tag="TXT_KEY_PRODUCTION_BUILDING_AIR_CONNECTION">
 			<Text>Allows [ICON_CONNECTED] City Connection over Air</Text>
+		</Row>
+		<Row Tag="TXT_KEY_PRODUCTION_BUILDING_RIVER_CONNECTION">
+			<Text>Allows [ICON_CONNECTED] City Connection through the same River</Text>
 		</Row>
 		<Row Tag="TXT_KEY_PRODUCTION_BUILDING_AIRLIFT">
 			<Text>Allows [ICON_AIRPORT] Airlift</Text>

@@ -868,6 +868,9 @@ function GetHelpTextForUnit(eUnit, bIncludeRequirementsInfo, pCity, bExcludeName
 	AddTooltipIfTrue(tAbilityLines, "TXT_KEY_PRODUCTION_UNIT_EXTRA_PLUNDER_GOLD", kUnitInfo.HighSeaRaider);
 	AddTooltipIfTrue(tAbilityLines, "TXT_KEY_PRODUCTION_UNIT_EXPEND_COPY_TILE_YIELD", kUnitInfo.CopyYieldsFromExpendTile);
 	AddTooltipIfTrue(tAbilityLines, "TXT_KEY_PRODUCTION_UNIT_MOVE_AFTER_UPGRADE", kUnitInfo.MoveAfterUpgrade);
+	AddTooltipIfTrue(tAbilityLines, "TXT_KEY_PRODUCTION_UNIT_TRADE_CONNECTION", kUnitInfo.Trade);
+	AddTooltipIfTrue(tAbilityLines, "TXT_KEY_PRODUCTION_UNIT_PROTECTED_TRADE", kUnitInfo.ProtectedTrade);
+	AddTooltipIfTrue(tAbilityLines, "TXT_KEY_PRODUCTION_UNIT_REFUGEE", kUnitInfo.DefaultUnitAI == 'UNITAI_REFUGEE');
 
 	-- Block/weaken active spread
 	if kUnitInfo.ProhibitsSpread then
@@ -967,6 +970,11 @@ function GetHelpTextForUnit(eUnit, bIncludeRequirementsInfo, pCity, bExcludeName
 	-- Free promotion in friendly lands
 	if kUnitInfo.FriendlyLandsPromotion then
 		AddTooltip(tAbilityLines, "TXT_KEY_PRODUCTION_UNIT_FREE_PROMOTIONS_FRIENDLY", GameInfo.UnitPromotions[kUnitInfo.FriendlyLandsPromotion].Description);
+	end
+
+	-- Promotion granted to units that capture this unit
+	if kUnitInfo.CapturePromotion then
+		AddTooltip(tAbilityLines, "TXT_KEY_PRODUCTION_UNIT_CAPTURE_PROMOTION", GameInfo.UnitPromotions[kUnitInfo.CapturePromotion].Description);
 	end
 
 	-- Builds (e.g. chop trees and build roads) and improvements
@@ -2684,6 +2692,7 @@ function GetHelpTextForBuilding(eBuilding, bExcludeName, _, bNoMaintenance, pCit
 	AddTooltipIfTrue(tLocalAbilityLines, "TXT_KEY_PRODUCTION_BUILDING_WATER_CONNECTION", kBuildingInfo.AllowsWaterRoutes);
 	AddTooltipIfTrue(tLocalAbilityLines, "TXT_KEY_PRODUCTION_BUILDING_WATER_INDUSTRIAL_CONNECTION", kBuildingInfo.AllowsIndustrialWaterRoutes);
 	AddTooltipIfTrue(tLocalAbilityLines, "TXT_KEY_PRODUCTION_BUILDING_AIR_CONNECTION", kBuildingInfo.AllowsAirRoutes);
+	AddTooltipIfTrue(tLocalAbilityLines, "TXT_KEY_PRODUCTION_BUILDING_RIVER_CONNECTION", kBuildingInfo.AllowsRiverRoutes);
 	AddTooltipIfTrue(tLocalAbilityLines, "TXT_KEY_PRODUCTION_BUILDING_ALLOW_PUPPET_PURCHASE", kBuildingInfo.AllowsPuppetPurchase);
 	AddTooltipIfTrue(tLocalAbilityLines, "TXT_KEY_PRODUCTION_BUILDING_ITR_FOOD", kBuildingInfo.AllowsFoodTradeRoutes);
 	AddTooltipIfTrue(tLocalAbilityLines, "TXT_KEY_PRODUCTION_BUILDING_ITR_PRODUCTION", kBuildingInfo.AllowsProductionTradeRoutes);
