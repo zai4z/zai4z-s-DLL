@@ -763,9 +763,21 @@
     <File md5="F490E5E61DB5AD9176FB74CBAF41484F" import="1">LUA/UnitPanel.lua</File>
     <File md5="9929A6BE6057A41C0D4FF92FFA43B0DB" import="1">LUA/Includes/CityStateStatusHelper.lua</File>
     <File md5="C5190E7CA6D13E062076707B5A918607" import="1">LUA/Includes/TradeLogic.lua</File>
-    <File md5="3EEC34EC93897595AABD4367C8B4B1A9" import="1">Mapscripts/Boreal.lua</File>
-    <File md5="C94DD0DDF8E82E5B09B728BD7FCD951A" import="1">Mapscripts/Highlands.lua</File>
-    <File md5="F10C5FF7AE8A7276B99B01F1A1066C65" import="1">Mapscripts/Terra.lua</File>
+    <File md5="3EEC34EC93897595AABD4367C8B4B1A9" import="1">Maps/Amazon_XP.lua</File>
+    <File md5="3EEC34EC93897595AABD4367C8B4B1A9" import="1">Maps/Boreal.lua</File>
+    <File md5="3EEC34EC93897595AABD4367C8B4B1A9" import="1">Maps/Europe.lua</File>
+    <File md5="3EEC34EC93897595AABD4367C8B4B1A9" import="1">Maps/Four_Corners.lua</File>
+    <File md5="3EEC34EC93897595AABD4367C8B4B1A9" import="1">Maps/Great_Plains.lua</File>
+    <File md5="3EEC34EC93897595AABD4367C8B4B1A9" import="1">Maps/Great_Plains_XP.lua</File>
+    <File md5="3EEC34EC93897595AABD4367C8B4B1A9" import="1">Maps/Highlands.lua</File>
+    <File md5="3EEC34EC93897595AABD4367C8B4B1A9" import="1">Maps/InlandSea.lua</File>
+    <File md5="3EEC34EC93897595AABD4367C8B4B1A9" import="1">Maps/Lakes.lua</File>
+    <File md5="3EEC34EC93897595AABD4367C8B4B1A9" import="1">Maps/North_vs_South.lua</File>
+    <File md5="3EEC34EC93897595AABD4367C8B4B1A9" import="1">Maps/Ring.lua</File>
+    <File md5="3EEC34EC93897595AABD4367C8B4B1A9" import="1">Maps/Script_Random_China.lua</File>
+    <File md5="3EEC34EC93897595AABD4367C8B4B1A9" import="1">Maps/Skirmish.lua</File>
+    <File md5="3EEC34EC93897595AABD4367C8B4B1A9" import="1">Maps/Terra.lua</File>
+    <File md5="3EEC34EC93897595AABD4367C8B4B1A9" import="1">Maps/West_vs_East.lua</File>
     <File md5="01E57106E3DF3EB96388222C9BA34D1A" import="1">Core Files/Overrides/GameSetupScreen.lua</File>
     <File md5="CE555893401AF1CC1F326424DEF97DDA" import="1">Core Files/Overrides/GameSetupScreen.xml</File>
     <File md5="3EA96D6AE1C5E44DC08DA1059DD175FC" import="1">Core Files/Overrides/LoadScreen.lua</File>
@@ -773,12 +785,12 @@
     <File md5="843D7699FF75E54BD4DDB3C5FA02851F" import="1">Core Files/Overrides/SelectCivilization.lua</File>
     <File md5="352496DB8FAFE591D7DF1A9A50221180" import="1">Core Files/Overrides/SelectCivilization.xml</File>
     <File md5="186C0728471859ADE6A105BAC8B08BE3" import="1">Core Files/Overrides/UniqueBonuses.lua</File>
-    <File md5="410809A384298F8335B1E4F1C5FC22F3" import="1">DLC_SP_Maps/Amazon.lua</File>
-    <File md5="410809A384298F8335B1E4F1C5FC22F3" import="1">DLC_SP_Maps/ContinentsPlus.lua</File>
-    <File md5="5629667BEDC8304DB0F6D6D8FCB84588" import="1">DLC_SP_Maps/Donut.lua</File>
-    <File md5="C9837AE28C480828B49045BDA4547DFF" import="1">DLC_SP_Maps/PangaeaPlus.lua</File>
-    <File md5="2702A67600180AC22EDA582CBBDDEFCC" import="1">DLC_SP_Maps/Sandstorm.lua</File>
-    <File md5="D831E87B71B26B079C8E50318F70FC6B" import="0">DLC_SP_Maps/Civ5Maps_DLC_SP_Maps.xml</File>
+    <File md5="410809A384298F8335B1E4F1C5FC22F3" import="1">Maps/DLC_SP_Maps/Amazon.lua</File>
+    <File md5="410809A384298F8335B1E4F1C5FC22F3" import="1">Maps/DLC_SP_Maps/ContinentsPlus.lua</File>
+    <File md5="5629667BEDC8304DB0F6D6D8FCB84588" import="1">Maps/DLC_SP_Maps/Donut.lua</File>
+    <File md5="C9837AE28C480828B49045BDA4547DFF" import="1">Maps/DLC_SP_Maps/PangaeaPlus.lua</File>
+    <File md5="2702A67600180AC22EDA582CBBDDEFCC" import="1">Maps/DLC_SP_Maps/Sandstorm.lua</File>
+    <File md5="D831E87B71B26B079C8E50318F70FC6B" import="0">Maps/DLC_SP_Maps/Civ5Maps_DLC_SP_Maps.xml</File>
   </Files>
   <Actions>
     <OnGetDLLPath>
@@ -945,7 +957,7 @@
       <UpdateDatabase>Database Changes\CoreTriggers.sql</UpdateDatabase>
       <UpdateDatabase>Database Changes\Remapper.sql</UpdateDatabase>
       <UpdateDatabase>Database Changes/Misc/NotificationsChanges.sql</UpdateDatabase>
-      <UpdateDatabase>DLC_SP_Maps/Civ5Maps_DLC_SP_Maps.xml</UpdateDatabase>
+      <UpdateDatabase>Maps/DLC_SP_Maps/Civ5Maps_DLC_SP_Maps.xml</UpdateDatabase>
     </OnModActivated>
   </Actions>
   <EntryPoints>
@@ -973,23 +985,23 @@
       <Name>EspionageChoice</Name>
       <Description>EspionageChoice</Description>
     </EntryPoint>
-    <EntryPoint type="MapScript" file="DLC_SP_Maps/Amazon.lua">
+    <EntryPoint type="MapScript" file="Maps/DLC_SP_Maps/Amazon.lua">
       <Name>Amazon</Name>
       <Description></Description>
     </EntryPoint>
-    <EntryPoint type="MapScript" file="DLC_SP_Maps/ContinentsPlus.lua">
+    <EntryPoint type="MapScript" file="Maps/DLC_SP_Maps/ContinentsPlus.lua">
       <Name>ContinentsPlus</Name>
       <Description></Description>
     </EntryPoint>
-    <EntryPoint type="MapScript" file="DLC_SP_Maps/Donut.lua">
+    <EntryPoint type="MapScript" file="Maps/DLC_SP_Maps/Donut.lua">
       <Name>Donut</Name>
       <Description></Description>
     </EntryPoint>
-    <EntryPoint type="MapScript" file="DLC_SP_Maps/PangaeaPlus.lua">
+    <EntryPoint type="MapScript" file="Maps/DLC_SP_Maps/PangaeaPlus.lua">
       <Name>PangaeaPlus</Name>
       <Description></Description>
     </EntryPoint>
-    <EntryPoint type="MapScript" file="DLC_SP_Maps/Sandstorm.lua">
+    <EntryPoint type="MapScript" file="Maps/DLC_SP_Maps/Sandstorm.lua">
       <Name>Sandstorm</Name>
       <Description></Description>
     </EntryPoint>

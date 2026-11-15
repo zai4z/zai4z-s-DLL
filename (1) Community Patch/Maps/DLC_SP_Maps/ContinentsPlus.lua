@@ -1029,7 +1029,7 @@ function AssignStartingPlots:AssignCityStatesToRegionsOrToUninhabited(args)
 				local plot = Map.GetPlot(x, y);
 				local plotType = plot:GetPlotType()
 				local terrainType = plot:GetTerrainType()
-				if (plotType == PlotTypes.PLOT_LAND or plotType == PlotTypes.PLOT_HILLS) and terrainType ~= TerrainTypes.TERRAIN_SNOW then -- Habitable land plot, process it.
+				if (plotType == PlotTypes.PLOT_LAND or plotType == PlotTypes.PLOT_HILLS) and terrainType ~= TerrainTypes.TERRAIN_SNOW and self:PlotAllowsCity(plot) then -- Habitable land plot, process it.
 					local iArea = plot:GetArea();
 					if self.method == 4 then -- Determine if plot is inside or outside the regional rectangle
 						if (x >= self.inhabited_WestX and x <= self.inhabited_WestX + self.inhabited_Width - 1) and

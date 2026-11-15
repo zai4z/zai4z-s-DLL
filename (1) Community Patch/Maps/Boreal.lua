@@ -735,6 +735,9 @@ function AssignStartingPlots:CanPlaceCityStateAt(x, y, area_ID, force_it, ignore
 	if terrainType == TerrainTypes.TERRAIN_SNOW then
 		return false
 	end
+	if not self:PlotAllowsCity(plot) then
+		return false
+	end
 	local plotIndex = y * iW + x + 1;
 	if self.cityStateData[plotIndex] > 0 and force_it == false then
 		return false

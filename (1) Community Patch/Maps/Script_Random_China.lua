@@ -1,76 +1,38 @@
-------------------------------------------------------------------------------
---	FILE:	 Highlands.lua
+-------------------------------------------------------------------------------
+--	FILE:	 China.lua
 --	AUTHOR:  Bob Thomas (Sirian)
---	PURPOSE: Regional map script - mountainous terrain
-------------------------------------------------------------------------------
---	Copyright (c) 2010 Firaxis Games, Inc. All rights reserved.
-------------------------------------------------------------------------------
+--	PURPOSE: Regional map script - Chinese Heartland
+-------------------------------------------------------------------------------
+--	Copyright (c) 2013 Firaxis Games, Inc. All rights reserved.
+-------------------------------------------------------------------------------
 
 include("MapGenerator");
+include("FractalWorld");
 include("TerrainGenerator");
 include("FeatureGenerator");
 
 ------------------------------------------------------------------------------
 function GetMapScriptInfo()
-	local world_age, temperature, rainfall, sea_level, resources = GetCoreMapOptions()
 	return {
-		Name = "TXT_KEY_MAP_HIGHLANDS",
-		Description = "TXT_KEY_MAP_HIGHLANDS_HELP",
-		IsAdvancedMap = false,
-		SupportsMultiplayer = true,
-		IconIndex = 10,
-		CustomOptions = {temperature, rainfall, resources,
-			{
-				Name = "TXT_KEY_MAP_OPTION_MOUNTAIN_PATTERN",
-				Values = {
-					{"TXT_KEY_MAP_OPTION_RIDGELINES","TXT_KEY_MAP_OPTION_RIDGELINES_HELP"},
-					{"TXT_KEY_MAP_OPTION_SCATTERED", "TXT_KEY_MAP_OPTION_SCATTERED_HELP"},
-					{"TXT_KEY_MAP_OPTION_RANGES", "TXT_KEY_MAP_OPTION_RANGES_HELP"},
-					{"TXT_KEY_MAP_OPTION_CLUSTERS", "TXT_KEY_MAP_OPTION_CLUSTERS_HELP"},
-					"TXT_KEY_MAP_OPTION_RANDOM",
-				},
-				DefaultValue = 5,
-				SortPriority = 1,
-			},
-			{
-				Name = "TXT_KEY_MAP_OPTION_MOUNTAIN_DENSITY",
-				Values = {
-					"TXT_KEY_MAP_OPTION_DENSE",
-					"TXT_KEY_MAP_OPTION_NORMAL",
-					"TXT_KEY_MAP_OPTION_THIN",
-					"TXT_KEY_MAP_OPTION_RANDOM",
-				},
-				DefaultValue = 4,
-				SortPriority = 2,
-			},
-			{
-				Name = "TXT_KEY_MAP_OPTION_BODIES_OF_WATER",
-				Values = {
-					{"TXT_KEY_MAP_OPTION_SMALL_LAKES", "TXT_KEY_MAP_OPTION_SMALL_LAKES_HELP"},
-					{"TXT_KEY_MAP_OPTION_LARGE_LAKES", "TXT_KEY_MAP_OPTION_LARGE_LAKES_HELP"},
-					{"TXT_KEY_MAP_OPTION_SEAS", "TXT_KEY_MAP_OPTION_SEAS_HELP"},
-					"TXT_KEY_MAP_OPTION_RANDOM",
-				},
-				DefaultValue = 4,
-				SortPriority = 3,
-			}
-		}
-	}
+		Name = "TXT_KEY_CW_MAP_PACK_CHINA",
+		Description = "TXT_KEY_CW_MAP_PACK_CHINA_DESC",
+		IconIndex = 26,
+		IconAtlas = "WORLDTYPE_ATLAS_3",
+		Folder = "MAP_FOLDER_SP_DLC_3",
+	};
 end
 ------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------
 function GetMapInitData(worldSize)
-	-- This function can reset map grid sizes or world wrap settings.
-	--
-	-- Highlands is a regional script, nearly all land but much of it lost to the peaks, so use grid sizes one level below normal.
+	-- China has fully custom grid sizes to match the slice of Earth being represented.
 	local worldsizes = {
-		[GameInfo.Worlds.WORLDSIZE_DUEL.ID] = {32, 20},
-		[GameInfo.Worlds.WORLDSIZE_TINY.ID] = {40, 24},
-		[GameInfo.Worlds.WORLDSIZE_SMALL.ID] = {52, 32},
-		[GameInfo.Worlds.WORLDSIZE_STANDARD.ID] = {64, 40},
-		[GameInfo.Worlds.WORLDSIZE_LARGE.ID] = {84, 52},
-		[GameInfo.Worlds.WORLDSIZE_HUGE.ID] = {104, 64}
+		[GameInfo.Worlds.WORLDSIZE_DUEL.ID] = {26, 20},
+		[GameInfo.Worlds.WORLDSIZE_TINY.ID] = {36, 26},
+		[GameInfo.Worlds.WORLDSIZE_SMALL.ID] = {44, 32},
+		[GameInfo.Worlds.WORLDSIZE_STANDARD.ID] = {52, 36},
+		[GameInfo.Worlds.WORLDSIZE_LARGE.ID] = {60, 42},
+		[GameInfo.Worlds.WORLDSIZE_HUGE.ID] = {72, 50}
 		}
 	local grid_size = worldsizes[worldSize];
 	--
@@ -86,160 +48,389 @@ end
 ------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------
--- Adding climate shift to GenerateMap() -- This is a useful override option in Lua.
-------------------------------------------------------------------------------
-baseGenerateMap = GenerateMap; -- Store GenerateMap function in a variable.
-function GenerateMap()
-	-- Roll a die to determine if the cold region will be in north or south.
-	local shiftRoll = Map.Rand(2, "North or South climate shift - Highlands LUA");
-	-- Store terrain/features Latitude adjustment in a global variable.
-	if shiftRoll == 0 then -- Cold in north
-		ShiftMultiplier = 0;
-	else -- Cold in south
-		ShiftMultiplier = 1;
-	end
-
-	-- Now call the core GenerateMap stored in the variable.
-	baseGenerateMap();
-end
-------------------------------------------------------------------------------
-
-------------------------------------------------------------------------------
--- Highlands uses a custom plot generation, specific to this script.
+-- China uses custom plot generation with regional specificity.
 ------------------------------------------------------------------------------
 function GeneratePlotTypes()
-	print("Setting Plot Types (Lua Highlands) ...");
-
-	local iFlags = {};
+	print("Setting Plot Types (Lua China) ...");
 	local iW, iH = Map.GetGridSize();
-	plotTypes = table.fill(PlotTypes.PLOT_LAND, iW * iH);
-	
-	-- Get user inputs.
-	local userInputGrain = Map.GetCustomOption(4)
-	local userInputPeaks = Map.GetCustomOption(5)
-	local userInputLakes = Map.GetCustomOption(6)
-	if userInputGrain == 5 then -- Random
-		userInputGrain = 1 + Map.Rand(4, "Highlands Random Peak Grain - Lua");
-	end
-	if userInputPeaks == 4 then -- Random
-		userInputPeaks = 1 + Map.Rand(3, "Highlands Random Peak Density - Lua");
-	end
-	if userInputLakes == 4 then -- Random
-		userInputLakes = 1 + Map.Rand(3, "Highlands Random Lake Size - Lua");
-	end
-	
-	-- Varying grains for hills/peaks per map size and Mountain Ranges setting.
-	-- {ridgelines_grain, clustered_grain, ranges_grain, scattered_grain}
-	local worldsizes = {
-		[GameInfo.Worlds.WORLDSIZE_DUEL.ID] = {4,5,4,3},
-		[GameInfo.Worlds.WORLDSIZE_TINY.ID] = {4,5,4,3},
-		[GameInfo.Worlds.WORLDSIZE_SMALL.ID] = {5,6,5,4},
-		[GameInfo.Worlds.WORLDSIZE_STANDARD.ID] = {5,6,5,4},
-		[GameInfo.Worlds.WORLDSIZE_LARGE.ID] = {5,6,5,4},
-		[GameInfo.Worlds.WORLDSIZE_HUGE.ID] = {5,6,5,4}
+	-- Initiate plot table, fill all data slots with type PLOT_LAND
+	local plotTypes = {};
+	table.fill(plotTypes, PlotTypes.PLOT_LAND, iW * iH);
+
+	-- Grains for reducing "clumping" of hills/peaks.
+	local grainvalues = {
+		[GameInfo.Worlds.WORLDSIZE_DUEL.ID] = 3,
+		[GameInfo.Worlds.WORLDSIZE_TINY.ID] = 3,
+		[GameInfo.Worlds.WORLDSIZE_SMALL.ID] = 4,
+		[GameInfo.Worlds.WORLDSIZE_STANDARD.ID] = 5,
+		[GameInfo.Worlds.WORLDSIZE_LARGE.ID] = 6,
+		[GameInfo.Worlds.WORLDSIZE_HUGE.ID] = 6
 		}
-	local grain_list = worldsizes[Map.GetWorldSize()];
-	local grain = grain_list[userInputGrain];
+	local grain_amount = grainvalues[Map.GetWorldSize()];
 
-	-- Peak density
-	local peak_list = {70, 77, 83};
-	local hill_list = {40, 45, 50};
-	local peaks = peak_list[userInputPeaks];
-	local hills = hill_list[userInputPeaks];
-	
-	-- Lake density
-	local lake_list = {8, 10, 15};
-	local lake_grains = {5, 4, 3};
-	local lakes = lake_list[userInputLakes];
-	local lake_grain = lake_grains[userInputLakes];
+	local hillsFrac = Fractal.Create(iW, iH, grain_amount, {}, 7, 6);
+	local peaksFrac = Fractal.Create(iW, iH, grain_amount + 1, {}, 7, 6);
+	local regionsFrac = Fractal.Create(iW, iH, grain_amount, {}, 7, 6);
 
-	-- Tectonics Plate Counts, for use in generating passes through the mountains.
-	local platevalues = {
-		[GameInfo.Worlds.WORLDSIZE_DUEL.ID]		= 6,
-		[GameInfo.Worlds.WORLDSIZE_TINY.ID]     = 9,
-		[GameInfo.Worlds.WORLDSIZE_SMALL.ID]    = 12,
-		[GameInfo.Worlds.WORLDSIZE_STANDARD.ID] = 18,
-		[GameInfo.Worlds.WORLDSIZE_LARGE.ID]    = 24,
-		[GameInfo.Worlds.WORLDSIZE_HUGE.ID]     = 30
+	local iHillsBottom1 = hillsFrac:GetHeight(20);
+	local iHillsTop1 = hillsFrac:GetHeight(30);
+	local iHillsBottom2 = hillsFrac:GetHeight(70);
+	local iHillsTop2 = hillsFrac:GetHeight(80);
+	local iForty = hillsFrac:GetHeight(40);
+	local iFifty = hillsFrac:GetHeight(50);
+	local iSixty = hillsFrac:GetHeight(60);
+	local iPeakTibet = peaksFrac:GetHeight(87);
+	local iPeakNW = peaksFrac:GetHeight(95);
+	local iPeakSichuan = peaksFrac:GetHeight(97);
+	local iHillsRegional = hillsFrac:GetHeight(94);
+
+	-- Define the Pacific.
+	print("Simulate the Pacific Ocean. (Lua China) ...");
+	local pacific_coords = {
+		{math.floor(iW * 0.56), 0},
+		{math.floor(iW * 0.52), math.floor(iH * 0.08)},
+		{math.floor(iW - 1), math.floor(iH * 0.9)},
 	};
-	local baseNumPlates = platevalues[Map.GetWorldSize()] or 10;
-	local plate_count_multipliers = {2, 1, 2, 1};
-	local plate_count_multiplier = plate_count_multipliers[userInputGrain];
-	local numPlates = math.ceil(baseNumPlates * plate_count_multiplier);
-
-	local terrainFrac = Fractal.Create(iW, iH, grain, iFlags, -1, -1);
-	local lakesFrac = Fractal.Create(iW, iH, lake_grain, iFlags, -1, -1);
-	local mountain_passFrac = Fractal.Create(iW, iH, grain, iFlags, -1, -1);
-
-	-- Build tectonic ridgelines where applicable.
-	mountain_passFrac:BuildRidges(numPlates, iFlags, 1, 2);
-	if userInputGrain == 1 then -- Tectonics mountains, add ridgelines to terrainFrac.
-		terrainFrac:BuildRidges(numPlates, iFlags, 6, 1);
+	-- Draw the Pacific Line and fill in everything east of it with ocean.
+	for loop = 1, 2 do
+		local startX = pacific_coords[loop][1];
+		local startY = pacific_coords[loop][2];
+		local endX = pacific_coords[loop + 1][1];
+		local endY = pacific_coords[loop + 1][2];
+		local dx = endX - startX;
+		local dy = endY - startY
+		local slope = 0;
+		if dy ~= 0 then
+			slope = dx / dy;
+		end
+		local x = startX;
+		for y = startY, endY - 1 do
+			x = x + slope;
+			local iX = math.floor(x);
+			for loop_x = iX, iW - 1 do
+				local i = y * iW + loop_x + 1;
+				plotTypes[i] = PlotTypes.PLOT_OCEAN;
+			end
+		end
+	end
+	
+	-- Define the Indian, which will be in the SW corner.
+	local indian_coords = {
+		{0, math.floor(iH * 0.16)},
+		{math.floor(iW * 0.08), math.floor(iH * 0.2)},
+		{math.floor(iW * 0.16), 0},
+	};
+	-- Draw the Indian Line and fill in everything south of it with ocean.
+	for loop = 1, 2 do
+		local startX = indian_coords[loop][1];
+		local startY = indian_coords[loop][2];
+		local endX = indian_coords[loop + 1][1];
+		local endY = indian_coords[loop + 1][2];
+		local dx = endX - startX;
+		local dy = endY - startY
+		local slope = 0;
+		if dx ~= 0 then
+			slope = dy / dx;
+		end
+		local y = startY;
+		for x = startX, endX - 1 do
+			y = y + slope;
+			local iY = math.floor(y);
+			for loop_y = 0, iY do
+				local i = loop_y * iW + x + 1;
+				plotTypes[i] = PlotTypes.PLOT_OCEAN;
+				print("c", i);
+			end
+		end
 	end
 
-	local iLakesThreshold = lakesFrac:GetHeight(100 - lakes);
-	local iHillsThreshold = terrainFrac:GetHeight(hills);
-	local iPeaksThreshold = terrainFrac:GetHeight(peaks);
-	local iPassThreshold = mountain_passFrac:GetHeight(85);
-
-	-- Now the main loop, which will assign the plot types.
-	for x = 0, iW - 1, 1 do
-		for y = 0, iH - 1, 1 do
-			local i = y*iW + x + 1; -- add one because Lua arrays start at 1
-			local lakeVal = lakesFrac:GetHeight(x,y);
-			local val = terrainFrac:GetHeight(x,y);
-			if lakeVal >= iLakesThreshold then
-				plotTypes[i] = PlotTypes.PLOT_OCEAN;
-			elseif val >= iPeaksThreshold then
-				-- Check against the tectonic-style mountain pass generator.
-				local passVal = mountain_passFrac:GetHeight(x,y);
-				if passVal >= iPassThreshold then
-					plotTypes[i] = PlotTypes.PLOT_HILLS;
-				else
-					plotTypes[i] = PlotTypes.PLOT_PEAK;
+-- Add the mainland bulge as an oval of land plots.
+	local centerX = iW * 0.64;
+	local centerY = iH * 0.52;
+	local majorAxis = iW * 0.32;
+	local minorAxis = iH * 0.37;
+	local majorAxisSquared = majorAxis * majorAxis;
+	local minorAxisSquared = minorAxis * minorAxis;
+	for x = 0, iW - 1 do
+		for y = 0, iH - 1 do
+			local deltaX = x - centerX;
+			local deltaY = y - centerY;
+			local deltaXSquared = deltaX * deltaX;
+			local deltaYSquared = deltaY * deltaY;
+			local d = deltaXSquared/majorAxisSquared + deltaYSquared/minorAxisSquared;
+			if d <= 1 then
+				if y <= iH - 1 then
+					local i = y * iW + x + 1;
+					plotTypes[i] = PlotTypes.PLOT_LAND;
 				end
-			elseif val >= iHillsThreshold and val < iPeaksThreshold then
-				plotTypes[i] = PlotTypes.PLOT_HILLS;
+			end
+		end
+	end
+
+	-- Define the hilly regions and append their plots to their plot lists. GLOBAL variables used here.
+	himalayas = {};
+	sichuan = {};
+	desert = {};
+	tibetan_plateau = {};
+	central_china = {};
+	south_china = {};
+	arid_northwest = {};
+	grasslands = {};
+	for x  = 0, iW - 1 do
+		for y = 0, iH - 1 do
+			local i = y * iW + x + 1;
+			if x <= iW * 0.15 and y >= iH * 0.4 and y <= iH * 0.47 then
+				table.insert(himalayas, i);
+			elseif x >= iW * 0.225 and x <= iW * 0.44 and y >= iH * 0.32 and y <= iH * 0.61 then
+				table.insert(sichuan, i);
+			elseif x <= iW * 0.26 and y >= iH * 0.83 then
+				table.insert(desert, i);
+			elseif x >= iW * 0.54 and x <= iW * 0.65 and y >= iH * 0.5 and y <= iH * 0.72 then
+				table.insert(central_china, i);
+			elseif x <= iW * 0.72 and y >= iH * 0.81 then
+				table.insert(arid_northwest, i);
+			elseif x <= iW * 0.4 and y >= iH * 0.45 then
+				table.insert(tibetan_plateau, i);
+			elseif x >= iW * 0.35 and y <= iH * 0.45 then
+				table.insert(south_china, i);
+			elseif x >= iW * 0.4 and y >= iH * 0.4 then
+				table.insert(grasslands, i);
+			end
+        end
+	end
+
+	-- Now assign plot types. Note, the plot table is already filled with flatlands.
+	for y = 0, iH - 1 do
+		for x = 0, iW - 1 do
+			local i = y * iW + x + 1;
+			-- Regional membership checked, effects chosen.
+			-- Python had a simpler, less verbose method for checking table membership.
+			local inHima = false;
+			local inSichuan = false;
+			local inDesert = false;
+			local inCent = false;
+			local inArid = false;
+			local inTibet = false;
+			local inSouth = false;
+			local inGrass = false;
+			for memberPlot, plotIndex in ipairs(himalayas) do
+				if i == plotIndex then
+					inHima = true;
+					break
+				end
+			end
+			for memberPlot, plotIndex in ipairs(sichuan) do
+				if i == plotIndex then
+					inSichuan = true;
+					break
+				end
+			end
+			for memberPlot, plotIndex in ipairs(desert) do
+				if i == plotIndex then
+					inDesert = true;
+					break
+				end
+			end
+			for memberPlot, plotIndex in ipairs(central_china) do
+				if i == plotIndex then
+					inCent = true;
+					break
+				end
+			end
+			for memberPlot, plotIndex in ipairs(arid_northwest) do
+				if i == plotIndex then
+					inArid = true;
+					break
+				end
+			end
+			for memberPlot, plotIndex in ipairs(tibetan_plateau) do
+				if i == plotIndex then
+					inTibet= true;
+					break
+				end
+			end
+			for memberPlot, plotIndex in ipairs(south_china) do
+				if i == plotIndex then
+					inSouth = true;
+					break
+				end
+			end
+			for memberPlot, plotIndex in ipairs(grasslands) do
+				if i == plotIndex then
+					inGrass = true;
+					break
+				end
+			end
+			local hillVal = hillsFrac:GetHeight(x,y);
+			if inHima then
+				plotTypes[i] = PlotTypes.PLOT_PEAK;
+			elseif inSichuan then
+				if hillVal >= iSixty then
+					local peakVal = peaksFrac:GetHeight(x,y);
+					if (peakVal >= iPeakSichuan) then
+						plotTypes[i] = PlotTypes.PLOT_PEAK;
+					else
+						plotTypes[i] = PlotTypes.PLOT_HILLS;
+					end
+				end
+			elseif inDesert then
+				if hillVal >= iHillsTop2 then
+					local peakVal = peaksFrac:GetHeight(x,y);
+					if (peakVal >= iPeakNW) then
+						plotTypes[i] = PlotTypes.PLOT_PEAK;
+					else
+						plotTypes[i] = PlotTypes.PLOT_HILLS;
+					end
+				end
+			elseif inCent then
+				if ((hillVal >= iHillsBottom1 and hillVal <= iForty) or (hillVal >= iSixty and hillVal <= iHillsTop2)) then
+					plotTypes[i] = PlotTypes.PLOT_HILLS;
+				end
+			elseif inArid then
+				if hillVal >= iSixty then
+					local peakVal = peaksFrac:GetHeight(x,y);
+					if (peakVal >= iPeakNW) then
+						plotTypes[i] = PlotTypes.PLOT_PEAK;
+					else
+						plotTypes[i] = PlotTypes.PLOT_HILLS;
+					end
+				end
+			elseif inTibet then
+				if hillVal >= iForty then
+					local peakVal = peaksFrac:GetHeight(x,y);
+					if (peakVal >= iPeakTibet) then
+						plotTypes[i] = PlotTypes.PLOT_PEAK;
+					else
+						plotTypes[i] = PlotTypes.PLOT_HILLS;
+					end
+				end
+			elseif inSouth then
+				if plotTypes[i] ~= PlotTypes.PLOT_OCEAN then
+					if ((hillVal >= iHillsBottom1 and hillVal <= iHillsTop1) or (hillVal >= iHillsBottom2 and hillVal <= iHillsTop2)) then
+						plotTypes[i] = PlotTypes.PLOT_HILLS;
+					end
+				end
+			elseif inGrass then
+				if plotTypes[i] ~= PlotTypes.PLOT_OCEAN then
+					if ((hillVal >= iHillsBottom1 and hillVal <= iHillsTop1)) then
+						plotTypes[i] = PlotTypes.PLOT_HILLS;
+					end
+				end
 			else
-				plotTypes[i] = PlotTypes.PLOT_LAND;
+				if plotTypes[i] ~= PlotTypes.PLOT_OCEAN then
+					if hillVal >= iHillsRegional then
+						plotTypes[i] = PlotTypes.PLOT_HILLS;
+					end
+				end
 			end
 		end
 	end
 
 	SetPlotTypes(plotTypes);
-	
-	local args = {bExpandCoasts = false};
-	GenerateCoasts(args)
+	GenerateCoasts();
 end
 ------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------
-function TerrainGenerator:GetLatitudeAtPlot(iX, iY)
-	local lat = iY/self.iHeight;
-	lat = lat + (128 - self.variation:GetHeight(iX, iY))/(255.0 * 5.0);
-	lat = math.clamp(lat, 0, 1);
-
-	-- Flip terrain if southward shift was rolled.
-	lat = math.abs(lat - ShiftMultiplier); -- Global variable set in MapGenerator
-
-	return 0.8 * lat;
-end
+-- China uses a custom terrain generation.
 ------------------------------------------------------------------------------
 function GenerateTerrain()
-	print("Generating Terrain (Lua Highlands) ...");
+	print("Generating Terrain (Lua China) ...");
+	local iW, iH = Map.GetGridSize();
+	local terrainTypes = {};
+	local terrainDesert	= GameInfoTypes["TERRAIN_DESERT"];
+	local terrainPlains	= GameInfoTypes["TERRAIN_PLAINS"];
+	local terrainGrass	= GameInfoTypes["TERRAIN_GRASS"];	
 
-	-- Get Temperature setting input by user.
-	local temp = Map.GetCustomOption(1)
-	if temp == 4 then
-		temp = 1 + Map.Rand(3, "Random Temperature - Lua");
+	-- Initiate terrain table, fill all land slots with type TERRAIN_GRASS
+	table.fill(terrainTypes, terrainGrass, iW * iH);
+	for y = 0, iH - 1 do
+		for x = 0, iW - 1 do
+			local plot = Map.GetPlot(x, y)
+			if plot:IsWater() then
+				local i = y * iW + x; -- C++ Plot indices, starting at 0.
+				terrainTypes[i] = plot:GetTerrainType();
+			end
+		end
 	end
 
-	local args = {temperature = temp};
-	local terraingen = TerrainGenerator.Create(args);
+	-- Set up fractals and thresholds
+	local plains_check = Fractal.Create(iW, iH, 5, {}, 6, 6);
+	local desert_check = Fractal.Create(iW, iH, 4, {}, 6, 6);
+	local iHunan = plains_check:GetHeight(65)
+	local iDesert = desert_check:GetHeight(30)
+	local iDesertPlains = plains_check:GetHeight(15)
+	local iTibet = plains_check:GetHeight(25)
+	local iNW = plains_check:GetHeight(35)
 
-	local terrainTypes = terraingen:GenerateTerrain();
-	
-	SetTerrainTypes(terrainTypes);
+	-- Main loop
+	for y = 0, iH - 1 do
+		for x = 0, iW - 1 do
+			local i = y * iW + x + 1;
+			local plot = Map.GetPlot(x, y)
+			if plot:IsWater() then
+				terrainTypes[i - 1] = plot:GetTerrainType();
+			else
+				local plainsVal = plains_check:GetHeight(x,y);
+				local inSichuan = false;
+				local inDesert = false;
+				local inArid = false;
+				local inTibet = false;
+				for memberPlot, plotIndex in ipairs(sichuan) do
+					if i == plotIndex then
+						inSichuan = true;
+						break
+					end
+				end
+				for memberPlot, plotIndex in ipairs(desert) do
+					if i == plotIndex then
+						inDesert = true;
+						break
+					end
+				end
+				for memberPlot, plotIndex in ipairs(arid_northwest) do
+					if i == plotIndex then
+						inArid = true;
+						break
+					end
+				end
+				for memberPlot, plotIndex in ipairs(tibetan_plateau) do
+					if i == plotIndex then
+						inTibet= true;
+						break
+					end
+				end
+				if inSichuan then
+					if plainsVal >= iHunan then
+						terrainTypes[i - 1] = terrainPlains;
+					end
+				elseif inDesert then
+					if plainsVal >= iDesertPlains then
+						local desertVal = desert_check:GetHeight(x,y);
+						if desertVal >= iDesert then
+							terrainTypes[i - 1] = terrainDesert;
+						else
+							terrainTypes[i - 1] = terrainPlains;
+						end
+					end
+				elseif inArid then
+					if plainsVal >= iNW then
+						terrainTypes[i - 1] = terrainPlains;
+					end
+				elseif inTibet then
+					if plainsVal >= iTibet then
+						terrainTypes[i - 1] = terrainPlains;
+					end
+				elseif x >= iW * 0.57 and x <= iW * 0.75 and y >= iH * 0.31 and y<= iH * 0.47 then
+					if plainsVal >= iHunan then
+						terrainTypes[i - 1] = terrainPlains;
+					end
+				end
+			end
+		end
+	end
+
+	SetTerrainTypes(terrainTypes);	
 end
 ------------------------------------------------------------------------------
 
@@ -503,27 +694,24 @@ end
 ------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------
+-- China uses a custom feature generation.
+------------------------------------------------------------------------------
 function FeatureGenerator:GetLatitudeAtPlot(iX, iY)
-	local lat = (iY / self.iGridH);
-
-	-- Flip terrain if southward shift was rolled.
-	return 0.8 * math.abs(lat - ShiftMultiplier) -- Global, set prior to map generation.
+	local lat = 0.45 * (iY / self.iGridH);
+	return lat
 end
 ------------------------------------------------------------------------------
 function FeatureGenerator:AddIceAtPlot(plot, iX, iY, lat)
 	return
 end
 ------------------------------------------------------------------------------
+function FeatureGenerator:AddAtolls()
+end
+------------------------------------------------------------------------------
 function AddFeatures()
-	print("Adding Features (Lua Highlands) ...");
+	print("Adding Features (Lua China) ...");
 
-	-- Get Rainfall setting input by user.
-	local rain = Map.GetCustomOption(2)
-	if rain == 4 then
-		rain = 1 + Map.Rand(3, "Random Rainfall - Lua");
-	end
-	
-	local args = {rainfall = rain}
+	local args = {rainfall = 2}
 	local featuregen = FeatureGenerator.Create(args);
 
 	featuregen:AddFeatures();
@@ -537,7 +725,7 @@ function AssignStartingPlots:CanPlaceCityStateAt(x, y, area_ID, force_it, ignore
 	local plot = Map.GetPlot(x, y)
 	local area = plot:GetArea()
 	
-	-- Adding this check for Highlands
+	-- Adding this check for China
 	if x < 1 or x >= iW - 1 or y < 1 or y >= iH - 1 then
 		return false
 	end
@@ -554,6 +742,9 @@ function AssignStartingPlots:CanPlaceCityStateAt(x, y, area_ID, force_it, ignore
 	if terrainType == TerrainTypes.TERRAIN_SNOW then
 		return false
 	end
+	if not self:PlotAllowsCity(plot) then
+		return false
+	end
 	local plotIndex = y * iW + x + 1;
 	if self.cityStateData[plotIndex] > 0 and force_it == false then
 		return false
@@ -565,60 +756,42 @@ function AssignStartingPlots:CanPlaceCityStateAt(x, y, area_ID, force_it, ignore
 	return true
 end
 ------------------------------------------------------------------------------
-function AssignStartingPlots:PlaceOilInTheSea()
-	-- Oil only on land for this map script.
-end
-------------------------------------------------------------------------------
-function AssignStartingPlots:GetMajorStrategicResourceQuantityValues()
-	local uran_amt, horse_amt, oil_amt, iron_amt, coal_amt, alum_amt = 4, 4, 5, 6, 7, 8;
-	-- Check the resource setting.
-	if self.resource_setting == 1 then -- Sparse
-		uran_amt, horse_amt, oil_amt, iron_amt, coal_amt, alum_amt = 2, 4, 4, 4, 5, 5;
-	elseif self.resource_setting == 3 then -- Abundant
-		uran_amt, horse_amt, oil_amt, iron_amt, coal_amt, alum_amt = 4, 6, 7, 9, 10, 10;
-	end
-	return uran_amt, horse_amt, oil_amt, iron_amt, coal_amt, alum_amt
-end
-------------------------------------------------------------------------------
-function AssignStartingPlots:GetSmallStrategicResourceQuantityValues()
-	local uran_amt, horse_amt, oil_amt, iron_amt, coal_amt, alum_amt = 1, 2, 2, 2, 3, 3;
-	-- Check the resource setting.
-	if self.resource_setting == 1 then -- Sparse
-		uran_amt, horse_amt, oil_amt, iron_amt, coal_amt, alum_amt = 1, 1, 1, 1, 2, 2;
-	elseif self.resource_setting == 3 then -- Abundant
-		uran_amt, horse_amt, oil_amt, iron_amt, coal_amt, alum_amt = 2, 3, 3, 3, 3, 3;
-	end
-	return uran_amt, horse_amt, oil_amt, iron_amt, coal_amt, alum_amt
-end
+
 ------------------------------------------------------------------------------
 function StartPlotSystem()
-	-- Get Resources setting input by user.
-	local res = Map.GetCustomOption(3)
-	if res == 6 then
-		res = 1 + Map.Rand(3, "Random Resources Option - Lua");
-	end
-
-	print("Creating start plot database (MapGenerator.Lua)");
+	print("Creating start plot database.");
 	local start_plot_database = AssignStartingPlots.Create()
 	
-	print("Dividing the map in to Regions (Lua Highlands)");
+	print("Dividing the map in to Regions.");
 	-- Regional Division Method 1: Biggest Landmass
 	local args = {
 		method = 1,
-		resources = res,
 		};
 	start_plot_database:GenerateRegions(args)
 
-	print("Choosing start locations for civilizations (MapGenerator.Lua)");
+	print("Choosing start locations for civilizations.");
 	start_plot_database:ChooseLocations()
 	
-	print("Normalizing start locations and assigning them to Players (MapGenerator.Lua)");
+	print("Normalizing start locations and assigning them to Players.");
 	start_plot_database:BalanceAndAssign()
 
-	print("Placing Natural Wonders (MapGenerator.Lua)");
-	start_plot_database:PlaceNaturalWonders()
+	print("No Natural Wonders available on this script.");
+	--start_plot_database:PlaceNaturalWonders()
 
-	print("Placing Resources and City States (MapGenerator.Lua)");
+	print("Placing Resources and City States.");
 	start_plot_database:PlaceResourcesAndCityStates()
 end
 ------------------------------------------------------------------------------
+
+-------------------------------------------------------------------------------
+function DetermineContinents()
+	-- Setting all continental art to Asia style.
+	for i, plot in Plots() do
+		if plot:IsWater() then
+			plot:SetContinentArtType(0);
+		else
+			plot:SetContinentArtType(2);
+		end
+	end
+end
+-------------------------------------------------------------------------------

@@ -938,7 +938,7 @@ function AssignStartingPlots:AssignCityStatesToRegionsOrToUninhabited(args)
 			local plot = Map.GetPlot(x, y);
 			local plotType = plot:GetPlotType()
 			local terrainType = plot:GetTerrainType()
-			if (plotType == PlotTypes.PLOT_LAND or plotType == PlotTypes.PLOT_HILLS) and terrainType ~= TerrainTypes.TERRAIN_SNOW then -- Habitable land plot, process it.
+			if (plotType == PlotTypes.PLOT_LAND or plotType == PlotTypes.PLOT_HILLS) and terrainType ~= TerrainTypes.TERRAIN_SNOW and self:PlotAllowsCity(plot) then -- Habitable land plot, process it.
 				local iArea = plot:GetArea();
 				if TestMembership(land_area_IDs, iArea) == false then -- This plot is the first detected in its AreaID.
 					iNumLandAreas = iNumLandAreas + 1;
