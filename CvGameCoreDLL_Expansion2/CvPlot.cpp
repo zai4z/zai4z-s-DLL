@@ -5508,11 +5508,6 @@ bool CvPlot::canHaveFeature(FeatureTypes eFeature) const
 		return false;
 	}
 
-	if(isMountain())
-	{
-		return false;
-	}
-
 	if(isCity())
 	{
 		return false;
@@ -5520,6 +5515,11 @@ bool CvPlot::canHaveFeature(FeatureTypes eFeature) const
 
 	CvFeatureInfo* pkFeature = GC.getFeatureInfo(eFeature);
 	if(pkFeature == NULL)
+	{
+		return false;
+	}
+
+	if(!pkFeature->isAllowMountain() && isMountain())
 	{
 		return false;
 	}
@@ -14359,9 +14359,13 @@ int CvPlot::Validate(CvMap& kParentMap)
 {
 	//------------------------------
 	// force mountain terrain on mountain plots for correct impassability & yields - map scripts are sloppy here
+	// Keep natural wonders and any feature flagged as allowed on mountains.
+	FeatureTypes eFeature = getFeatureType();
+	bool bKeepFeature = IsNaturalWonder() || (eFeature != NO_FEATURE && GC.getFeatureInfo(eFeature)->isAllowMountain());
+
 	if (m_eTerrainType == TERRAIN_MOUNTAIN && m_ePlotType != PLOT_MOUNTAIN)
 	{
-		if (!IsNaturalWonder())
+		if (!bKeepFeature)
 			setFeatureType(NO_FEATURE);
 		setPlotType(PLOT_MOUNTAIN);
 		setResourceType(NO_RESOURCE, 0);
@@ -14369,7 +14373,7 @@ int CvPlot::Validate(CvMap& kParentMap)
 
 	if (m_ePlotType == PLOT_MOUNTAIN && m_eTerrainType != TERRAIN_MOUNTAIN)
 	{
-		if (!IsNaturalWonder())
+		if (!bKeepFeature)
 			setFeatureType(NO_FEATURE);
 		setTerrainType(TERRAIN_MOUNTAIN);
 		setResourceType(NO_RESOURCE, 0);

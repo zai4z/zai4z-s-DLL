@@ -3638,6 +3638,9 @@ function AssignStartingPlots:AttemptToPlaceBonusResourceAtPlot(x, y, bAllowOasis
 		return false
 	end
 	local plotType = plot:GetPlotType()
+	if plotType == PlotTypes.PLOT_MOUNTAIN then
+		return false
+	end
 	--
 	if featureType == FeatureTypes.FEATURE_JUNGLE then -- Place Banana
 		plot:SetResourceType(self.banana_ID, 1);

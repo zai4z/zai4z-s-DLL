@@ -6779,6 +6779,7 @@ CvFeatureInfo::CvFeatureInfo() :
 	m_iSpawnLocationUnitFreePromotion(NO_PROMOTION),
 	m_iAdjacentSpawnLocationUnitFreePromotion(NO_PROMOTION),
 	m_bYieldNotAdditive(false),
+	m_bAllowMountain(false),
 	m_bNoCoast(false),
 	m_bNoRiver(false),
 	m_bNoAdjacent(false),
@@ -6914,6 +6915,11 @@ int CvFeatureInfo::getAdjacentSpawnLocationUnitFreePromotion() const
 bool CvFeatureInfo::isYieldNotAdditive() const
 {
 	return m_bYieldNotAdditive;
+}
+//------------------------------------------------------------------------------
+bool CvFeatureInfo::isAllowMountain() const
+{
+	return m_bAllowMountain;
 }
 //------------------------------------------------------------------------------
 bool CvFeatureInfo::isNoCoast() const
@@ -7158,6 +7164,7 @@ bool CvFeatureInfo::CacheResults(Database::Results& kResults, CvDatabaseUtility&
 
 	m_iEffectProbability = kResults.GetInt("EffectProbability");
 	m_bYieldNotAdditive = kResults.GetBool("YieldNotAdditive");
+	m_bAllowMountain = kResults.GetBool("AllowMountain");
 	m_bNoCoast = kResults.GetBool("NoCoast");
 	m_bNoRiver = kResults.GetBool("NoRiver");
 	m_bNoAdjacent = kResults.GetBool("NoAdjacent");

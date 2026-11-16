@@ -23,6 +23,12 @@ UPDATE Features SET Permanent = 1 WHERE Type = 'FEATURE_FLOOD_PLAINS';
 
 UPDATE Features SET SeeThrough = 1 WHERE Type = 'FEATURE_GEYSER';
 
+UPDATE Features SET AllowMountain = 1 
+WHERE Type IN (
+	'FEATURE_JUNGLE',
+	'FEATURE_FOREST'
+);
+
 UPDATE Features SET YieldNotAdditive = 1 
 WHERE Type IN (
 	'FEATURE_JUNGLE',

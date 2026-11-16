@@ -1962,6 +1962,7 @@ public:
 	int getSpawnLocationUnitFreePromotion() const;
 
 	bool isYieldNotAdditive() const;
+	bool isAllowMountain() const;
 	bool isNoCoast() const;
 	bool isNoRiver() const;
 	bool isNoAdjacent() const;
@@ -2030,6 +2031,7 @@ protected:
 	int m_iAdjacentSpawnLocationUnitFreePromotion;
 
 	bool m_bYieldNotAdditive;
+	bool m_bAllowMountain;
 	bool m_bNoCoast;
 	bool m_bNoRiver;
 	bool m_bNoAdjacent;

@@ -24,3 +24,6 @@ ALTER TABLE Features ADD NoEmbark boolean DEFAULT 0;
 
 -- Founding a city won't remove this feature on this tile
 ALTER TABLE Features ADD Permanent boolean DEFAULT 0;
+
+-- This feature can generate on mountain tiles
+ALTER TABLE Features ADD AllowMountain boolean DEFAULT 0;
