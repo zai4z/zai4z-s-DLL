@@ -2498,7 +2498,27 @@ void CvMap::DefaultContinentStamper()
 		CvLandmass* pLandmass = getLandmassById(pLoopPlot->getLandmass());
 		if(pLandmass != NULL)
 		{
-			pLoopPlot->SetContinentType(pLandmass->GetContinentType());
+			char cType = pLandmass->GetContinentType();
+
+			// Mountains: art set depends on being in or next to snow/tundra.
+			// 1 America, 2 Asia, 3 Africa, 4 Europe (0 = ocean, left alone)
+			if(pLoopPlot->isMountain() && cType > 0)
+			{
+				const bool bCold = pLoopPlot->HasTerrain(TERRAIN_SNOW) || pLoopPlot->HasTerrain(TERRAIN_TUNDRA) || pLoopPlot->IsAdjacentToTerrain(TERRAIN_SNOW) || pLoopPlot->IsAdjacentToTerrain(TERRAIN_TUNDRA);
+
+				if(bCold)
+				{
+					if(cType == 2) cType = 4;       // Asia -> Europe
+					else if(cType == 3) cType = 1;  // Africa -> America
+				}
+				else
+				{
+					if(cType == 4) cType = 2;       // Europe -> Asia
+					else if(cType == 1) cType = 3;  // America -> Africa
+				}
+			}
+
+			pLoopPlot->SetContinentType(cType);
 		}
 	}
 }
