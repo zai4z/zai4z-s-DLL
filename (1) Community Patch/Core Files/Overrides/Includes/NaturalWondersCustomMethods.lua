@@ -16,19 +16,27 @@ function NWCustomEligibility(x, y, method_number)
 	local ResourceType = plot:GetResourceType()
 	local AdjacentToLand = plot:IsAdjacentToLand()
 
+	-- latitude of this plot: 0 = equator, 1 = pole
+	local lat
+	if y >= (iH/2) then
+		lat = math.abs((iH/2) - y)/(iH/2)
+	else
+		lat = math.abs((iH/2) - (y + 1))/(iH/2)
+	end
+
+	-- fallback limits (used when the map didn't record its tundra line)
+	local reefLimit, gibraltarLimit, krakatoaLimit = 0.4, 0.5, 0.4
+	if TundraLatitude ~= nil then
+		-- follow the map's tundra line, keeping a margin below it
+		reefLimit = math.max(0.1, TundraLatitude - 0.2)
+		gibraltarLimit = math.max(0.2, TundraLatitude - 0.05)
+		krakatoaLimit = math.max(0.1, TundraLatitude - 0.2)
+	end
+
 	-- Great Barrier Reef
 	if method_number == 1 then	
-		-- get latitude to prevent it from spawning in polar regions
-		if (y >= (iH/2)) then	
-			-- upper half of map
-			if (math.abs((iH/2) - y)/(iH/2)) > 0.5 then
-				return false
-			end
-		else
-			-- lower half of map
-			if (math.abs((iH/2) - (y + 1))/(iH/2)) > 0.5 then
-				return false
-			end
+		if lat > reefLimit then
+			return false
 		end
 
 		if not plot:IsWater() or plot:IsLake() or AdjacentToLand or (ResourceType ~= -1) or (FeatureType ~= -1) then
@@ -77,17 +85,8 @@ function NWCustomEligibility(x, y, method_number)
 
 	-- Rock of Gibraltar
 	elseif method_number == 2 then
-		-- get latitude to prevent it from spawning in polar regions
-		if (y >= (iH/2)) then	
-			-- upper half of map
-			if (math.abs((iH/2) - y)/(iH/2)) > 0.6 then
-				return false
-			end
-		else
-			-- lower half of map
-			if (math.abs((iH/2) - (y + 1))/(iH/2)) > 0.6 then
-				return false
-			end
+		if lat > gibraltarLimit then
+			return false
 		end
 
 		if (TerrainType ~= TerrainTypes.TERRAIN_COAST) or not AdjacentToLand or (ResourceType ~= -1) or (FeatureType ~= -1) then
@@ -122,18 +121,9 @@ function NWCustomEligibility(x, y, method_number)
 	
 	-- Krakatoa
 	elseif method_number == 3 then
-		-- get latitude to prevent it from spawning in polar regions
-		if (y >= (iH/2)) then	
-			-- upper half of map
-			if (math.abs((iH/2) - y)/(iH/2)) > 0.5 then
-				return false
-			end
-		else
-			-- lower half of map
-			if (math.abs((iH/2) - (y + 1))/(iH/2)) > 0.5 then
-				return false
-			end
-		end 
+		if lat > krakatoaLimit then
+			return false
+		end
 
 		if not plot:IsWater() or plot:IsLake() or AdjacentToLand or (ResourceType ~= -1) or (FeatureType ~= -1) then
 			return false

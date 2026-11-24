@@ -778,6 +778,7 @@ end
 
 function GenerateMap()
 	print("Generating Map");
+	TundraLatitude = nil;	-- clear any value left over from a previous map in this Lua state
 	-- This is the core map generation function.
 	-- Every step in this process carries dependencies upon earlier steps.
 	-- There isn't any way to change the order of operations without breaking dependencies,
