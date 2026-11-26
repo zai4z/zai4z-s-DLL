@@ -3633,6 +3633,10 @@ function AssignStartingPlots:AttemptToPlaceBonusResourceAtPlot(x, y, bAllowOasis
 		return false
 	end
 	local featureType = plot:GetFeatureType()
+	if featureType == FeatureTypes.FEATURE_CLIFFS then
+		featureType = FeatureTypes.NO_FEATURE -- cliffs count as open hills
+	end
+
 	if featureType == FeatureTypes.FEATURE_OASIS then
 		--print("Plot already had an Oasis.");
 		return false
@@ -3690,7 +3694,7 @@ function AssignStartingPlots:AttemptToPlaceBonusResourceAtPlot(x, y, bAllowOasis
 			end
 		end
 	elseif plotType == PlotTypes.PLOT_OCEAN then
-		if terrainType == TerrainTypes.TERRAIN_COAST and featureType == FeatureTypes.NO_FEATURE then
+		if terrainType == TerrainTypes.TERRAIN_COAST and (featureType == FeatureTypes.NO_FEATURE or featureType == FeatureTypes.FEATURE_MANGROVES) then
 			if plot:IsLake() == false then -- Place Fish
 				plot:SetResourceType(self.fish_ID, 1);
 				--print("Placed Fish.");
@@ -3748,6 +3752,10 @@ function AssignStartingPlots:AttemptToPlaceSmallStrategicAtPlot(x, y)
 	local plotType = plot:GetPlotType()
 	local terrainType = plot:GetTerrainType()
 	local featureType = plot:GetFeatureType()
+	if featureType == FeatureTypes.FEATURE_CLIFFS then
+		featureType = FeatureTypes.NO_FEATURE -- cliffs count as open hills
+	end
+
 	if plotType ~= PlotTypes.PLOT_LAND then
 		--print("Placement failed, plot was not flat land.");
 		return false
@@ -3825,6 +3833,10 @@ function AssignStartingPlots:AddStrategicBalanceResources(region_number)
 					local plotType = plot:GetPlotType()
 					local terrainType = plot:GetTerrainType()
 					local featureType = plot:GetFeatureType()
+					if featureType == FeatureTypes.FEATURE_CLIFFS then
+						featureType = FeatureTypes.NO_FEATURE -- cliffs count as open hills
+					end
+
 					local plotIndex = realY * iW + realX + 1;
 					-- Check this plot for resource placement eligibility.
 					if plotType == PlotTypes.PLOT_HILLS then
@@ -3937,6 +3949,10 @@ function AssignStartingPlots:AttemptToPlaceStoneAtGrassPlot(x, y)
 	local plotType = plot:GetPlotType()
 	if plotType == PlotTypes.PLOT_LAND then
 		local featureType = plot:GetFeatureType()
+		if featureType == FeatureTypes.FEATURE_CLIFFS then
+			featureType = FeatureTypes.NO_FEATURE -- cliffs count as open hills
+		end
+
 		if featureType == FeatureTypes.NO_FEATURE then
 			local terrainType = plot:GetTerrainType()
 			if terrainType == TerrainTypes.TERRAIN_GRASS then -- Place Stone
@@ -4036,6 +4052,9 @@ function AssignStartingPlots:NormalizeStartLocation(region_number)
 			local plotType = searchPlot:GetPlotType()
 			local terrainType = searchPlot:GetTerrainType()
 			local featureType = searchPlot:GetFeatureType()
+			if featureType == FeatureTypes.FEATURE_CLIFFS then
+				featureType = FeatureTypes.NO_FEATURE -- cliffs count as open hills
+			end
 			--
 			if plotType == PlotTypes.PLOT_MOUNTAIN then
 				nearMountain = true;
@@ -4180,6 +4199,9 @@ function AssignStartingPlots:NormalizeStartLocation(region_number)
 			local plotType = searchPlot:GetPlotType()
 			local terrainType = searchPlot:GetTerrainType()
 			local featureType = searchPlot:GetFeatureType()
+			if featureType == FeatureTypes.FEATURE_CLIFFS then
+				featureType = FeatureTypes.NO_FEATURE -- cliffs count as open hills
+			end
 			--
 			if plotType == PlotTypes.PLOT_MOUNTAIN then
 				nearMountain = true;
@@ -6720,6 +6742,9 @@ function AssignStartingPlots:NormalizeCityState(x, y)
 			local plotType = searchPlot:GetPlotType()
 			local terrainType = searchPlot:GetTerrainType()
 			local featureType = searchPlot:GetFeatureType()
+			if featureType == FeatureTypes.FEATURE_CLIFFS then
+				featureType = FeatureTypes.NO_FEATURE -- cliffs count as open hills
+			end
 			--
 			if plotType == PlotTypes.PLOT_MOUNTAIN then
 				innerBadTiles = innerBadTiles + 1;
@@ -6829,6 +6854,9 @@ function AssignStartingPlots:NormalizeCityState(x, y)
 			local plotType = searchPlot:GetPlotType()
 			local terrainType = searchPlot:GetTerrainType()
 			local featureType = searchPlot:GetFeatureType()
+			if featureType == FeatureTypes.FEATURE_CLIFFS then
+				featureType = FeatureTypes.NO_FEATURE -- cliffs count as open hills
+			end
 			--
 			if plotType == PlotTypes.PLOT_MOUNTAIN then
 				outerBadTiles = outerBadTiles + 1;
@@ -7052,6 +7080,9 @@ function AssignStartingPlots:GenerateGlobalResourcePlotLists()
 				local plotType = plot:GetPlotType()
 				local terrainType = plot:GetTerrainType()
 				local featureType = plot:GetFeatureType()
+				if featureType == FeatureTypes.FEATURE_CLIFFS then
+					featureType = FeatureTypes.NO_FEATURE -- cliffs count as open hills
+				end
 				if plotType == PlotTypes.PLOT_MOUNTAIN then
 					self.barren_plots = self.barren_plots + 1;
 				elseif plotType == PlotTypes.PLOT_OCEAN then
@@ -7062,14 +7093,14 @@ function AssignStartingPlots:GenerateGlobalResourcePlotLists()
 							self.barren_plots = self.barren_plots + 1;
 						elseif terrainType == TerrainTypes.TERRAIN_COAST then
 							table.insert(temp_coast_list, i);
-							if plot:IsAdjacentToLand() then
+							if plot:IsAdjacentToLand() and featureType ~= FeatureTypes.FEATURE_MANGROVES then
 								table.insert(temp_coast_next_to_land_list, i);
 							end
 						else
 							self.barren_plots = self.barren_plots + 1;
 						end
 					end
-				elseif plotType == PlotTypes.PLOT_HILLS and terrainType ~= TerrainTypes.TERRAIN_SNOW then
+				elseif plotType == PlotTypes.PLOT_HILLS and terrainType ~= TerrainTypes.TERRAIN_SNOW and featureType ~= FeatureTypes.FEATURE_HOT_SPRING then
 					table.insert(temp_hills_list, i);
 					if featureType == FeatureTypes.NO_FEATURE then
 						table.insert(temp_hills_open_list, i);
@@ -7976,19 +8007,22 @@ function AssignStartingPlots:GetListOfAllowableLuxuriesAtCitySite(x, y, radius)
 					local plotType = plot:GetPlotType()
 					local terrainType = plot:GetTerrainType()
 					local featureType = plot:GetFeatureType()
+					if featureType == FeatureTypes.FEATURE_CLIFFS then
+						featureType = FeatureTypes.NO_FEATURE -- cliffs count as open hills
+					end
 					local plotIndex = realY * iW + realX + 1;
 					-- Check this plot for luxury placement eligibility. Set allowed luxuries to true.
 					if plotType == PlotTypes.PLOT_OCEAN then -- Testing for Water Luxury eligibility. This is more involved than land-based.
 						if terrainType == TerrainTypes.TERRAIN_COAST then
 							if plot:IsLake() == false then
-								if featureType ~= self.feature_atoll and featureType ~= FeatureTypes.FEATURE_ICE then
+								if featureType == FeatureTypes.NO_FEATURE then
 									allowed_luxuries[self.whale_ID] = true;
 									allowed_luxuries[self.pearls_ID] = true;
 								end
 							end
 						end
 					-- Checking for land-based eligibility.
-					elseif plotType == PlotTypes.PLOT_HILLS and terrainType ~= TerrainTypes.TERRAIN_SNOW then
+					elseif plotType == PlotTypes.PLOT_HILLS and terrainType ~= TerrainTypes.TERRAIN_SNOW and featureType ~= FeatureTypes.FEATURE_HOT_SPRING then
 						allowed_luxuries[self.gold_ID] = true;
 						allowed_luxuries[self.silver_ID] = true;
 						allowed_luxuries[self.gems_ID] = true;
@@ -8107,6 +8141,9 @@ function AssignStartingPlots:GenerateLuxuryPlotListsAtCitySite(x, y, radius, bRe
 						local plotType = plot:GetPlotType()
 						local terrainType = plot:GetTerrainType()
 						local featureType = plot:GetFeatureType()
+						if featureType == FeatureTypes.FEATURE_CLIFFS then
+							featureType = FeatureTypes.NO_FEATURE -- cliffs count as open hills
+						end
 						local plotIndex = realY * iW + realX + 1;
 						
 						-- If Ice removal is enabled, process only that.
@@ -8120,12 +8157,12 @@ function AssignStartingPlots:GenerateLuxuryPlotListsAtCitySite(x, y, radius, bRe
 							if plotType == PlotTypes.PLOT_OCEAN then
 								if terrainType == TerrainTypes.TERRAIN_COAST then
 									if plot:IsLake() == false then
-										if featureType ~= self.feature_atoll and featureType ~= FeatureTypes.FEATURE_ICE then
+										if featureType ~= self.feature_atoll and featureType ~= FeatureTypes.FEATURE_ICE and featureType ~= FeatureTypes.FEATURE_MANGROVES then
 											table.insert(region_coast, plotIndex);
 										end
 									end
 								end
-							elseif plotType == PlotTypes.PLOT_HILLS and terrainType ~= TerrainTypes.TERRAIN_SNOW then
+							elseif plotType == PlotTypes.PLOT_HILLS and terrainType ~= TerrainTypes.TERRAIN_SNOW and featureType ~= FeatureTypes.FEATURE_HOT_SPRING then
 								if featureType == FeatureTypes.NO_FEATURE then
 									table.insert(region_hills_open, plotIndex);
 								elseif featureType == FeatureTypes.FEATURE_JUNGLE then		
@@ -8225,11 +8262,14 @@ function AssignStartingPlots:GenerateLuxuryPlotListsInRegion(region_number)
 			local plotType = plot:GetPlotType()
 			local terrainType = plot:GetTerrainType()
 			local featureType = plot:GetFeatureType()
+			if featureType == FeatureTypes.FEATURE_CLIFFS then
+				featureType = FeatureTypes.NO_FEATURE -- cliffs count as open hills
+			end
 			--
 			if plotType == PlotTypes.PLOT_OCEAN then
 				if terrainType == TerrainTypes.TERRAIN_COAST then
 					if plot:IsLake() == false then
-						if featureType ~= self.feature_atoll and featureType ~= FeatureTypes.FEATURE_ICE then
+						if featureType ~= self.feature_atoll and featureType ~= FeatureTypes.FEATURE_ICE and featureType ~= FeatureTypes.FEATURE_MANGROVES then
 							if iAreaID == -1 then
 								if plot:IsAdjacentToLand() then
 									table.insert(region_coast, plotIndex);
@@ -8242,7 +8282,7 @@ function AssignStartingPlots:GenerateLuxuryPlotListsInRegion(region_number)
 						end
 					end
 				end
-			elseif plotType == PlotTypes.PLOT_HILLS and terrainType ~= TerrainTypes.TERRAIN_SNOW then
+			elseif plotType == PlotTypes.PLOT_HILLS and terrainType ~= TerrainTypes.TERRAIN_SNOW and featureType ~= FeatureTypes.FEATURE_HOT_SPRING then
 				if featureType == FeatureTypes.NO_FEATURE then
 					table.insert(region_hills_open, plotIndex);
 				elseif featureType == FeatureTypes.FEATURE_JUNGLE then		
@@ -8929,6 +8969,9 @@ function AssignStartingPlots:PlaceSmallQuantitiesOfStrategics(frequency, plot_li
 						local plotType = res_plot:GetPlotType()
 						local terrainType = res_plot:GetTerrainType()
 						local featureType = res_plot:GetFeatureType()
+						if featureType == FeatureTypes.FEATURE_CLIFFS then
+							featureType = FeatureTypes.NO_FEATURE -- cliffs count as open hills
+						end
 						if featureType == FeatureTypes.FEATURE_MARSH then
 							local diceroll = Map.Rand(4, "Resource selection - Place Small Quantities LUA");
 							if diceroll == 0 then
@@ -9153,6 +9196,9 @@ function AssignStartingPlots:PlaceSexyBonusAtCivStarts()
 					-- We've arrived at the correct x and y for the current plot.
 					local plot = Map.GetPlot(realX, realY);
 					local featureType = plot:GetFeatureType()
+					if featureType == FeatureTypes.FEATURE_CLIFFS then
+						featureType = FeatureTypes.NO_FEATURE -- cliffs count as open hills
+					end
 					if plot:GetResourceType(-1) == -1 and featureType ~= FeatureTypes.FEATURE_OASIS then -- No resource or Oasis here, safe to proceed.
 						local plotType = plot:GetPlotType()
 						local terrainType = plot:GetTerrainType()
@@ -9303,6 +9349,9 @@ function AssignStartingPlots:AddExtraBonusesToHillsRegions()
 				local plotType = plot:GetPlotType()
 				local terrainType = plot:GetTerrainType()
 				local featureType = plot:GetFeatureType()
+				if featureType == FeatureTypes.FEATURE_CLIFFS then
+					featureType = FeatureTypes.NO_FEATURE -- cliffs count as open hills
+				end
 				if plotType == PlotTypes.PLOT_LAND or plotType == PlotTypes.PLOT_HILLS then
 					-- Check plot for region membership. Only process this plot if it is a member.
 					if (area_of_plot == iAreaID) or (iAreaID == -1) then
