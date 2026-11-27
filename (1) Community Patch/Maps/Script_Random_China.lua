@@ -263,12 +263,12 @@ function GeneratePlotTypes()
 			end
 			local hillVal = hillsFrac:GetHeight(x,y);
 			if inHima then
-				plotTypes[i] = PlotTypes.PLOT_PEAK;
+				plotTypes[i] = PlotTypes.PLOT_MOUNTAIN;
 			elseif inSichuan then
 				if hillVal >= iSixty then
 					local peakVal = peaksFrac:GetHeight(x,y);
 					if (peakVal >= iPeakSichuan) then
-						plotTypes[i] = PlotTypes.PLOT_PEAK;
+						plotTypes[i] = PlotTypes.PLOT_MOUNTAIN;
 					else
 						plotTypes[i] = PlotTypes.PLOT_HILLS;
 					end
@@ -277,7 +277,7 @@ function GeneratePlotTypes()
 				if hillVal >= iHillsTop2 then
 					local peakVal = peaksFrac:GetHeight(x,y);
 					if (peakVal >= iPeakNW) then
-						plotTypes[i] = PlotTypes.PLOT_PEAK;
+						plotTypes[i] = PlotTypes.PLOT_MOUNTAIN;
 					else
 						plotTypes[i] = PlotTypes.PLOT_HILLS;
 					end
@@ -290,7 +290,7 @@ function GeneratePlotTypes()
 				if hillVal >= iSixty then
 					local peakVal = peaksFrac:GetHeight(x,y);
 					if (peakVal >= iPeakNW) then
-						plotTypes[i] = PlotTypes.PLOT_PEAK;
+						plotTypes[i] = PlotTypes.PLOT_MOUNTAIN;
 					else
 						plotTypes[i] = PlotTypes.PLOT_HILLS;
 					end
@@ -299,7 +299,7 @@ function GeneratePlotTypes()
 				if hillVal >= iForty then
 					local peakVal = peaksFrac:GetHeight(x,y);
 					if (peakVal >= iPeakTibet) then
-						plotTypes[i] = PlotTypes.PLOT_PEAK;
+						plotTypes[i] = PlotTypes.PLOT_MOUNTAIN;
 					else
 						plotTypes[i] = PlotTypes.PLOT_HILLS;
 					end
