@@ -1120,7 +1120,7 @@ end
 
 ------------------------------------------------------------------------------
 function AssignStartingPlots:AssignCityStatesToRegionsOrToUninhabited(args)
-	-- Assign all city states away from the main continent.
+	-- PangaeaPlus: assign all city states away from the main continent.
 	local iW, iH = Map.GetGridSize()
 	self.iNumCityStatesPerRegion = 0;
 	local current_cs_index = 1;
@@ -1139,7 +1139,6 @@ function AssignStartingPlots:AssignCityStatesToRegionsOrToUninhabited(args)
 	--
 	if self.method == 3 then -- Rectangular regional division spanning the entire globe, ALL plots belong to inhabited regions.
 		self.iNumCityStatesUninhabited = 0;
-		print("Rectangular regional division spanning the whole world: all city states must belong to a region!");
 	else -- Possibility of plots that do not belong to any civ's Region. Evaluate these plots and assign an appropriate number of City States to them.
 		-- Generate list of inhabited area IDs.
 		if self.method == 1 or self.method == 2 then
@@ -1164,11 +1163,20 @@ function AssignStartingPlots:AssignCityStatesToRegionsOrToUninhabited(args)
 						   (y >= self.inhabited_SouthY and y <= self.inhabited_SouthY + self.inhabited_Height - 1) then -- Civ-inhabited rectangle
 							iNumCivLandmassPlots = iNumCivLandmassPlots + 1;
 						else
-							iNumUninhabitedLandmassPlots = iNumUninhabitedLandmassPlots + plot_count;
-							if self.plotDataIsCoastal[i] == true then
-								table.insert(self.uninhabited_areas_coastal_plots, i);
+							iNumUninhabitedLandmassPlots = iNumUninhabitedLandmassPlots + 1;
+							local bFreshwater = plot:IsRiverSide() or plot:IsLakeSide();
+							if self.plotDataIsCoastal[plotIndex] == true then
+								if bFreshwater then
+									table.insert(self.uninhabited_areas_coastal_freshwater, plotIndex);
+								else
+									table.insert(self.uninhabited_areas_coastal_plots, plotIndex);
+								end
 							else
-								table.insert(self.uninhabited_areas_inland_plots, i);
+								if bFreshwater then
+									table.insert(self.uninhabited_areas_inland_freshwater, plotIndex);
+								else
+									table.insert(self.uninhabited_areas_inland_plots, plotIndex);
+								end
 							end
 						end
 					else -- AreaID-based method must be applied, which cannot all be done in this loop
@@ -1193,7 +1201,7 @@ function AssignStartingPlots:AssignCityStatesToRegionsOrToUninhabited(args)
 					iNumCivLandmassPlots = iNumCivLandmassPlots + plot_count;
 				else
 					iNumUninhabitedLandmassPlots = iNumUninhabitedLandmassPlots + plot_count;
-					if plot_count < 2 then
+					if plot_count < 2 then -- PangaeaPlus keeps 2 here (base uses 4)
 						table.insert(areas_too_small, areaID);
 					else
 						table.insert(areas_uninhabited, areaID);
@@ -1209,24 +1217,33 @@ function AssignStartingPlots:AssignCityStatesToRegionsOrToUninhabited(args)
 						local plot = Map.GetPlot(x, y);
 						local terrainType = plot:GetTerrainType();
 						if terrainType ~= TerrainTypes.TERRAIN_SNOW then
+							local bFreshwater = plot:IsRiverSide() or plot:IsLakeSide();
 							if self.plotDataIsCoastal[plotIndex] == true then
-								table.insert(self.uninhabited_areas_coastal_plots, plotIndex);
+								if bFreshwater then
+									table.insert(self.uninhabited_areas_coastal_freshwater, plotIndex);
+								else
+									table.insert(self.uninhabited_areas_coastal_plots, plotIndex);
+								end
 							else
-								table.insert(self.uninhabited_areas_inland_plots, plotIndex);
+								if bFreshwater then
+									table.insert(self.uninhabited_areas_inland_freshwater, plotIndex);
+								else
+									table.insert(self.uninhabited_areas_inland_plots, plotIndex);
+								end
 							end
 						end
 					end
 				end
 			end
 		end
-		-- Determine the number of City States to assign to uninhabited areas.
+		-- PangaeaPlus: ALL city states go to the uninhabited areas.
 		self.iNumCityStatesUninhabited = self.iNumCityStates;
 		self.iNumCityStatesUnassigned = self.iNumCityStatesUnassigned - self.iNumCityStatesUninhabited;
 	end
-	--print("-"); print("City States assigned to Uninhabited Areas: ", self.iNumCityStatesUninhabited);
 	-- Update the city state number.
 	current_cs_index = current_cs_index + self.iNumCityStatesUninhabited;
 	
+	-- (Everything from here down is identical to the base function.)
 	if self.iNumCityStatesUnassigned > 0 then
 		-- Determine how many to place in support of regions that share their luxury type with two other regions.
 		local iNumRegionsSharedLux = 0;
@@ -1243,7 +1260,6 @@ function AssignStartingPlots:AssignCityStatesToRegionsOrToUninhabited(args)
 		else
 			self.iNumCityStatesLowFertility = self.iNumCityStatesUnassigned;
 		end
-		--print("CS Shared Lux: ", self.iNumCityStatesSharedLux, " CS Low Fert: ", self.iNumCityStatesLowFertility);
 		-- Assign remaining types to their respective regions.
 		if self.iNumCityStatesSharedLux > 0 then
 			for loop, res_ID in ipairs(shared_lux_IDs) do
@@ -1251,7 +1267,6 @@ function AssignStartingPlots:AssignCityStatesToRegionsOrToUninhabited(args)
 					local this_region_res = region_lux_data[2];
 					if this_region_res == res_ID then
 						self.city_state_region_assignments[current_cs_index] = region_lux_data[1];
-						--print("-"); print("City State", current_cs_index, "assigned to Region#", region_lux_data[1], " to compensate for Shared Luxury ID#", res_ID);
 						current_cs_index = current_cs_index + 1;
 						self.iNumCityStatesUnassigned = self.iNumCityStatesUnassigned - 1;
 					end
@@ -1263,7 +1278,6 @@ function AssignStartingPlots:AssignCityStatesToRegionsOrToUninhabited(args)
 			while self.iNumCityStatesUnassigned >= self.iNumCivs do
 				for current_region = 1, self.iNumCivs do
 					self.city_state_region_assignments[current_cs_index] = current_region;
-					--print("-"); print("City State", current_cs_index, "assigned to Region#", current_region, " to compensate for Low Fertility");
 					current_cs_index = current_cs_index + 1;
 					self.iNumCityStatesUnassigned = self.iNumCityStatesUnassigned - 1;
 				end
@@ -1274,8 +1288,6 @@ function AssignStartingPlots:AssignCityStatesToRegionsOrToUninhabited(args)
 					local area_plots = self.regionTerrainCounts[region_num][2];
 					local region_fertility = self.regionData[region_num][6];
 					local fertility_per_land_plot = region_fertility / area_plots;
-					--print("-"); print("Region#", region_num, "AreaPlots:", area_plots, "Region Fertility:", region_fertility, "Per Plot:", fertility_per_land_plot);
-					
 					table.insert(fert_unsorted, {region_num, fertility_per_land_plot});
 					table.insert(fert_sorted, fertility_per_land_plot);
 				end
@@ -1293,7 +1305,6 @@ function AssignStartingPlots:AssignCityStatesToRegionsOrToUninhabited(args)
 				end
 				for loop = 1, self.iNumCityStatesUnassigned do
 					self.city_state_region_assignments[current_cs_index] = region_list[loop];
-					--print("-"); print("City State", current_cs_index, "assigned to Region#", region_list[loop], " to compensate for Low Fertility");
 					current_cs_index = current_cs_index + 1;
 					self.iNumCityStatesUnassigned = self.iNumCityStatesUnassigned - 1;
 				end

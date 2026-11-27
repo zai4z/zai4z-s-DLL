@@ -1331,6 +1331,10 @@ function AssignStartingPlots:PlaceSmallQuantitiesOfStrategics(frequency, plot_li
 						local plotType = res_plot:GetPlotType()
 						local terrainType = res_plot:GetTerrainType()
 						local featureType = res_plot:GetFeatureType()
+						if featureType == FeatureTypes.FEATURE_CLIFFS then
+							featureType = FeatureTypes.NO_FEATURE -- cliffs count as open hills
+						end
+
 						if featureType == FeatureTypes.FEATURE_MARSH then
 							local diceroll = Map.Rand(4, "Resource selection - Place Small Quantities LUA");
 							if diceroll == 0 then
